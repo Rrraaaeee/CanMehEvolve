@@ -1,0 +1,220 @@
+diff -ruN a/src/fit_decode.cpp b/src/fit_decode.cpp
+--- a/src/fit_decode.cpp	2026-11-10 14:36:17.612447728 +0000
++++ b/src/fit_decode.cpp	2026-11-10 14:37:29.230940618 +0000
+@@ -871,7 +871,7 @@
+ 
+                         if (field.GetNumValues() > 0)
+                         {
+-                            mesg.AddField(field);
++                            mesg.AddField(std::move(field));
+                         }
+                     }
+                 }
+diff -ruN a/src/fit_field.hpp b/src/fit_field.hpp
+--- a/src/fit_field.hpp	2026-11-10 14:36:17.615447874 +0000
++++ b/src/fit_field.hpp	2026-11-10 14:36:17.681451093 +0000
+@@ -30,6 +30,8 @@
+ public:
+     Field(void);
+     Field(const Field &field);
++    Field(Field&& field) noexcept = default;
++    Field& operator=(const Field& field) = default;
+     Field(const Profile::MESG_INDEX mesgIndex, const FIT_UINT16 fieldIndex);
+     Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum);
+     Field(const std::string& mesgName, const std::string& fieldName);
+diff -ruN a/src/fit_field_base.hpp b/src/fit_field_base.hpp
+--- a/src/fit_field_base.hpp	2026-11-10 14:36:17.575445923 +0000
++++ b/src/fit_field_base.hpp	2026-11-10 14:42:52.878725176 +0000
+@@ -17,17 +17,146 @@
+ #include <iosfwd>
+ #include <string>
+ #include <vector>
++#include <cstring>
+ #include "fit.hpp"
+ #include "fit_profile.hpp"
+ 
+ namespace fit
+ {
+ 
++class SmallBytes
++{
++public:
++    typedef FIT_BYTE* iterator;
++    typedef const FIT_BYTE* const_iterator;
++
++    SmallBytes() : ptr(small), count(0), capacityBytes(INLINE_BYTES) {}
++    SmallBytes(const SmallBytes& other) : ptr(small), count(0), capacityBytes(INLINE_BYTES)
++    {
++        if (other.count <= INLINE_BYTES)
++        {
++            // A heap buffer always holds more than INLINE_BYTES, so this read is in bounds.
++            std::memcpy(small, other.ptr, INLINE_BYTES);
++            count = other.count;
++        }
++        else
++        {
++            Reserve(other.count);
++            std::memcpy(ptr, other.ptr, other.count);
++            count = other.count;
++        }
++    }
++    SmallBytes(SmallBytes&& other) noexcept : ptr(small), count(other.count), capacityBytes(INLINE_BYTES)
++    {
++        if (other.ptr == other.small)
++        {
++            std::memcpy(small, other.small, INLINE_BYTES);
++        }
++        else
++        {
++            ptr = other.ptr;
++            capacityBytes = other.capacityBytes;
++            other.ptr = other.small;
++            other.capacityBytes = INLINE_BYTES;
++        }
++        other.count = 0;
++    }
++    SmallBytes& operator=(const SmallBytes& other)
++    {
++        if (this != &other)
++        {
++            Reserve(other.count);
++            std::memcpy(ptr, other.ptr, other.count);
++            count = other.count;
++        }
++        return *this;
++    }
++    ~SmallBytes() { if (ptr != small) delete[] ptr; }
++
++    size_t size() const { return count; }
++    bool empty() const { return count == 0; }
++    FIT_BYTE* data() { return ptr; }
++    const FIT_BYTE* data() const { return ptr; }
++    iterator begin() { return ptr; }
++    iterator end() { return ptr + count; }
++    const_iterator begin() const { return ptr; }
++    const_iterator end() const { return ptr + count; }
++    FIT_BYTE& operator[](size_t i) { return ptr[i]; }
++    const FIT_BYTE& operator[](size_t i) const { return ptr[i]; }
++    FIT_BYTE& back() { return ptr[count - 1]; }
++    const FIT_BYTE& back() const { return ptr[count - 1]; }
++    void clear() { count = 0; }
++
++    void push_back(FIT_BYTE value)
++    {
++        if (count == capacityBytes) Reserve(count * 2);
++        ptr[count++] = value;
++    }
++    void resize(size_t newSize)
++    {
++        Reserve(newSize);
++        if (newSize > count) std::memset(ptr + count, 0, newSize - count);
++        count = (FIT_UINT32)newSize;
++    }
++    void assign(const FIT_BYTE* first, const FIT_BYTE* last)
++    {
++        const size_t n = (size_t)(last - first);
++        Reserve(n);
++        if (n != 0) std::memcpy(ptr, first, n);
++        count = (FIT_UINT32)n;
++    }
++    iterator erase(iterator first, iterator last)
++    {
++        std::memmove(first, last, (size_t)(end() - last));
++        count -= (FIT_UINT32)(last - first);
++        return first;
++    }
++    iterator insert(iterator position, FIT_BYTE value)
++    {
++        const size_t at = (size_t)(position - ptr);
++        if (count == capacityBytes) Reserve(count * 2);
++        std::memmove(ptr + at + 1, ptr + at, count - at);
++        ptr[at] = value;
++        count++;
++        return ptr + at;
++    }
++    void insert(iterator position, const FIT_BYTE* first, const FIT_BYTE* last)
++    {
++        const size_t at = (size_t)(position - ptr);
++        const size_t n = (size_t)(last - first);
++        Reserve(count + n);
++        if (n == 0) return;
++        std::memmove(ptr + at + n, ptr + at, count - at);
++        std::memcpy(ptr + at, first, n);
++        count += (FIT_UINT32)n;
++    }
++
++private:
++    enum { INLINE_BYTES = 16 };
++
++    void Reserve(size_t wanted)
++    {
++        if (wanted <= capacityBytes) return;
++        FIT_BYTE* grown = new FIT_BYTE[wanted];
++        std::memcpy(grown, ptr, count);
++        if (ptr != small) delete[] ptr;
++        ptr = grown;
++        capacityBytes = (FIT_UINT32)wanted;
++    }
++
++    FIT_BYTE* ptr;
++    FIT_UINT32 count;
++    FIT_UINT32 capacityBytes;
++    FIT_BYTE small[INLINE_BYTES];
++};
++
+ class FieldBase
+ {
+ public:
+     FieldBase(void);
+     FieldBase(const FieldBase& other);
++    FieldBase(FieldBase&& other) noexcept = default;
++    FieldBase& operator=(const FieldBase& other) = default;
+     virtual ~FieldBase();
+ 
+     std::string GetName(const FIT_UINT16 subFieldIndex) const;
+@@ -125,7 +254,7 @@
+     FIT_FLOAT64 GetRawValueInternal(const FIT_UINT8 fieldArrayIndex = 0) const;
+     static FIT_FLOAT64 Round(FIT_FLOAT64 value);
+ 
+-    std::vector<FIT_BYTE> values;
++    SmallBytes values;
+     std::vector<FIT_UINT8> stringIndexes;
+ };
+ 
+diff -ruN a/src/fit_mesg.cpp b/src/fit_mesg.cpp
+--- a/src/fit_mesg.cpp	2026-11-10 14:36:17.609447581 +0000
++++ b/src/fit_mesg.cpp	2026-11-10 14:37:29.229940569 +0000
+@@ -12,6 +12,7 @@
+ 
+ #include <ostream>
+ #include <algorithm>
++#include <utility>
+ #include "fit_mesg.hpp"
+ #include "fit_mesg_definition.hpp"
+ 
+@@ -180,6 +181,14 @@
+         fields.push_back(field);
+ }
+ 
++void Mesg::AddField(Field&& field)
++{
++    Field *existingField = GetField(field.GetNum());
++
++    if (existingField == FIT_NULL)
++        fields.push_back(std::move(field));
++}
++
+ Field* Mesg::AddField(const FIT_UINT8 fieldNum)
+ {
+     Field *field = GetField(fieldNum);
+diff -ruN a/src/fit_mesg.hpp b/src/fit_mesg.hpp
+--- a/src/fit_mesg.hpp	2026-11-10 14:36:17.616447923 +0000
++++ b/src/fit_mesg.hpp	2026-11-10 14:37:29.155936960 +0000
+@@ -44,6 +44,7 @@
+     void SetLocalNum(const FIT_UINT8 newLocalNum);
+     FIT_BOOL HasField(const int fieldNum) const;
+     void AddField(const Field& field);
++    void AddField(Field&& field);
+     Field* AddField(const FIT_UINT8 fieldNum);
+     void AddDeveloperField(const DeveloperField& field);
+     void SetField(const Field& field);
