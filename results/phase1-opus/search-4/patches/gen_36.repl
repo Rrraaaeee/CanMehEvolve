@@ -1,0 +1,50 @@
+The rewrite keeps the same results, including first-match semantics for duplicate message numbers.
+
+- **Pointer table:** the table now stores pointers directly, which removes the per-call index check and the address arithmetic.
+- **Large message numbers:** the constructor also precomputes a short ordered list of profile messages with `num >= 1024`. Unknown manufacturer-specific message numbers (≥ 0xFF00) then scan only that list, which is likely empty, instead of the whole `mesgs` array.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    struct Table
+    {
+        const Profile::MESG* ptr[TABLE_SIZE];
+        FIT_UINT16 hiNum[MESGS > 0 ? MESGS : 1];
+        const Profile::MESG* hiPtr[MESGS > 0 ? MESGS : 1];
+        int hiCount;
+        Table()
+        {
+            hiCount = 0;
+            for (int k = 0; k < TABLE_SIZE; k++)
+                ptr[k] = NULL;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < TABLE_SIZE)
+                {
+                    if (ptr[n] == NULL)
+                        ptr[n] = &mesgs[i];
+                }
+                else
+                {
+                    hiNum[hiCount] = n;
+                    hiPtr[hiCount] = &mesgs[i];
+                    hiCount++;
+                }
+            }
+        }
+    };
+    static const Table table;
+
+    if (num < TABLE_SIZE)
+        return table.ptr[num];
+
+    for (int i = 0; i < table.hiCount; i++)
+    {
+        if (table.hiNum[i] == num)
+            return table.hiPtr[i];
+    }
+    return NULL;
+}
+```

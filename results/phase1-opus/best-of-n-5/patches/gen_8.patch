@@ -1,0 +1,13 @@
+--- a/src/fit_dive_summary_mesg.hpp
++++ b/src/fit_dive_summary_mesg.hpp
+@@ -245,7 +245,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_UINT32 GetSurfaceInterval(void) const
+     {
+-        return GetFieldUINT32Value(4, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        constexpr FIT_UINT8 kFieldNum = 4;
++        constexpr FIT_UINT8 kArrayIndex = 0;
++        return GetFieldUINT32Value(kFieldNum, kArrayIndex, static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

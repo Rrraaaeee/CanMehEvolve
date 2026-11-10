@@ -1,0 +1,18 @@
+The change caches the result of `GetType()` in a local variable. The original code calls it up to twice per invocation. In the SDK it is a virtual call, so the compiler cannot merge the two calls.
+
+This assumes `GetType()` has no side effects, as in the SDK. Under that assumption the behavior is unchanged.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

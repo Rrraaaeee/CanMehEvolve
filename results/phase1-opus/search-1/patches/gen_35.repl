@@ -1,0 +1,14 @@
+The constructor is already minimal. It copies the base and four small members through the initializer list, so no meaningful speedup is available here. The time goes to `FieldBase`'s copy, and this function cannot change that.
+
+The version below does the same thing with the same initialization order. The only difference is formatting, so you should expect no measurable speed change.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

@@ -1,0 +1,14 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -473,7 +473,10 @@
+ {
+     const Field *field = GetField(fieldNum);
+ 
+-    if ((field == FIT_NULL) || (!CanSupportSubField(fieldNum, subFieldIndex)))
++    if (field == FIT_NULL)
++        return FIT_UINT8_INVALID;
++
++    if ((subFieldIndex != FIT_SUBFIELD_INDEX_MAIN_FIELD) && (!CanSupportSubField(fieldNum, subFieldIndex)))
+         return FIT_UINT8_INVALID;
+ 
+     return field->GetUINT8Value(fieldArrayIndex);

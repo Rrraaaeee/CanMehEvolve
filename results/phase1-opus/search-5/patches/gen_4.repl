@@ -1,0 +1,12 @@
+The function is already minimal, so any gain is small. This version reads `profile` and `profileIndex` into locals once. It also uses `__builtin_expect` to mark the valid-field path as the likely one, which keeps the common return on the straight-line path. Behavior is unchanged: a null profile or out-of-range index still returns `FIT_FIELD_NUM_INVALID`.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* p = profile;
+    const auto idx = profileIndex;
+    if (__builtin_expect((p != NULL) && (idx < p->numFields), 1))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

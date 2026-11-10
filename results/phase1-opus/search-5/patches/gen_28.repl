@@ -1,0 +1,24 @@
+The previous version branched on `sz == 1`. This version computes the shift without a branch, using `(sz >> 1) - (sz >> 3)`. For the FIT base-type sizes 1, 2, 4 and 8 this gives 0, 1, 2 and 3, so the result equals the original `values.size() / sz`. The rest is unchanged:
+- The string case still returns `stringIndexes.size()`.
+- The virtual `IsValid()` and `GetType()` calls are untouched.
+
+I have not measured whether removing this one branch makes decoding noticeably faster.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type == FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)stringIndexes.size();
+
+    const size_t n = values.size();
+    const unsigned sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    // sz is one of 1,2,4,8 -> shift 0,1,2,3
+    const unsigned shift = (sz >> 1) - (sz >> 3);
+    return (FIT_UINT8)(n >> shift);
+}
+```

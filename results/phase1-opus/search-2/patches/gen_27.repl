@@ -1,0 +1,28 @@
+The current version falls back to a linear scan of every message for any number at or above 1024. Manufacturer-specific numbers in 0xFF00–0xFFFE never match, so each one costs a full scan.
+
+This rewrite indexes all 65536 possible message numbers, so every lookup is a direct table access with no scan. Each entry is a 16-bit index (128 KB in total) rather than a pointer, which would need 512 KB on 64-bit, so the table stays more cache-friendly.
+
+The table is filled from the last message down to the first, so when two messages share a number the first one wins, as in the original scan. `MESGS` is far smaller than 65535, so 0xFFFF is safe to use as the "not found" value.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[65536];
+        Index()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+                idx[(FIT_UINT16)mesgs[i].num] = (FIT_UINT16)i;
+        }
+    };
+    static const Index table;
+
+    const FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

@@ -1,0 +1,14 @@
+The function's logic and call order are unchanged; only branch-layout hints are added. The common call is the main-field lookup, where `subFieldIndex` is the sentinel `0xFFFF` and the index is out of range. Marking that path as likely lets the compiler lay it out as the fall-through path. Every virtual call happens in the same order and under the same conditions as before, so decoded values and side effects stay identical. Any speedup will be small, at most a few branch mispredictions saved per call.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const
+{
+    if (__builtin_expect(subFieldIndex >= GetNumSubFields(), 1))
+        return GetScale();
+
+    const auto subfield = GetSubField(subFieldIndex);
+    if (__builtin_expect(NULL != subfield, 1))
+        return subfield->scale;
+    return 1.0;
+}
+```

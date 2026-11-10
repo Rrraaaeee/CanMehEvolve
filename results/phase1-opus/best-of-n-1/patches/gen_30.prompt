@@ -1,0 +1,11 @@
+File: src/fit_segment_lap_mesg.hpp
+Function: SetTotalStrokes
+One decode of the test corpus takes about 358.135 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetTotalStrokes(FIT_UINT32 totalStrokes)
+    {
+        SetFieldUINT32Value(10, totalStrokes, 0, (FIT_UINT16) Profile::SEGMENT_LAP_MESG_TOTAL_CYCLES_FIELD_TOTAL_STROKES);
+    }
+```

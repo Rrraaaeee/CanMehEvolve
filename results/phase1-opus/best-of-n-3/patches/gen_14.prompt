@@ -1,0 +1,14 @@
+File: src/fit_mesg_definition.cpp
+Function: MesgDefinition::GetFieldByIndex
+One decode of the test corpus takes about 358.548 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    if (index < fields.size())
+        return &(fields[index]);
+
+    return FIT_NULL;
+}
+```

@@ -1,0 +1,33 @@
+This version stores `const MESG*` pointers in the lookup table instead of 16-bit indices. A hit now needs one load and no `0xFFFF` check or index arithmetic, because a missing entry is stored as NULL. The table is filled from the last message to the first, so for duplicate numbers it keeps the first match, the same one the linear scan returns. Numbers of 1024 and above still use the original linear scan, so their results are unchanged.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        const MESG* ptr[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                ptr[k] = NULL;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < SMALL)
+                    ptr[mesgs[i].num] = &mesgs[i];
+            }
+        }
+    };
+    static const Index index;
+
+    if (__builtin_expect(num < SMALL, 1))
+        return index.ptr[num];
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

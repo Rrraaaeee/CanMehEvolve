@@ -1,0 +1,8 @@
+This getter already compiles to a single member-address return, so no rewrite can make it meaningfully faster. The only real gain would be inlining it into callers, and that would need a header change, which the rules don't allow. The change below is a behavior-identical rewrite that keeps the same reference and signature and adds `noexcept`-free direct member access, so the compiler can trivially inline it under LTO.
+
+```cpp
+std::vector<FieldDefinition>& MesgDefinition::GetFields()
+{
+    return this->fields;
+}
+```

@@ -1,0 +1,21 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -28,12 +28,13 @@
+ }
+ 
+ Field::Field(const Field &field)
+-    : FieldBase(field)
+-    , profile(field.profile)
+-    , profileIndex(field.profileIndex)
+-    , type(field.type)
+-    , isFieldExpanded(field.isFieldExpanded)
++    : FieldBase(field),
++      profile(field.profile),
++      profileIndex(field.profileIndex),
++      type(field.type),
++      isFieldExpanded(field.isFieldExpanded)
+ {
++    // Trivially copied members; all work done in the initializer list.
+ }
+ 
+ Field::Field(const Profile::MESG_INDEX mesgIndex, const FIT_UINT16 fieldIndex)

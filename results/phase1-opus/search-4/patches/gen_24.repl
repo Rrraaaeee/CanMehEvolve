@@ -1,0 +1,15 @@
+The member-wise copy is already close to optimal, so this change is small. The common case is a message with no developer fields. In that case we skip the copy call for `devFields` and leave the vector default-constructed.
+
+When developer fields exist, assigning them into the empty vector does one exact-size allocation, the same as a copy-construct would. The resulting `Mesg` is identical to the one the original constructor produces.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields)
+    , devFields()
+{
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

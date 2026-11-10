@@ -1,0 +1,12 @@
+File: src/fit_segment_lap_mesg.hpp
+Function: GetMaxFractionalCadence
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.861872 of the original SDK's decode time; the best found so far is 0.861211.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_FLOAT32 GetMaxFractionalCadence(void) const
+    {
+        return GetFieldFLOAT32Value(67, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

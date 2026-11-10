@@ -1,0 +1,46 @@
+This version replaces the 64K-entry lookup table with a 1024-entry table for message numbers below 1024. Message numbers of 1024 or higher fall back to a linear scan of `mesgs`.
+
+- **Why it should be faster:** the full table is 64 KB with 8-bit indices or 128 KB with 16-bit ones, so lookups tend to miss the cache. The small table is about 2 KB and stays cache-resident.
+- **Why it returns the same message as before:**
+  - Every table slot keeps the lowest index `i` with that `num`, because the build loop runs backwards and lower indices overwrite higher ones.
+  - The fallback scan runs forwards from index 0, so it also returns the lowest matching index.
+  - When nothing matches, both paths return `NULL`.
+- **Expected cost of the fallback:** profile message numbers are almost all small, so the scan should rarely run. I have not checked the profile for numbers of 1024 or above, and these cost a full scan of `mesgs`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < SMALL)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < SMALL)
+    {
+        const FIT_UINT16 i = table.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

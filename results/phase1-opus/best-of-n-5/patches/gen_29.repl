@@ -1,0 +1,15 @@
+The copy constructor already does the least work it can: it copies the `FieldBase` sub-object and four plain members. I don't know `FieldBase`'s layout, so I can't safely restructure that copy. The only change here is formatting, and it does not change the compiled code.
+
+Real speedups would have to come from elsewhere:
+- avoiding `Field` copies at the call sites (moves or references);
+- giving `FieldBase` a cheaper copy.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{}
+```

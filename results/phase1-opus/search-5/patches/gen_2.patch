@@ -1,0 +1,22 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -81,15 +81,10 @@
+ 
+ FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+ {
+-    switch (GetType(subFieldIndex)) {
+-        case FIT_BASE_TYPE_SINT8:
+-        case FIT_BASE_TYPE_SINT16:
+-        case FIT_BASE_TYPE_SINT32:
+-            return FIT_TRUE;
+-
+-        default:
+-            return FIT_FALSE;
+-    }
++    const FIT_UINT8 type = static_cast<FIT_UINT8>(GetType(subFieldIndex));
++    return ((type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT8)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT16)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT32))) ? FIT_TRUE : FIT_FALSE;
+ }
+ 
+ FIT_UINT8 FieldBase::GetSize(void) const

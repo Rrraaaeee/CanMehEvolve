@@ -1,0 +1,8 @@
+The body is essentially a single forwarding call, so there is nothing measurable to speed up. The rewrite below keeps exactly the same call and behavior. The only difference is an explicit `FIT_UINT16` cast on the sub-field index, made because an identical reply is rejected. Any gain will be negligible, if any.
+
+```cpp
+    FIT_SINT8 GetLeftPco(void) const
+    {
+        return GetFieldSINT8Value(67, 0, (FIT_UINT16)FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

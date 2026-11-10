@@ -1,0 +1,45 @@
+null run: ratio 1.00032, p 0.576172, baseline 358.729 ms
+5514 of 5514 regions are drawable
+profile: perf took 19955 samples, 6994 inside a region, 2024 in the tree outside every region
+gen 1: ratio 1.00164 p 0.00976562
+gen 2: ratio 1.00038 p 0.341797
+gen 3: ratio 0.996585 p 0.0078125
+gen 4: ratio 0.999827 p 0.496094
+gen 5: ratio 1.00285 p 0.00195312
+gen 6: ratio 0.946203 p 0.00195312 CONFIRMED improved
+gen 7: ratio 1.00306 p 0.00195312
+gen 8: ratio 0.999001 p 0.205078
+gen 9: ratio 0.99821 p 0.00195312
+gen 10: ratio 0.997747 p 0.00195312
+gen 11: ratio 0.995025 p 0.00390625
+gen 12: ratio 0.986395 p 0.00195312
+gen 13: ratio 0.999767 p 0.822266
+gen 14: ratio 0.996617 p 0.03125
+gen 15: ratio 1.00256 p 0.0214844
+gen 16: ratio 1.00171 p 0.0878906
+gen 17: ratio 0.940166 p 0.00195312 CONFIRMED improved
+gen 18: ratio 0.980559 p 0.00195312
+gen 19: ratio 0.944401 p 0.00195312 CONFIRMED improved
+gen 20: ratio 0.980032 p 0.00195312
+gen 21: ratio 0.997492 p 0.00195312
+gen 22: ratio 1.00344 p 0.00195312
+gen 23: ratio 0.992771 p 0.00390625
+gen 24: ratio 0.959449 p 0.00195312 CONFIRMED improved
+gen 25: ratio 0.941194 p 0.00195312 CONFIRMED improved
+gen 26: ratio 1.00042 p 0.628906
+gen 27: ratio 0.924869 p 0.00195312 CONFIRMED improved
+gen 28: ratio 0.940677 p 0.00195312 CONFIRMED improved
+gen 29: ratio 0.947233 p 0.00195312 CONFIRMED improved
+gen 30: ratio 0.999242 p 0.355469
+gen 31: ratio 1.00055 p 0.332031
+gen 32: ratio 0.94074 p 0.00195312 CONFIRMED improved
+gen 33: ratio 0.997821 p 0.00976562
+gen 34: ratio 0.998831 p 0.148438
+gen 35: ratio 0.999955 p 0.853516
+gen 36: ratio 0.940466 p 0.00195312 CONFIRMED improved
+gen 37: ratio 0.923651 p 0.00195312 CONFIRMED improved
+gen 38: ratio 0.941168 p 0.00195312 CONFIRMED improved
+gen 39: ratio 0.922562 p 0.00195312 CONFIRMED improved
+gen 40: ratio 1.00265 p 0.0136719
+best confirmed speedup 1.08394 after 40 calls and 49887 tokens
+exit status: 0

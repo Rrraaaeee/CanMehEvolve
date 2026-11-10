@@ -1,0 +1,15 @@
+Most calls likely pass the main-field sentinel index `0xFFFF`. For that index, `subFieldIndex >= GetNumSubFields()` is always true, because the subfield count is at most 0xFFFF. So the new first check can return `GetScale()` directly and skip the subfield-count lookup. All other indices follow the original logic unchanged, so results are the same for every input.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == 0xFFFF)
+        return GetScale();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetScale();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->scale : 1.0;
+}
+```

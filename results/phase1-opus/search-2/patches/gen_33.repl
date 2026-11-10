@@ -1,0 +1,13 @@
+A defaulted member-wise copy is already close to optimal here, so there is no meaningful speedup to find in this function. Both members are copy-constructed directly in the initializer list.
+
+The only change is that `stringIndexes` is default-constructed and then copied in the body, and only if it is non-empty. Copying an empty vector does not allocate anyway, so any gain is marginal at best. Behavior is identical.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes()
+{
+    if (!field.stringIndexes.empty())
+        stringIndexes = field.stringIndexes;
+}
+```

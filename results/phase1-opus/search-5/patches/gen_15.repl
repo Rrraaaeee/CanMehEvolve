@@ -1,0 +1,24 @@
+The main change is swapping the integer division for a right shift.
+
+- **Why it is safe:** every entry in `baseTypeSizes` is a power of two (1, 2, 4 or 8). For an unsigned `n` and a power-of-two `sz`, `n / sz` equals `n >> ctz(sz)`, so every result is unchanged. A zero size is not handled, but the original would already crash dividing by zero there.
+- **Why it is faster:** the shift avoids the slow integer divide that the original falls into whenever the size is not 1. The common size-1 case keeps its direct early return.
+- **Other changes:** `IsValid()` and `GetType()` are each called only once, and the string branch is unchanged.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type == FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)stringIndexes.size();
+
+    const size_t n = values.size();
+    const unsigned sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    if (sz == 1)
+        return (FIT_UINT8)n;
+    return (FIT_UINT8)(n >> __builtin_ctz(sz));
+}
+```

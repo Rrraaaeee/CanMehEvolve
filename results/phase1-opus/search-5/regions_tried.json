@@ -1,0 +1,182 @@
+[
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.010680227239189266,
+    "file": "src/fit_crc.cpp",
+    "label": "CRC::Get16",
+    "region": 26,
+    "samples": 116
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_developer_field_definition.cpp",
+    "label": "DeveloperFieldDefinition::DeveloperFieldDefinition",
+    "region": 80,
+    "samples": 72
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0006244712412823983,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 404
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.00025873936415032883,
+    "file": "src/fit_field.cpp",
+    "label": "Field::IsValid",
+    "region": 118,
+    "samples": 86
+  },
+  {
+    "accepted": 0,
+    "attempts": 3,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNum",
+    "region": 122,
+    "samples": 504
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 716
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumComponents",
+    "region": 127,
+    "samples": 71
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumSubFields",
+    "region": 128,
+    "samples": 146
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.002584308742778929,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetOffset",
+    "region": 140,
+    "samples": 56
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::IsSignedInteger",
+    "region": 141,
+    "samples": 5
+  },
+  {
+    "accepted": 3,
+    "attempts": 4,
+    "best_gain": 0.013461176714240852,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetNumValues",
+    "region": 143,
+    "samples": 237
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.005068074193691041,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetValue",
+    "region": 196,
+    "samples": 295
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0001458284051607528,
+    "file": "src/fit_mesg_definition.cpp",
+    "label": "MesgDefinition::GetDeveloperFieldTotalSize",
+    "region": 568,
+    "samples": 5
+  },
+  {
+    "accepted": 6,
+    "attempts": 12,
+    "best_gain": 0.05400187469119433,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1305
+  },
+  {
+    "accepted": 3,
+    "attempts": 5,
+    "best_gain": 0.03727284310132273,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetFieldIndex",
+    "region": 576,
+    "samples": 295
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0002378457190140848,
+    "file": "src/fit_accelerometer_data_mesg.hpp",
+    "label": "AccelerometerDataMesg",
+    "region": 615,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_hsa_body_battery_data_mesg.hpp",
+    "label": "IsUnchargedValid",
+    "region": 2199,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_file_mesg.hpp",
+    "label": "GetMessageIndex",
+    "region": 3556,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_lap_mesg.hpp",
+    "label": "SetMaxNegVerticalSpeed",
+    "region": 3772,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_session_mesg.hpp",
+    "label": "IsTotalFractionalAscentValid",
+    "region": 4454,
+    "samples": 0
+  }
+]

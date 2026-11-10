@@ -1,0 +1,20 @@
+The function makes the same calls in the same order: `GetNumSubFields()`, then `GetSubField(subFieldIndex)` only when the index is in range, otherwise `GetScale()`. Behavior is therefore unchanged. Without seeing those virtual implementations I can't make a bigger change safely, so this is only a small rewrite.
+
+- It tests the common in-range case first.
+- It binds the result as a const pointer and returns `1.0` explicitly for a null subfield.
+- Any speedup will be small at best. The real cost is likely in the virtual calls, which this keeps.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex < GetNumSubFields())
+    {
+        const auto subfield = GetSubField(subFieldIndex);
+        if (NULL != subfield)
+            return subfield->scale;
+        return 1.0;
+    }
+
+    return GetScale();
+}
+```

@@ -1,0 +1,9 @@
+This setter is almost certainly not on the decode path, so no rewrite of it will measurably change decode time. The version below makes the call explicit through `this->` and a named constant. It produces the same call with the same arguments, so behavior is unchanged.
+
+```cpp
+    void SetMaxNegVerticalSpeed(FIT_FLOAT32 maxNegVerticalSpeed)
+    {
+        static constexpr FIT_UINT8 kFieldNum = 48;
+        this->SetFieldFLOAT32Value(kFieldNum, maxNegVerticalSpeed, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

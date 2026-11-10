@@ -1,0 +1,34 @@
+The previous version used a 128 KB index of 16-bit slots. This one shrinks the index to 64 KB by storing 8-bit indices whenever the message count allows, so lookups touch less memory and hit the cache more often. Behavior is unchanged:
+- **Lookup result:** the lowest index whose `num` matches wins, as before.
+- **Missing numbers:** they still return `NULL`.
+- **Fallback:** if `MESGS` is too large for 8-bit indices, the table keeps 16-bit slots.
+
+One assumption: this only compiles if `MESGS` is a compile-time constant, since it is used as a template argument. I believe the SDK declares it that way, but I haven't checked.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    struct Index
+    {
+        IdxT idx[65536];
+        Index()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = (IdxT)~(IdxT)0;
+            for (int i = (int)MESGS - 1; i >= 0; i--)
+                idx[mesgs[i].num] = (IdxT)i;
+        }
+    };
+    static const Index index;
+
+    const IdxT i = index.idx[num];
+    if (i == (IdxT)~(IdxT)0)
+        return NULL;
+    return &mesgs[i];
+}
+```
+
+```includes
+#include <type_traits>
+```

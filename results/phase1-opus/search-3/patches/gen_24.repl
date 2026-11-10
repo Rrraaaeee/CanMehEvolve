@@ -1,0 +1,47 @@
+The lookup now uses a table built once, the first time `GetMesg` is called; afterwards each lookup is a single array access instead of a linear scan.
+
+- **What the table covers:** message numbers below 1024, which are the profile entries that come up most. Each slot stores the index of the first `mesgs` entry with that number, or a "none" marker.
+- **Same results as before:**
+  - Filling the table forwards and keeping only the first index seen means duplicate numbers resolve to the same entry the old scan returned.
+  - A number below 1024 with no entry gives `NULL`, as before.
+  - Numbers of 1024 and above, such as manufacturer-specific ranges, still use the original linear scan.
+- **Cost:** the table is about 2 KB and is built from the constant `mesgs` data. A function-local static gives thread-safe one-time setup and adds no mutable global state.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    struct Table
+    {
+        FIT_UINT16 idx[TABLE_SIZE];
+        Table()
+        {
+            for (int k = 0; k < TABLE_SIZE; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < TABLE_SIZE && idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Table table;
+
+    if (num < TABLE_SIZE)
+    {
+        FIT_UINT16 i = table.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

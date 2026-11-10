@@ -1,0 +1,8 @@
+This function is already a single 16-bit compare and has no meaningful room to get faster. The rewrite below only adds an explicit cast and a `static_cast` on the sentinel. It produces exactly the same result for every input, but it should not change decode time measurably.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return static_cast<FIT_BOOL>(profileIndex != static_cast<FIT_UINT16>(FIT_UINT16_INVALID));
+}
+```

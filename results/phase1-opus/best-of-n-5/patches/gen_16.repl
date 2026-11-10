@@ -1,0 +1,38 @@
+The rewrite calls `GetType()` once instead of twice. It also reads the bytes through a raw pointer to `values`. When the field's byte size equals `sizeof(T)` on a little-endian host, it does one `memcpy` instead of the byte-by-byte shift loop. That gives the same bits as the original loop, because the loop assembles bytes least-significant first. Mismatched sizes and big-endian hosts keep the original loop unchanged.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const auto* src = &values[0] + (static_cast<size_t>(fieldArrayIndex) * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, src, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(src[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

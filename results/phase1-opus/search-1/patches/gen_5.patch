@@ -1,0 +1,45 @@
+--- a/src/fit_field_description_mesg.hpp
++++ b/src/fit_field_description_mesg.hpp
+@@ -131,7 +131,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+     {
+-        return GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return static_cast<FIT_FIT_BASE_TYPE>(GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,6 +3057,31 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    struct Table
++    {
++        short idx[1024];
++        Table()
++        {
++            for (int k = 0; k < 1024; k++)
++                idx[k] = -1;
++            for (int i = 0; i < MESGS; i++)
++            {
++                FIT_UINT16 n = mesgs[i].num;
++                if (n < 1024 && idx[n] < 0)
++                    idx[n] = (short)i;
++            }
++        }
++    };
++    static const Table table;
++
++    if (num < 1024)
++    {
++        int i = table.idx[num];
++        if (i >= 0)
++            return &mesgs[i];
++        return NULL;
++    }
++
+     for (int i = 0; i < MESGS; i++)
+     {
+         if (mesgs[i].num == num)

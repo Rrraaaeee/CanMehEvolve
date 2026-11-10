@@ -1,0 +1,13 @@
+The function is already minimal, so any speedup can only come from a cheaper branch. This version returns the same value in both cases, and the gain is likely negligible.
+
+- It replaces the `if` with a ternary that is explicitly cast to `FIT_UINT16`.
+- `__builtin_expect` marks the non-null case as the common one, so the compiler can arrange the code for that path. This assumes most messages have a profile.
+
+```cpp
+FIT_UINT16 Mesg::GetNum() const
+{
+    return __builtin_expect(profile != FIT_NULL, 1)
+        ? static_cast<FIT_UINT16>(profile->num)
+        : static_cast<FIT_UINT16>(FIT_MESG_NUM_INVALID);
+}
+```

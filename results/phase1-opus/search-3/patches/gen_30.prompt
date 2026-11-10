@@ -1,0 +1,78 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::Read
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.868819 of the original SDK's decode time; the best found so far is 0.867271.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeNum = type & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 typeSize = baseTypeSizes[typeNum];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        FIT_UINT8 index = 0;
+        while (index < size && byteData[index] == 0)
+            index++;
+
+        if (index >= size)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        const int sz = size;
+        for (int pos = 0; pos < sz; pos++)
+        {
+            if (byteData[pos] == 0 && (pos + 2) < sz)
+            {
+                stringIndexes.push_back((FIT_UINT8)(pos + 1));
+            }
+        }
+
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *invalid = (const FIT_BYTE *) baseTypeInvalids[typeNum];
+
+    if (typeSize == 1)
+    {
+        const FIT_BYTE inv = invalid[0];
+        for (int i = 0; i < size; i++)
+        {
+            if (byteData[i] != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, invalid, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```

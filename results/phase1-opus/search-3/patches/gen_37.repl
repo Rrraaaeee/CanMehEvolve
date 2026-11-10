@@ -1,0 +1,12 @@
+The original is already minimal. This version reads the vector's size once, indexes through `fields.data()` instead of `operator[]`, and marks the in-range path as the likely branch. The return values are unchanged: a pointer to the element when `index` is in range, and `FIT_NULL` otherwise. Any speedup will be small.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const size_t n = fields.size();
+    if (__builtin_expect(static_cast<size_t>(index) < n, 1))
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```

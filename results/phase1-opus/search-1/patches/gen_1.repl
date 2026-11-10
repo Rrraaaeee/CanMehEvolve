@@ -1,0 +1,8 @@
+Behavior has to stay exactly the same, and the real work happens inside `Mesg::GetFieldUINT8Value`, which is outside this function. Rewriting its field lookup inline would risk changing results, so this version keeps the same call. The only change is an explicit cast to the return type. Expect no measurable speedup from this function alone.
+
+```cpp
+    FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+    {
+        return static_cast<FIT_FIT_BASE_TYPE>(GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

@@ -1,0 +1,18 @@
+File: src/fit_hsa_body_battery_data_mesg.hpp
+Function: IsUnchargedValid
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.926562 of the original SDK's decode time; the best found so far is 0.926562.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_BOOL IsUnchargedValid(FIT_UINT8 index) const
+    {
+        const Field* field = GetField(3);
+        if( FIT_NULL == field )
+        {
+            return FIT_FALSE;
+        }
+
+        return field->IsValueValid(index);
+    }
+```

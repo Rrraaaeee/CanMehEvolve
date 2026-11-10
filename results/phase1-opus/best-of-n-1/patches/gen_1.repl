@@ -1,0 +1,12 @@
+This copy constructor only does member-wise copies, and the real cost is in `FieldBase`'s copy constructor (copying the value storage), which I can't change from here. I can't make this function meaningfully faster without changing behavior. The version below is a semantically identical rewrite: it uses brace initialization, keeps the same initialization order and has no extra work. Don't expect a measurable speedup from it.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase{field}
+    , profile{field.profile}
+    , profileIndex{field.profileIndex}
+    , type{field.type}
+    , isFieldExpanded{field.isFieldExpanded}
+{
+}
+```

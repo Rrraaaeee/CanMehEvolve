@@ -1,0 +1,15 @@
+The original calls the virtual `GetType()` up to twice per invocation. This version calls it once and keeps the result in a local. This assumes `GetType()` is a side-effect-free const getter, as it is in the SDK, so returning the same value from one call changes nothing observable. `IsValid()` is still checked first, and the arithmetic and casts are unchanged.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+    if (type != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

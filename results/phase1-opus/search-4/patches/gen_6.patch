@@ -1,0 +1,32 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_session_mesg.hpp
++++ b/src/fit_session_mesg.hpp
+@@ -4266,7 +4266,10 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FLOAT32 GetEnhancedAvgAltitude(void) const
+     {
+-        return GetFieldFLOAT32Value(126, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        const Field* field = GetField(126);
++        if (field == FIT_NULL)
++            return FIT_FLOAT32_INVALID;
++        return field->GetFLOAT32Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

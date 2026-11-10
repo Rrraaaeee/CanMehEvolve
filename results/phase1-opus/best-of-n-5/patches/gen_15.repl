@@ -1,0 +1,11 @@
+The function is already minimal, so the gain is small. This version reads `profile` into a local once, which removes a repeated member load. It also marks the error path as unlikely so the compiler lays out the common case as a straight fall-through. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[profileIndex].num;
+}
+```

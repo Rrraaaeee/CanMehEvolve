@@ -1,0 +1,17 @@
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3084,9 +3084,12 @@
+     if (mesg == NULL)
+         return FIT_UINT16_INVALID;
+ 
+-    for (FIT_UINT16 i = 0; i < mesg->numFields; i++)
++    const FIT_UINT16 numFields = mesg->numFields;
++    const FIELD *fields = mesg->fields;
++
++    for (FIT_UINT16 i = 0; i < numFields; i++)
+     {
+-        if (mesg->fields[i].num == fieldNum)
++        if (fields[i].num == fieldNum)
+             return i;
+     }
+ 

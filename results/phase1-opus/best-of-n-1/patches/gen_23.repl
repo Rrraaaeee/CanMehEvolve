@@ -1,0 +1,36 @@
+The original does a linear scan over the whole profile table on every call. This version builds a 65536-entry index table once, on the first call, and then each lookup is a single array access.
+
+- **Same results:** for duplicate `num` values, only the first slot is recorded, so the first match in `mesgs` is returned, as before. Unknown numbers still return `NULL`.
+- **Data source:** the table is built only from the constant profile data, not from any mutable state.
+- **Thread safety:** a function-local static is initialized thread-safely in C++11 and later.
+- **Assumption:** this requires `MESGS < 0xFFFF`, since `0xFFFF` marks an empty slot. The profile table is far smaller than that.
+- **Cost:** about 128 KB of memory for the table.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        std::vector<FIT_UINT16> idx;
+        Index() : idx(65536, (FIT_UINT16)0xFFFF)
+        {
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == (FIT_UINT16)0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    FIT_UINT16 i = index.idx[num];
+    if (i == (FIT_UINT16)0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```
+
+```includes
+#include <vector>
+```

@@ -1,0 +1,173 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -18,6 +18,8 @@
+ #include "fit_mesg_listener.hpp"
+ #include "fit_developer_data_id_mesg.hpp"
+ #include "fit_developer_field.hpp"
++#include <cstring>
++#include <cstdint>
+ 
+ 
+ namespace fit
+@@ -409,22 +411,56 @@
+ 
+ void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+ {
+-    FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+-    FIT_UINT8 numElements = size / typeSize;
++    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
++        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE))
++        return;
++
++    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++    if (typeSize <= 1)
++        return;
++    const int numElements = (FIT_UINT8)(size / typeSize);
++    FIT_UINT8* p = fieldData;
+ 
+-    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) != 0) &&
+-        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) != FIT_ARCH_ENDIAN_LITTLE))
++    switch (typeSize)
+     {
+-        // Swap the bytes for each element.
+-        for (int element = 0; element < numElements; element++)
++    case 2:
++        for (int e = 0; e < numElements; e++, p += 2)
++        {
++            uint16_t v;
++            std::memcpy(&v, p, 2);
++            v = __builtin_bswap16(v);
++            std::memcpy(p, &v, 2);
++        }
++        break;
++    case 4:
++        for (int e = 0; e < numElements; e++, p += 4)
++        {
++            uint32_t v;
++            std::memcpy(&v, p, 4);
++            v = __builtin_bswap32(v);
++            std::memcpy(p, &v, 4);
++        }
++        break;
++    case 8:
++        for (int e = 0; e < numElements; e++, p += 8)
++        {
++            uint64_t v;
++            std::memcpy(&v, p, 8);
++            v = __builtin_bswap64(v);
++            std::memcpy(p, &v, 8);
++        }
++        break;
++    default:
++        for (int e = 0; e < numElements; e++, p += typeSize)
+         {
+             for (int i = 0; i < (typeSize / 2); i++)
+             {
+-                FIT_UINT8 tmp = fieldData[element * typeSize + i];
+-                fieldData[element * typeSize + i] = fieldData[element * typeSize + typeSize - i - 1];
+-                fieldData[element * typeSize + typeSize - i - 1] = tmp;
++                FIT_UINT8 t = p[i];
++                p[i] = p[typeSize - i - 1];
++                p[typeSize - i - 1] = t;
+             }
+         }
++        break;
+     }
+ }
+ 
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -1131,17 +1132,27 @@
+ template <typename T>
+ T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    FIT_UINT8 size = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
++    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
++    const FIT_UINT8 size = baseTypeSizes[typeNum];
+     if (fieldArrayIndex >= (FIT_UINT8)values.size())
+     {
+-        return *reinterpret_cast<const T*>(baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
++    }
++
++    const FIT_BYTE* p = values.data() + (static_cast<size_t>(fieldArrayIndex) * size);
++
++    if (size == sizeof(T))
++    {
++        T rv;
++        std::memcpy(&rv, p, sizeof(T));
++        return rv;
+     }
+ 
+     T rv = 0;
+ 
+     for (int i = 0; i < size; i++)
+     {
+-        rv |= static_cast<T>(values[(fieldArrayIndex * size) + i]) << (i * 8);
++        rv |= static_cast<T>(p[i]) << (i * 8);
+     }
+ 
+     return rv;
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,12 +3057,33 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    static FIT_UINT16 table[1024];
++    static const bool initialized = []() {
++        for (int k = 0; k < 1024; k++)
++            table[k] = 0xFFFF;
++        for (int i = MESGS - 1; i >= 0; i--)
++        {
++            FIT_UINT16 n = mesgs[i].num;
++            if (n < 1024)
++                table[n] = (FIT_UINT16)i;
++        }
++        return true;
++    }();
++    (void)initialized;
++
++    if (num < 1024)
++    {
++        FIT_UINT16 idx = table[num];
++        if (idx == 0xFFFF)
++            return NULL;
++        return &mesgs[idx];
++    }
++
+     for (int i = 0; i < MESGS; i++)
+     {
+         if (mesgs[i].num == num)
+             return &mesgs[i];
+     }
+-
+     return NULL;
+ }
+ 

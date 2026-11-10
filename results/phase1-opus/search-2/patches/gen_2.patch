@@ -1,0 +1,23 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -28,7 +28,7 @@
+ }
+ 
+ Field::Field(const Field &field)
+-    : FieldBase(field)
++    : FieldBase(static_cast<const FieldBase &>(field))
+     , profile(field.profile)
+     , profileIndex(field.profileIndex)
+     , type(field.type)
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -72,6 +72,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == 0xFFFF)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 

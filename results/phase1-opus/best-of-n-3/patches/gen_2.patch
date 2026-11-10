@@ -1,0 +1,152 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -18,6 +18,8 @@
+ #include "fit_mesg_listener.hpp"
+ #include "fit_developer_data_id_mesg.hpp"
+ #include "fit_developer_field.hpp"
++#include <utility>
++#include <stdexcept>
+ 
+ 
+ namespace fit
+@@ -245,63 +247,69 @@
+ 
+             decodeReturn = ReadByte((FIT_UINT8)buffer[currentByteIndex]);
+ 
+-            switch (decodeReturn) {
+-                case RETURN_CONTINUE:
+-                    break;
++            if (decodeReturn == RETURN_CONTINUE)
++            {
++                currentByteOffset++;
++                continue;
++            }
+ 
++            switch (decodeReturn) {
+                 case RETURN_MESG:
+-                    if (mesg.GetNum() == FIT_MESG_NUM_DEVELOPER_DATA_ID)
++                {
++                    const FIT_UINT16 mesgNum = mesg.GetNum();
++                    if (mesgNum == FIT_MESG_NUM_DEVELOPER_DATA_ID)
+                     {
+                         DeveloperDataIdMesg devIdMesg(mesg);
+ 
+                         if (!devIdMesg.IsDeveloperDataIndexValid()) {
+-							throw fit::RuntimeException("Invalid developer data index in DeveloperDataIdMesg");
+-						}
++                            throw fit::RuntimeException("Invalid developer data index in DeveloperDataIdMesg");
++                        }
+ 
+                         FIT_UINT8 index = devIdMesg.GetDeveloperDataIndex();
+-                        developers[index] = devIdMesg;
++                        developers[index] = std::move(devIdMesg);
+                         descriptions[index] = std::unordered_map<FIT_UINT8, FieldDescriptionMesg>();
+                     }
+-                    else if (mesg.GetNum() == FIT_MESG_NUM_FIELD_DESCRIPTION)
++                    else if (mesgNum == FIT_MESG_NUM_FIELD_DESCRIPTION)
+                     {
+                         FieldDescriptionMesg descMesg(mesg);
+ 
+                         if (!descMesg.IsDeveloperDataIndexValid()) {
+-							throw fit::RuntimeException("Invalid developer data index in FieldDescriptionMesg");
+-						}
++                            throw fit::RuntimeException("Invalid developer data index in FieldDescriptionMesg");
++                        }
+ 
+-						if (!descMesg.IsFieldDefinitionNumberValid())
+-						{
+-							throw fit::RuntimeException("Invalid developer field definition number in FieldDescriptionMesg");
+-						}
++                        if (!descMesg.IsFieldDefinitionNumberValid())
++                        {
++                            throw fit::RuntimeException("Invalid developer field definition number in FieldDescriptionMesg");
++                        }
+ 
+                         FIT_UINT8 index = descMesg.GetDeveloperDataIndex();
+                         FIT_UINT8 fldNum = descMesg.GetFieldDefinitionNumber();
+ 
+-                        try
++                        auto it = descriptions.find(index);
++                        if (it != descriptions.end())
+                         {
+-                            descriptions.at(index)[fldNum] = descMesg;
+-                            
++                            try
++                            {
++                                it->second[fldNum] = descMesg;
+ 
+-                            if (descriptionListener)
++                                if (descriptionListener)
++                                {
++                                    descriptionListener->OnDeveloperFieldDescription(DeveloperFieldDescription(descMesg, developers[index]));
++                                }
++                            }
++                            catch (std::out_of_range)
+                             {
+-                                descriptionListener->OnDeveloperFieldDescription(DeveloperFieldDescription(descMesg, developers[index]));
++                                // Description without a Developer Data Id Message
+                             }
+                         }
+-                        catch (std::out_of_range)
+-                        {
+-                            // Description without a Developer Data Id Message
+-                        }
+                     }
+ 
+-                    
+-
+                     if (mesgListener)
+                         mesgListener->OnMesg(mesg);
+                     break;
++                }
+ 
+                 case RETURN_MESG_DEF:
+-                   
+                     if (mesgDefinitionListener)
+                     {
+                         mesgDefinitionListener->OnMesgDefinition(localMesgDefs[localMesgIndex]);
+@@ -309,7 +317,7 @@
+                     break;
+ 
+                 case RETURN_END_OF_FILE:
+-                     // Increment so we do not read the same byte twice in the case of a chained file
++                    // Increment so we do not read the same byte twice in the case of a chained file
+                     currentByteIndex++;
+                     currentByteOffset++;
+                     return FIT_TRUE;
+@@ -326,33 +334,25 @@
+     if ((streamIsComplete == FIT_TRUE) && (skipHeader == FIT_FALSE))
+     {
+         // When decoding a complete file we should exit via RETURN_END_OF_FILE state only.
+-      std::ostringstream message;
+-      message << "FIT decode error: Unexpected end of input stream at byte: " << currentByteOffset;
++        std::ostringstream message;
++        message << "FIT decode error: Unexpected end of input stream at byte: " << currentByteOffset;
+         throw RuntimeException(message.str());
+     }
+     if (streamIsComplete == FIT_FALSE)
+     {
+-        // If stream is not yet complete caller can resume() when there is more data
+-        // or decide there was an error.
+         if ((decodeReturn == RETURN_MESG) || (decodeReturn == RETURN_MESG_DEF))
+         {
+-            // Our stream ended on a complete message, maybe we are done decoding.
+             return FIT_TRUE;
+         }
+         else
+         {
+-            // EOF was encountered mid message. Caller may want to resume once
+-            // more bytes are available.
+             return FIT_FALSE;
+         }
+     }
+-        // if Decoding Records section only, file should end on a complete message
+-        // (unless incomplete stream option above was also used)
+     else
+     {
+         if ((decodeReturn == RETURN_MESG) || (decodeReturn == RETURN_MESG_DEF))
+         {
+-            // Our stream ended on a complete message, we are done decoding.
+             return FIT_TRUE;
+         }
+         else

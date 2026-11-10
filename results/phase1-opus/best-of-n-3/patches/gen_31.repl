@@ -1,0 +1,32 @@
+The original does a linear scan over the whole `mesgs` table on every lookup. This version builds a 64K-entry index once and then answers each lookup with a single array read.
+
+- **Safe to cache:** the index is built from the constant `mesgs` table, so it does not depend on any global mutable state.
+- **Thread-safe setup:** it lives in a function-local static, which C++ initializes only once even with concurrent callers.
+- **Same results:** the first matching entry still wins, as in the original scan. A missing number still returns `NULL`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[65536];
+        Index()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index* const index = new Index();
+
+    const FIT_UINT16 i = index->idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

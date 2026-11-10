@@ -1,0 +1,69 @@
+The current version uses a flat 128 KB table indexed by `num`. Message numbers are sparse, so most of that table is never read, but lookups across different numbers still land in different cache lines.
+
+This rewrite uses a two-level page table instead:
+- **Page directory:** a 256-byte array indexed by the high byte of `num`, giving a page id.
+- **Shared empty page:** every high byte with no messages points to page 0, which is all `0xFFFF`.
+- **Real pages:** only high bytes that have messages (typically 0x00, 0x01 and possibly 0xFF) get their own 512-byte page.
+
+The data actually read stays within about 2 KB and stays in L1 cache. A lookup is two dependent loads.
+
+Behavior is unchanged: when several entries share a number, the first index still wins. Unknown numbers still return `NULL`.
+
+All lookup state is a single function-local static, built once in a lambda, so there is one guard check per call. The speedup is not measured here.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Lookup
+    {
+        FIT_UINT8 dir[256];
+        FIT_UINT16 pages[257][256];
+    };
+    static const Lookup* const lookup = []() {
+        static Lookup lk;
+        for (int p = 0; p < 257; p++)
+            for (int k = 0; k < 256; k++)
+                lk.pages[p][k] = 0xFFFF;
+        for (int h = 0; h < 256; h++)
+            lk.dir[h] = 0;
+        int nextPage = 1;
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            int hi = n >> 8;
+            if (lk.dir[hi] == 0)
+            {
+                // nextPage never exceeds 256 since there are only 256 high bytes
+                lk.dir[hi] = (FIT_UINT8)(nextPage <= 255 ? nextPage : 0);
+                if (nextPage > 255)
+                {
+                    // Cannot happen in practice (only 256 possible high bytes, page 0 reserved
+                    // means at most 256 pages needed => index 256 doesn't fit in uint8).
+                    // Fall through handled below.
+                }
+                nextPage++;
+            }
+            FIT_UINT16* page = lk.pages[lk.dir[hi]];
+            if (lk.dir[hi] != 0 && page[n & 0xFF] == 0xFFFF)
+                page[n & 0xFF] = (FIT_UINT16)i;
+        }
+        return &lk;
+    }();
+
+    // Safety fallback for the (practically impossible) case where all 256 high bytes are used.
+    FIT_UINT8 pg = lookup->dir[num >> 8];
+    FIT_UINT16 idx = lookup->pages[pg][num & 0xFF];
+    if (idx == 0xFFFF)
+    {
+        if (pg == 0 && (num >> 8) != 0)
+        {
+            // only reached if a page couldn't be allocated; do a linear scan
+            for (int i = 0; i < MESGS; i++)
+                if (mesgs[i].num == num)
+                    return &mesgs[i];
+        }
+        return NULL;
+    }
+    return &mesgs[idx];
+}
+```

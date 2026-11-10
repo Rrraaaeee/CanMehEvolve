@@ -1,0 +1,13 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -29,8 +29,8 @@
+ Mesg::Mesg(const Mesg &mesg)
+     : profile(mesg.profile)
+     , localNum(mesg.localNum)
+-    , fields(mesg.fields)
+-    , devFields(mesg.devFields)
++    , fields(mesg.fields.begin(), mesg.fields.end())
++    , devFields(mesg.devFields.begin(), mesg.devFields.end())
+ {
+ }
+ 

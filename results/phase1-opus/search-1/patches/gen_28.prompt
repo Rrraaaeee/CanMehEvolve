@@ -1,0 +1,12 @@
+File: src/fit_time_in_zone_mesg.hpp
+Function: SetFunctionalThresholdPower
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.924645 of the original SDK's decode time; the best found so far is 0.924645.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetFunctionalThresholdPower(FIT_UINT16 functionalThresholdPower)
+    {
+        SetFieldUINT16Value(15, functionalThresholdPower, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

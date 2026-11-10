@@ -1,0 +1,9 @@
+This function is called rarely, so there is little to gain here. The rewrite keeps the same logic in a single expression: look up field 3, and if it is absent return `FIT_FALSE`, otherwise return `IsValueValid(index)`. It returns exactly the same value as before for every input.
+
+```cpp
+    FIT_BOOL IsUnchargedValid(FIT_UINT8 index) const
+    {
+        const Field* field = GetField(3);
+        return (FIT_NULL == field) ? FIT_FALSE : field->IsValueValid(index);
+    }
+```

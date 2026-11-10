@@ -1,0 +1,12 @@
+The logic stays the same. The rewrite reads `profile` and `profileIndex` into locals once, so the compiler can keep them in registers instead of reloading the members after each check. The null check, bounds check and returned value are unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    const auto idx = profileIndex;
+    if ((p != NULL) && (idx < p->numFields))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

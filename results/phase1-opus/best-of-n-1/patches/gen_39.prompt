@@ -1,0 +1,11 @@
+File: src/fit_device_settings_mesg.hpp
+Function: GetNumTimeMode
+One decode of the test corpus takes about 358.135 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_UINT8 GetNumTimeMode(void) const
+    {
+        return GetFieldNumValues(4, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

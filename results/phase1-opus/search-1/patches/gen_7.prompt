@@ -1,0 +1,12 @@
+File: src/fit_sleep_assessment_mesg.hpp
+Function: SetAwakeningsCount
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.999485 of the original SDK's decode time; the best found so far is 0.936544.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetAwakeningsCount(FIT_UINT8 awakeningsCount)
+    {
+        SetFieldUINT8Value(11, awakeningsCount, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

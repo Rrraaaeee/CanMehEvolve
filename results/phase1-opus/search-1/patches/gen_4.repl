@@ -1,0 +1,45 @@
+The original does a linear scan over the whole message table on every call. This version builds a direct lookup table for message numbers below 1024 the first time the function runs, which then gives O(1) lookups.
+
+- **Same results:** the table is filled from the constant `mesgs` array only, and it keeps the first matching index, so results are identical to the scan.
+- **Thread safety:** a function-local static is initialized once, and C++11 and later guarantee that initialization is thread-safe.
+- **Other numbers:** numbers of 1024 or above (e.g. manufacturer-specific ones) and any unexpected cases fall back to the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        FIT_SINT16 idx[LUT_SIZE];
+        bool ok;
+        Lut() : ok(MESGS < 32767)
+        {
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = -1;
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < LUT_SIZE)
+                    idx[n] = (FIT_SINT16)i;
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (num < LUT_SIZE && lut.ok)
+    {
+        int i = lut.idx[num];
+        return (i >= 0) ? &mesgs[i] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

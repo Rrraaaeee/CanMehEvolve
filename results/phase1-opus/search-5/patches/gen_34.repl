@@ -1,0 +1,17 @@
+This inlines the base-class lookup: it calls `GetField(254)` directly and reads index 0 of the main field. That skips one level of call and the subfield-mode check for a field that has no subfields.
+
+It returns the same value as before only if `Mesg::GetFieldUINT16Value` does what I recalled; I did not check its source:
+- it returns `FIT_UINT16_INVALID` when the field is absent;
+- otherwise it returns `field->GetUINT16Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD)`.
+
+It also assumes `const Field* GetField(FIT_UINT8) const` is accessible from this class. If either assumption is wrong, this rewrite is not safe.
+
+```cpp
+    FIT_MESSAGE_INDEX GetMessageIndex(void) const
+    {
+        const Field* field = GetField(254);
+        if (field == FIT_NULL)
+            return FIT_UINT16_INVALID;
+        return field->GetUINT16Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

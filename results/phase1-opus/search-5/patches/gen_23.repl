@@ -1,0 +1,14 @@
+This version reads `profile` and `profileIndex` into locals once and checks `profile` before touching `profileIndex`. It returns the same values with no other side effects. Any speedup will be small, because the original is already just a couple of checks and one load.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto* p = profile;
+    if (p == NULL)
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

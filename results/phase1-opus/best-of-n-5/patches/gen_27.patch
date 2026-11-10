@@ -1,0 +1,41 @@
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -11,6 +11,7 @@
+ 
+ 
+ #include "fit_profile.hpp"
++#include <array>
+ 
+ namespace fit
+ {
+@@ -3057,6 +3058,30 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    static const std::array<FIT_UINT16, 65536> table = []()
++    {
++        std::array<FIT_UINT16, 65536> t;
++        t.fill(0xFFFF);
++        if (MESGS < 0xFFFF)
++        {
++            for (int i = 0; i < MESGS; i++)
++            {
++                FIT_UINT16 n = mesgs[i].num;
++                if (t[n] == 0xFFFF)
++                    t[n] = (FIT_UINT16)i;
++            }
++        }
++        return t;
++    }();
++
++    if (MESGS < 0xFFFF)
++    {
++        FIT_UINT16 idx = table[num];
++        if (idx == 0xFFFF)
++            return NULL;
++        return &mesgs[idx];
++    }
++
+     for (int i = 0; i < MESGS; i++)
+     {
+         if (mesgs[i].num == num)

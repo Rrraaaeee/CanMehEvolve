@@ -1,0 +1,32 @@
+The original handles one nibble at a time, using two lookups and two shift/XOR rounds per nibble. This version uses the equivalent 256-entry byte-wise table instead, which needs one lookup and one shift/XOR per byte.
+
+**Why the results are identical:**
+- The FIT CRC is CRC-16/ARC (reflected polynomial `0xA001`).
+- XOR is linear, so `T[crc & 0xF] ^ T[byte & 0xF]` equals `T[(crc ^ byte) & 0xF]`. Each original half is therefore a standard nibble CRC step.
+- Two nibble steps compose to exactly one byte step: `(crc >> 8) ^ T256[(crc ^ byte) & 0xFF]`.
+- I checked the generation by hand: running nibble 1 through four shifts gives `0xCC01`, which matches the original table.
+
+The table is generated at compile time, so the expensive part is a single table read.
+
+```cpp
+FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+{
+   struct Table
+   {
+      FIT_UINT16 v[256];
+      constexpr Table() : v()
+      {
+         for (unsigned i = 0; i < 256; i++)
+         {
+            unsigned c = i;
+            for (int k = 0; k < 8; k++)
+               c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
+            v[i] = static_cast<FIT_UINT16>(c);
+         }
+      }
+   };
+   static constexpr Table table{};
+
+   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+}
+```

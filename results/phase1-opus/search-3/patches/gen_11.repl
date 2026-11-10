@@ -1,0 +1,16 @@
+The function is already minimal, so this rewrite only changes how the compiler lays out the code; results are identical for every input. The `type` field is loaded into a local and the common path, where `type` is already set, is marked as the expected branch. The `profile` lookup becomes the cold path. Any speedup is likely small.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const Profile::MESG* const p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

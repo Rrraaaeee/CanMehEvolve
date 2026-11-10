@@ -1,0 +1,43 @@
+The rewrite below should return the same values as the original. I haven't benchmarked it. The changes:
+
+- **`GetType()` once:** it is called a single time, where the original called it once or twice. If it is virtual, this saves the extra dispatch.
+- **Raw byte pointer:** bytes are read through a plain pointer instead of indexing `values` on every iteration.
+- **`memcpy` fast path:** when the stored base-type size equals `sizeof(T)` on a little-endian target, the value is read with one `memcpy`. This produces the same bit pattern as the original shift-and-OR loop.
+- **Fallback:** any other size, or a big-endian target, uses the original loop unchanged.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_BYTE* p = values.data() + (static_cast<size_t>(fieldArrayIndex) * size);
+
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, p, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

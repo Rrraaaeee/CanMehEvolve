@@ -1,0 +1,113 @@
+File: src/fit_decode.cpp
+Function: Decode::ExpandComponents
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+void Decode::ExpandComponents(Field *containingField, const Profile::FIELD_COMPONENT *components, FIT_UINT16 numComponents)
+{
+    FIT_UINT16 offset = 0;
+    FIT_UINT16 i;
+
+    for (i = 0; i < numComponents; i++)
+    {
+        const Profile::FIELD_COMPONENT *component = &components[i];
+
+        if (component->num != FIT_FIELD_NUM_INVALID)
+        {
+            Field componentField(mesg.GetNum(), component->num);
+            FIT_UINT16 subfieldIndex = mesg.GetActiveSubFieldIndex(componentField.GetNum());
+            FIT_FLOAT64 value;
+            FIT_UINT64 bitsValue = FIT_UINT64_INVALID;
+            FIT_SINT64 signedBitsValue = FIT_SINT64_INVALID;
+
+            // Mark that this field has been generated through expansion
+            componentField.SetIsExpanded(FIT_TRUE);
+
+            if (componentField.IsSignedInteger())
+            {
+                signedBitsValue = containingField->GetBitsSignedValue64(offset, component->bits);
+
+                if (signedBitsValue == FIT_SINT64_INVALID)
+                    break; // No more data for components.
+
+                if (component->accumulate)
+                    bitsValue = accumulator.Accumulate(mesg.GetNum(), component->num, signedBitsValue, component->bits);
+            }
+            else
+            {
+                bitsValue = containingField->GetBitsValue64(offset, component->bits);
+
+                if (bitsValue == FIT_UINT64_INVALID)
+                    break; // No more data for components.
+
+                if (component->accumulate)
+                    bitsValue = accumulator.Accumulate(mesg.GetNum(), component->num, bitsValue, component->bits);
+            }
+
+            // If the component field itself has *one* component apply the scale and offset of the componentField's
+            // (nested) component
+            if (componentField.GetNumComponents() == 1)
+            {
+                if (componentField.IsSignedInteger())
+                    value = (((signedBitsValue / (FIT_FLOAT64)component->scale) - component->offset) + componentField.GetComponent(0)->offset) * componentField.GetComponent(0)->scale;
+                else
+                    value = (((bitsValue / (FIT_FLOAT64)component->scale) - component->offset) + componentField.GetComponent(0)->offset) * componentField.GetComponent(0)->scale;
+                if (mesg.HasField(componentField.GetNum()))
+                {
+                    fit::Field *currentField = mesg.GetField(componentField.GetNum());
+                    currentField->AddRawValue(value, currentField->GetNumValues());
+                }
+                else
+                {
+                    componentField.AddRawValue(value, componentField.GetNumValues());
+                    mesg.AddField(componentField);
+                }
+            }
+            // The component field is itself a composite field (more than one component).  Don't use scale/offset, containing
+            // field data must already be encoded.  Add elements to it until we have added bitsvalue
+            else if (componentField.GetNumComponents() > 1)
+            {
+                int bitsAdded = 0;
+                FIT_UINT64 mask;
+
+                while (bitsAdded < component->bits)
+                {
+                    mask = ((FIT_UINT64)1 << baseTypeSizes[componentField.GetType() & FIT_BASE_TYPE_NUM_MASK]) - 1;
+                    if (mesg.HasField(componentField.GetNum()))
+                    {
+                        Field *field = mesg.GetField(componentField.GetNum());
+                        field->AddValue(bitsValue & mask, field->GetNumValues());
+                    }
+                    else
+                    {
+                        componentField.AddValue(bitsValue & mask, componentField.GetNumValues());
+                        mesg.AddField(componentField);
+                    }
+                    bitsValue >>= baseTypeSizes[componentField.GetType() & FIT_BASE_TYPE_NUM_MASK];
+                    bitsAdded += baseTypeSizes[componentField.GetType() & FIT_BASE_TYPE_NUM_MASK];
+                }
+            }
+            // componentField is an ordinary field, apply scale and offset as usual
+            else
+            {
+                if (componentField.IsSignedInteger())
+                    value = (((signedBitsValue / (FIT_FLOAT64)component->scale) - component->offset) + componentField.GetOffset(subfieldIndex)) * componentField.GetScale(subfieldIndex);
+                else
+                    value = (((bitsValue / (FIT_FLOAT64)component->scale) - component->offset) + componentField.GetOffset(subfieldIndex)) * componentField.GetScale(subfieldIndex);
+                if (mesg.HasField(componentField.GetNum()))
+                {
+                    fit::Field *currentField = mesg.GetField(componentField.GetNum());
+                    currentField->AddRawValue(value, currentField->GetNumValues());
+                }
+                else
+                {
+                    componentField.AddRawValue(value, componentField.GetNumValues());
+                    mesg.AddField(componentField);
+                }
+            }
+        }
+        offset += component->bits;
+    }
+}
+```

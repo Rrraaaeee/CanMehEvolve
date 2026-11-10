@@ -1,0 +1,14 @@
+host: xcnc4
+slurm job: 1106970
+Model name:                              Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+logical cpus: 24
+c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+commit: 727586f0312ee3f16e1cd23488c389095c3ceefb
+src/Search.cpp sha256: 53d426f8f0ed7fe692c17434280c49b90a993ef59dbb517a93e921a90ac9035c
+arm: search, seed: 5, model requested: claude-opus-5-5, api: anthropic
+generations: 40, sample seconds: 20, repeat: 10
+started: 2026-11-10T08:07:07Z
+the reference library read 907007 bytes and decoded 34251 messages, 428714 fields, checksum 92bebfd7f8978fc8
+null run: clean
+finished: 2026-11-10T10:33:57Z
+profile: used

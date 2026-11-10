@@ -1,0 +1,11 @@
+The function is already minimal. This version loads `profile` into a local once and marks the invalid path as unlikely, which can give slightly tighter code on the hot path. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[profileIndex].num;
+}
+```

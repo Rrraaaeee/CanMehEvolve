@@ -1,0 +1,16 @@
+The original reads the member `type` twice when it is valid: once in the comparison and once in the return. This version reads it into a local once and reads `profile` once. It adds a `__builtin_expect` hint so the common case of an already-set `type` stays on the straight-line path. Behavior is unchanged for every input.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto* p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

@@ -1,0 +1,18 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::ConvertBaseType
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+template <typename TTo, typename TFrom>
+TTo FieldBase::ConvertBaseType(const FIT_UINT8 fieldArrayIndex, const FIT_UINT8 toBaseType) const
+{
+    FIT_CONST_UINT8_PTR invalid = baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK];
+    TFrom value = GetValue<TFrom>(fieldArrayIndex);
+
+    if (memcmp(&value, invalid, sizeof(TFrom)) == 0)
+        return *reinterpret_cast<const TTo*>(baseTypeInvalids[toBaseType & FIT_BASE_TYPE_NUM_MASK]);
+
+    return static_cast<TTo>(value);
+}
+```

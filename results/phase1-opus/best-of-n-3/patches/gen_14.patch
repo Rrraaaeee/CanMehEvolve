@@ -1,0 +1,22 @@
+--- a/src/fit_mesg_definition.cpp
++++ b/src/fit_mesg_definition.cpp
+@@ -13,6 +13,7 @@
+ #include <ostream>
+ #include "fit_mesg_definition.hpp"
+ #include "fit_developer_field_definition.hpp"
++#include <cstddef>
+ 
+ namespace fit
+ {
+@@ -107,8 +108,9 @@
+ 
+ FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+ {
+-    if (index < fields.size())
+-        return &(fields[index]);
++    const std::size_t count = fields.size();
++    if (static_cast<std::size_t>(index) < count)
++        return fields.data() + index;
+ 
+     return FIT_NULL;
+ }

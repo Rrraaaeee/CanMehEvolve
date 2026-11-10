@@ -1,0 +1,14 @@
+The copy constructor was already close to minimal, so this change is small and the speedup is probably marginal.
+
+- `values` is still copied in the initializer list, exactly as before.
+- `stringIndexes` is now default-constructed and only copied when the source is non-empty. Copy-assigning into an empty vector gives the same elements as copy-constructing it, so behavior is unchanged.
+- Most fields have no string indexes, so this skips some copy work in the common case.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values)
+{
+    if (!field.stringIndexes.empty())
+        stringIndexes = field.stringIndexes;
+}
+```

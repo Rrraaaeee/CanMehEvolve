@@ -1,0 +1,36 @@
+This version keeps the 65536-entry lookup and its semantics, but shrinks each entry to one byte when the message count allows it.
+
+- **When it applies:** if `MESGS < 255`, the table drops from 128 KB to 64 KB. This also halves the per-entry footprint for the common low message numbers, which should mean fewer cache misses.
+- **Fallback:** otherwise it keeps 16-bit entries, as before.
+- **Sentinel:** "not found" is the type's maximum value. That value can never be a valid index under the chosen width.
+- **Duplicates:** the reverse fill is unchanged, so duplicate numbers still resolve to the first match.
+- **Assumption:** this relies on `MESGS` being a compile-time constant (the conditional type needs it). I have not timed this change.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    struct Index
+    {
+        IdxT idx[65536];
+        Index()
+        {
+            const IdxT none = (IdxT)~(IdxT)0;
+            for (int k = 0; k < 65536; k++)
+                idx[k] = none;
+            for (int i = MESGS - 1; i >= 0; i--)
+                idx[(FIT_UINT16)mesgs[i].num] = (IdxT)i;
+        }
+    };
+    static const Index table;
+
+    const IdxT i = table.idx[num];
+    if (i == (IdxT)~(IdxT)0)
+        return NULL;
+    return &mesgs[i];
+}
+```
+
+```includes
+#include <type_traits>
+```

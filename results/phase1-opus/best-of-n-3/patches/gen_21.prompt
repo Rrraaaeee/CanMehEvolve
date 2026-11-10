@@ -1,0 +1,13 @@
+File: src/fit_field.cpp
+Function: Field::GetScale
+One decode of the test corpus takes about 358.548 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_FLOAT64 Field::GetScale() const
+{
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return 1;
+    return profile->fields[profileIndex].scale;
+}
+```

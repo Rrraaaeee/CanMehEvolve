@@ -1,0 +1,43 @@
+The current version uses a 128 KB lookup table, and those scattered reads can miss in cache. This rewrite keeps a small 2 KB direct table for message numbers below 1024, which covers almost all standard FIT message numbers.
+
+- **Below 1024:** a single table lookup. The table stores the first index `i` whose `mesgs[i].num` equals the number, the same rule the current code uses.
+- **1024 and above:** a linear search that returns the first match, or `NULL` if there is none. It returns exactly what the current table would.
+- **Initialization:** the table is still built once behind a function-local static, so the setup cost and thread-safety are unchanged.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    struct Table
+    {
+        FIT_UINT16 idx[TABLE_SIZE];
+        Table()
+        {
+            for (int k = 0; k < TABLE_SIZE; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < TABLE_SIZE && idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Table table;
+
+    if (num < TABLE_SIZE)
+    {
+        FIT_UINT16 i = table.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

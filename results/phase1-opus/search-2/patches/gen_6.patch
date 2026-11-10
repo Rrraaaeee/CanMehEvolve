@@ -1,0 +1,67 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -92,20 +92,27 @@
+ 
+ FIT_UINT8 Field::GetNum(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
+-        return FIT_FIELD_NUM_INVALID;
+-    return profile->fields[profileIndex].num;
++    const auto* p = profile;
++    if (__builtin_expect(p != NULL, 1))
++    {
++        const auto idx = profileIndex;
++        if (__builtin_expect(idx < p->numFields, 1))
++            return p->fields[idx].num;
++    }
++    return FIT_FIELD_NUM_INVALID;
+ }
+ 
+ FIT_UINT8 Field::GetType() const
+ {
+-    if ( type != FIT_UINT8_INVALID )
+-        return type;
++    const FIT_UINT8 t = type;
++    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
++        return t;
+ 
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* p = profile;
++    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+         return FIT_UINT8_INVALID;
+ 
+-    return profile->fields[profileIndex].type;
++    return p->fields[profileIndex].type;
+ }
+ 
+ std::string Field::GetUnits() const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -72,6 +72,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == 0xFFFF)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;

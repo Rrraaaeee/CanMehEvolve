@@ -1,0 +1,9 @@
+This setter is not on the decode hot path, so no measurable speedup is possible here. I made a minimal change that keeps behavior identical: the arguments are spelled out with explicit types, and the call still goes through the same `SetFieldUINT32Value` path.
+
+```cpp
+    void SetActiveTime(FIT_UINT32 activeTime)
+    {
+        const FIT_UINT8 fieldNum = 6;
+        SetFieldUINT32Value(fieldNum, activeTime, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

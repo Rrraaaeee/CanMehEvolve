@@ -1,0 +1,14 @@
+The function is already trivial. The rewrite loads `profile` into a local once, so the compiler doesn't have to reload the member between the checks and the field access, and it marks the null-profile path as the unlikely branch. Behavior is identical, and any speedup will be small.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const Profile::MSG* const p = profile;
+    if (__builtin_expect(p == NULL, 0))
+        return 0;
+    const FIT_UINT16 idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

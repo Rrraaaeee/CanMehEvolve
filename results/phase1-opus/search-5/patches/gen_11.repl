@@ -1,0 +1,41 @@
+This version swaps the 128 KB lookup table (64K entries) for a small 1 KB table that covers message numbers below 512. That should make better use of the cache.
+
+- **Below 512:** a direct table lookup.
+- **512 and above:** a linear scan from the start of `mesgs`, so the first match is returned, the same as before. Unknown numbers still return `NULL`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 512 };
+    struct Index
+    {
+        FIT_UINT16 idx[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < SMALL)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < SMALL)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

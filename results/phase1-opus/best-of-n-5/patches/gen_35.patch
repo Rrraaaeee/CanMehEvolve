@@ -1,0 +1,62 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -1210,18 +1210,55 @@
+ {
+     T value = 0;
+     FIT_UINT8 numValueBits = 0;
++
++    if (values.size() == 0)
++        return FitInvalid<T>::value;
++
++    if (bits == 0)
++        return value;
++
++    const auto size = GetSize();
++
++    if (size <= 255)
++    {
++        const unsigned startIndex = (unsigned)(offset >> 3);
++        if (startIndex >= (unsigned)size)
++            return FitInvalid<T>::value;
++
++        FIT_UINT8 index = (FIT_UINT8)startIndex;
++        FIT_UINT8 bitOffset = (FIT_UINT8)(offset & 7);
++
++        while (numValueBits < bits)
++        {
++            if (index >= size)
++                return FitInvalid<T>::value;
++
++            FIT_UINT8 data = GetValuesUINT8(index);
++            data >>= bitOffset;
++            FIT_UINT8 numDataBitsUsed = 8 - bitOffset;
++            bitOffset = 0;
++
++            if (numDataBitsUsed > (bits - numValueBits))
++                numDataBitsUsed = bits - numValueBits;
++
++            FIT_UINT8 mask = (1 << numDataBitsUsed) - 1;
++            value |= (T)(data & mask) << numValueBits;
++            numValueBits += numDataBitsUsed;
++            index++;
++        }
++        return value;
++    }
++
++    // Fallback: original semantics (including 8-bit index wrap behavior)
+     FIT_UINT8 numDataBitsUsed;
+     FIT_UINT8 index = 0;
+     FIT_UINT8 data;
+     FIT_UINT8 mask;
+     FIT_UINT16 newOffset = offset;
+ 
+-    if (values.size() == 0)
+-        return FitInvalid<T>::value;
+-
+     while (numValueBits < bits)
+     {
+-        if (index >= GetSize())
++        if (index >= size)
+             return FitInvalid<T>::value;
+ 
+         if (newOffset >= 8)

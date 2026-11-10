@@ -1,0 +1,22 @@
+--- a/src/fit_field_description_mesg.hpp
++++ b/src/fit_field_description_mesg.hpp
+@@ -131,7 +131,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+     {
+-        return GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return static_cast<FIT_FIT_BASE_TYPE>(GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_sleep_assessment_mesg.hpp
++++ b/src/fit_sleep_assessment_mesg.hpp
+@@ -442,7 +442,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     void SetAwakeningsCount(FIT_UINT8 awakeningsCount)
+     {
+-        SetFieldUINT8Value(11, awakeningsCount, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        SetFieldUINT8Value(static_cast<FIT_UINT8>(11), awakeningsCount, static_cast<FIT_UINT8>(0), static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

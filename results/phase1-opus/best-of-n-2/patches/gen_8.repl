@@ -1,0 +1,14 @@
+The original reads the `profile` and `profileIndex` members more than once. This version reads each into a local variable once. That lets the compiler keep them in registers across the bounds check and the array access, without assuming a reload is needed. Behavior is unchanged: the same null check, the same bounds check and the same return values.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    if (p == NULL)
+        return FIT_FIELD_NUM_INVALID;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

@@ -1,0 +1,25 @@
+The rewrite keeps the `GetMesg` lookup and the search order, so it returns the same index in every case. Only the inner loop changes:
+
+- The field array pointer and the field count are read into locals once, so they aren't reloaded on every iteration.
+- The counter is a plain `FIT_UINT16`, so no extra narrowing is needed on return.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *fields = mesg->fields;
+    const FIT_UINT16 n = mesg->numFields;
+
+    for (FIT_UINT16 i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

@@ -1,0 +1,15 @@
+The common call passes the main-field index (0xFFFF). For that index, `subFieldIndex >= GetNumSubFields()` is always true, because a subfield count can never exceed 0xFFFF. So that path can go straight to `GetScale()` and skip the `GetNumSubFields()` lookup. All other indices follow the original logic unchanged.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == 0xFFFF)
+        return GetScale();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetScale();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->scale : 1.0;
+}
+```

@@ -1,0 +1,12 @@
+The original logic is already about as cheap as it can be, so any gain here will be marginal. This version reads the size once, hints that the in-range case is the common one, and indexes through `data()`. That avoids any debug-checked `operator[]` path in some standard library configurations. Behavior is unchanged: an in-range index returns the same element pointer, and an out-of-range index returns `FIT_NULL`.
+
+```cpp
+Field* Mesg::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const size_t count = fields.size();
+    if (__builtin_expect(static_cast<size_t>(index) < count, 1))
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```

@@ -1,0 +1,12 @@
+The function is already minimal, so the gain here is small. The rewrite reads `profile` into a local once, which saves the compiler from reloading it. It also marks the error path as unlikely, so the common lookup is laid out as straight-line code. Behavior is unchanged.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const Profile::MESG* const p = profile;
+    const FIT_UINT16 idx = profileIndex;
+    if (__builtin_expect((p == NULL) || (idx >= p->numFields), 0))
+        return 0;
+    return p->fields[idx].numComponents;
+}
+```

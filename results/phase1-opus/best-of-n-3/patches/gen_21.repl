@@ -1,0 +1,11 @@
+The function is already tiny, so the only change is reading the `profile` member into a local once. This lets the compiler keep it in a register across the null check, the bounds check and the field load, instead of reloading it through `this`. The branch is marked as likely to take the in-range path. Behavior is unchanged: it returns 1 when `profile` is null or `profileIndex` is out of range, and the profile scale otherwise.
+
+```cpp
+FIT_FLOAT64 Field::GetScale() const
+{
+    const auto* p = profile;
+    if (__builtin_expect((p != NULL) && (profileIndex < p->numFields), 1))
+        return p->fields[profileIndex].scale;
+    return 1;
+}
+```

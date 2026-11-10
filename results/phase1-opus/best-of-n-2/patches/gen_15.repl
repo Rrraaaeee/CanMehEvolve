@@ -1,0 +1,16 @@
+The fast path (the field has its own `type` set) is now hinted as the likely branch, and the members are read into locals once each. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto* p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

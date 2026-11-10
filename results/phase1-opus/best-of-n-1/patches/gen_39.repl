@@ -1,0 +1,17 @@
+This version looks up field 4 directly and reads its value count, skipping the generic `GetFieldNumValues` path and its sub-field index handling.
+
+It relies on two assumptions about the SDK's `Mesg`/`Field` code, which I haven't checked:
+- **Missing field:** `GetFieldNumValues` with `FIT_SUBFIELD_INDEX_MAIN_FIELD` returns 0 when the field is absent.
+- **Present field:** otherwise it returns the field's own `GetNumValues()`.
+
+If either differs in your SDK version, the result could change, so please confirm against `fit_mesg.cpp` before relying on it.
+
+```cpp
+    FIT_UINT8 GetNumTimeMode(void) const
+    {
+        const Field* field = GetField(4);
+        if (field == FIT_NULL)
+            return 0;
+        return field->GetNumValues();
+    }
+```

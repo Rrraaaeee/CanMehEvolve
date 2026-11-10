@@ -1,0 +1,9 @@
+This function only runs when the caller asks for this field, so it is not on the decode hot path, and no meaningful speedup is available here. The rewrite below is a behavior-preserving restructuring into a single expression. It makes one `GetField` lookup and returns `FIT_FALSE` when the field is absent, exactly as the original does.
+
+```cpp
+    FIT_BOOL IsCourseDownloadEnabledValid() const
+    {
+        const Field* const field = GetField(8);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

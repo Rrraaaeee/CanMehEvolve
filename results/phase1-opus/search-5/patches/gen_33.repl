@@ -1,0 +1,15 @@
+The loop now uses a range-based `for` with a const reference instead of indexed access. It drops the repeated `size()` call and the `(int)` cast on each iteration, which gives the compiler a simple pointer walk to optimize. The sum and the return value are unchanged.
+
+```cpp
+int MesgDefinition::GetDeveloperFieldTotalSize() const
+{
+	int totalSize = 0;
+
+	for (const auto& field : devFields)
+	{
+		totalSize += field.GetSize();
+	}
+
+	return totalSize;
+}
+```

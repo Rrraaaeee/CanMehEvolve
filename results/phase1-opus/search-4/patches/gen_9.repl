@@ -1,0 +1,53 @@
+The main saving is checking the cheap endianness condition first and returning early. Most fields are little-endian or single-byte, so the size division and table lookup are skipped for them. When a swap is needed, the common element sizes (2, 4 and 8 bytes) use straight-line byte swaps. Any other size falls back to the original loop.
+
+Output is unchanged for every valid input. One difference: the original divides by `typeSize` even when it returns early, while this version divides only when it actually swaps. That changes nothing unless `typeSize` is 0, which would already be a crash in the original.
+
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
+        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE))
+        return;
+
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const int numElements = size / typeSize;
+    FIT_UINT8* p = &fieldData[0];
+
+    switch (typeSize)
+    {
+    case 2:
+        for (int e = 0; e < numElements; e++, p += 2)
+        {
+            FIT_UINT8 t = p[0]; p[0] = p[1]; p[1] = t;
+        }
+        return;
+    case 4:
+        for (int e = 0; e < numElements; e++, p += 4)
+        {
+            FIT_UINT8 a = p[0], b = p[1], c = p[2], d = p[3];
+            p[0] = d; p[1] = c; p[2] = b; p[3] = a;
+        }
+        return;
+    case 8:
+        for (int e = 0; e < numElements; e++, p += 8)
+        {
+            FIT_UINT8 b0 = p[0], b1 = p[1], b2 = p[2], b3 = p[3];
+            FIT_UINT8 b4 = p[4], b5 = p[5], b6 = p[6], b7 = p[7];
+            p[0] = b7; p[1] = b6; p[2] = b5; p[3] = b4;
+            p[4] = b3; p[5] = b2; p[6] = b1; p[7] = b0;
+        }
+        return;
+    default:
+        for (int element = 0; element < numElements; element++)
+        {
+            for (int i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 tmp = fieldData[element * typeSize + i];
+                fieldData[element * typeSize + i] = fieldData[element * typeSize + typeSize - i - 1];
+                fieldData[element * typeSize + typeSize - i - 1] = tmp;
+            }
+        }
+        return;
+    }
+}
+```

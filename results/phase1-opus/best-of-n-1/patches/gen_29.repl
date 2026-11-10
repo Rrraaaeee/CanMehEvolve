@@ -1,0 +1,12 @@
+The original is already minimal. This version only drops the `operator[]` call: it computes the address directly from `fields.data()`. It does the same bounds check, so it returns the same pointer or `FIT_NULL` for every input. Any speedup will be small, and it may disappear entirely once the compiler inlines the original.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const size_t count = fields.size();
+    if (static_cast<size_t>(index) < count)
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```

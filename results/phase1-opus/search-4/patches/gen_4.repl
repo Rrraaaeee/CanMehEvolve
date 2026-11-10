@@ -1,0 +1,39 @@
+The rewrite makes two changes and keeps behavior the same:
+
+- **One type lookup:** `GetType()` is called once and the masked base-type index is reused for both table lookups.
+- **Fast path:** when the base-type size equals `sizeof(T)`, the element is copied with a single `memcpy` instead of the byte-by-byte shift/OR loop. On a little-endian host this gives the same bits, including for signed `T`. Other sizes still use the original loop.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_BYTE* p = values.data() + (static_cast<size_t>(fieldArrayIndex) * size);
+
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, p, sizeof(T));
+        return rv;
+    }
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

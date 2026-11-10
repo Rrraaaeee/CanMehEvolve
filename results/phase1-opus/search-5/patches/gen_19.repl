@@ -1,0 +1,8 @@
+The function is already a single comparison, so there is little to gain here. This version adds `FIT_UNLIKELY`-free branchless intent by comparing explicitly against the typed constant. It returns exactly the same 0/1 value as before.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return static_cast<FIT_BOOL>(static_cast<FIT_UINT16>(profileIndex) != static_cast<FIT_UINT16>(FIT_UINT16_INVALID));
+}
+```

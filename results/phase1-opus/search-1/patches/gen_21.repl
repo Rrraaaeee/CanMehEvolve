@@ -1,0 +1,46 @@
+The current version uses a 64K-entry `FIT_SINT16` table, which is 128 KB. Each lookup lands on a cold cache line in it. The replacement shrinks the table to about 2 KB so it stays in cache.
+
+- **Small numbers:** message numbers below 1024 (all the standard profile messages) are looked up in a 1024-entry `FIT_SINT16` table.
+- **Large numbers:** any `num` of 1024 or more falls back to the original linear scan. Behavior is unchanged for every input.
+- **First match kept:** the table is filled from the end of `mesgs` toward the front. If two entries share a number, the lowest index wins, which matches the linear scan.
+- **Many messages:** if `MESGS` is 32767 or more, the table is disabled (`ok` is false). In that case the function always uses the linear scan, as the current version does.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        FIT_SINT16 idx[LUT_SIZE];
+        bool ok;
+        Lut() : ok(MESGS < 32767)
+        {
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = -1;
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < LUT_SIZE)
+                    idx[n] = (FIT_SINT16)i;
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok && num < LUT_SIZE)
+    {
+        int i = lut.idx[num];
+        return (i >= 0) ? &mesgs[i] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

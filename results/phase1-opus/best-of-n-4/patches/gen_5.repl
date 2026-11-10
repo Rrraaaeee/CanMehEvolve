@@ -1,0 +1,12 @@
+The function is already minimal, so there's little to gain. This version reads the `profile` pointer into a local once, so the compiler doesn't have to reload it between the null check, the bounds check and the field access. It also marks the valid-profile path as the likely branch. The result is the same for every input.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    const FIT_UINT16 idx = profileIndex;
+    if (__builtin_expect((p != NULL) && (idx < p->numFields), 1))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

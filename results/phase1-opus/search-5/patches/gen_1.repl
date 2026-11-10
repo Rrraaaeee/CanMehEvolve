@@ -1,0 +1,27 @@
+The loop now reads `mesg->numFields` and `mesg->fields` into locals once, instead of reloading them through `mesg` on every pass. This avoids repeated memory loads, which the compiler may not remove on its own because of possible aliasing. The loop also runs on an `unsigned` index. Results are unchanged:
+- The same index is returned.
+- `FIT_UINT16_INVALID` is still returned when the message or field isn't found.
+- The returned index fits in 16 bits because `numFields` does.
+
+I expect only a small gain: the per-call `GetMesg` lookup is untouched.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const unsigned n = mesg->numFields;
+    const FIELD *fields = mesg->fields;
+
+    for (unsigned i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

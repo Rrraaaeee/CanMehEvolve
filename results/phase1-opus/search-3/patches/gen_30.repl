@@ -1,0 +1,133 @@
+Specialized the invalid-value scan for 2-, 4- and 8-byte base types. Each element is loaded with `memcpy` into an integer and compared once against the preloaded invalid value, instead of calling `memcmp` per element.
+
+Behavior is unchanged:
+- It reads exactly the same bytes as before, including the case where the field size isn't a multiple of the type size.
+- The loop condition (`off < size`) is equivalent to the old `bytes > 0`.
+- Any other type size still goes through the original `memcmp` loop.
+
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeNum = type & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 typeSize = baseTypeSizes[typeNum];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        FIT_UINT8 index = 0;
+        while (index < size && byteData[index] == 0)
+            index++;
+
+        if (index >= size)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        const int sz = size;
+        for (int pos = 0; pos < sz; pos++)
+        {
+            if (byteData[pos] == 0 && (pos + 2) < sz)
+            {
+                stringIndexes.push_back((FIT_UINT8)(pos + 1));
+            }
+        }
+
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *invalid = (const FIT_BYTE *) baseTypeInvalids[typeNum];
+    const int sz = size;
+
+    switch (typeSize)
+    {
+    case 1:
+    {
+        const FIT_BYTE inv = invalid[0];
+        for (int i = 0; i < sz; i++)
+        {
+            if (byteData[i] != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 2:
+    {
+        FIT_UINT16 inv;
+        memcpy(&inv, invalid, 2);
+        for (int off = 0; off < sz; off += 2)
+        {
+            FIT_UINT16 v;
+            memcpy(&v, byteData + off, 2);
+            if (v != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 4:
+    {
+        FIT_UINT32 inv;
+        memcpy(&inv, invalid, 4);
+        for (int off = 0; off < sz; off += 4)
+        {
+            FIT_UINT32 v;
+            memcpy(&v, byteData + off, 4);
+            if (v != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 8:
+    {
+        FIT_UINT64 inv;
+        memcpy(&inv, invalid, 8);
+        for (int off = 0; off < sz; off += 8)
+        {
+            FIT_UINT64 v;
+            memcpy(&v, byteData + off, 8);
+            if (v != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    default:
+        break;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, invalid, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```

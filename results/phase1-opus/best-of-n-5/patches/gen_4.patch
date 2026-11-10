@@ -1,0 +1,11 @@
+--- a/src/fit_segment_file_mesg.hpp
++++ b/src/fit_segment_file_mesg.hpp
+@@ -326,7 +326,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_WSTRING GetLeaderActivityIdString(FIT_UINT8 index) const
+     {
+-        return GetFieldSTRINGValue(10, index, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return GetFieldSTRINGValue(static_cast<FIT_UINT8>(10), index, static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

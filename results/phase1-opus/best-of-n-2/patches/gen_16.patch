@@ -1,0 +1,10 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -32,6 +32,7 @@
+ 
+ FieldBase::~FieldBase()
+ {
++   return;
+ }
+ 
+ std::string FieldBase::GetName(const FIT_UINT16 subFieldIndex) const

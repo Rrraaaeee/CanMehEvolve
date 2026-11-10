@@ -1,0 +1,39 @@
+This version replaces the 1024-entry table plus linear fallback with one direct lookup that covers every 16-bit message number.
+
+- **Full coverage:** numbers ≥ 1024 (for example manufacturer-specific 0xFF00–0xFFFE) used to fall into a linear scan, which ran to the end for unknown numbers. They now take the same direct lookup as all other numbers.
+- **Cheap initialization:** entries store `index + 1`, so 0 means "absent". The table is zero-initialized for free, and setup writes only the entries that exist. Setup never touches the whole 128 KB.
+- **Same results:** iterating from the last message down to the first means the first match wins, as in the original scan.
+- **Safety fallback:** if `MESGS` were too large to fit the table, the function keeps the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Lut
+    {
+        FIT_UINT16 idx[65536];
+        bool ok;
+        Lut() : idx(), ok(MESGS < 65535)
+        {
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+                idx[mesgs[i].num] = (FIT_UINT16)(i + 1);
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        unsigned i = lut.idx[num];
+        return i ? &mesgs[i - 1] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

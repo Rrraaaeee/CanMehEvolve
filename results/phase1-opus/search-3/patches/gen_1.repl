@@ -1,0 +1,80 @@
+Changes made:
+- `GetType()` is now called once. It may be virtual, and the original called it on every loop iteration.
+- The string case copies the whole buffer with one `assign` instead of calling `push_back` per byte. It then scans for the `stringIndexes` positions separately.
+- The invalid-value check has a fast path for 1-byte types that compares bytes directly instead of calling `memcmp`.
+- Otherwise the logic matches the original:
+  - `stringIndexes` is still never cleared.
+  - Wider types use the same `memcmp` stride and the same read semantics as before.
+
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeNum = type & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 typeSize = baseTypeSizes[typeNum];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        FIT_UINT8 index = 0;
+        while (index < size && byteData[index] == 0)
+            index++;
+
+        if (index >= size)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        const int sz = size;
+        for (int pos = 0; pos < sz; pos++)
+        {
+            if (byteData[pos] == 0 && (pos + 2) < sz)
+            {
+                stringIndexes.push_back((FIT_UINT8)(pos + 1));
+            }
+        }
+
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *invalid = (const FIT_BYTE *) baseTypeInvalids[typeNum];
+
+    if (typeSize == 1)
+    {
+        const FIT_BYTE inv = invalid[0];
+        for (int i = 0; i < size; i++)
+        {
+            if (byteData[i] != inv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, invalid, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```

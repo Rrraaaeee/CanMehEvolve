@@ -1,0 +1,29 @@
+The main change is to call the virtual `GetType()` once and keep the result in a local, instead of calling it twice. This assumes `GetType()` returns the same value on repeated calls, which holds for the SDK's field types.
+
+The second change avoids an integer divide in the common cases. Base-type sizes are normally 1, 2, 4 or 8 bytes, and those divisions become a plain read or a shift. Any other size still uses ordinary division, so results are identical for every input.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type != FIT_BASE_TYPE_STRING)
+    {
+        const size_t n = values.size();
+        const FIT_UINT8 sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+        switch (sz)
+        {
+        case 1: return (FIT_UINT8)n;
+        case 2: return (FIT_UINT8)(n >> 1);
+        case 4: return (FIT_UINT8)(n >> 2);
+        case 8: return (FIT_UINT8)(n >> 3);
+        default: return (FIT_UINT8)(n / sz);
+        }
+    }
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

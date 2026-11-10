@@ -1,0 +1,17 @@
+The function is already minimal, so this is only a micro-optimization:
+
+- It reads the `profile` pointer and `profileIndex` into locals once each.
+- It marks the found-field path as the likely branch.
+
+Every input returns the same value as before. Any speedup will be small at best.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* p = profile;
+    const auto idx = profileIndex;
+    if (__builtin_expect((p != NULL) && (idx < p->numFields), 1))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

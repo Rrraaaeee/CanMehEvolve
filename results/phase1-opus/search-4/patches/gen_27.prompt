@@ -1,0 +1,20 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::SetUINT32Value
+One decode of the test corpus takes about 358.717 ms.
+The code below currently runs at 0.911728 of the original SDK's decode time; the best found so far is 0.905772.
+
+Rewrite this function to make decoding faster:
+```cpp
+void FieldBase::SetUINT32Value(const FIT_UINT32 value, const FIT_UINT8 fieldArrayIndex)
+{
+    if ((FIT_UINT8)values.size() < ((fieldArrayIndex + 1) * sizeof(FIT_UINT32)))
+    {
+        values.resize((fieldArrayIndex + 1) * sizeof(FIT_UINT32));
+    }
+
+    for (size_t i = 0; i < sizeof(FIT_UINT32); i++)
+    {
+        values[(fieldArrayIndex * sizeof(FIT_UINT32)) + i] = ((FIT_BYTE)(value >> (8 * i)));
+    }
+}
+```

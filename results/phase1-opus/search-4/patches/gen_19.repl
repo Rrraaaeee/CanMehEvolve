@@ -1,0 +1,18 @@
+When `subFieldIndex` is `FIT_SUBFIELD_INDEX_MAIN_FIELD`, which is the common case, the rewrite skips `CanSupportSubField`. That avoids a second `GetField` lookup, which scans the field list a second time.
+
+This rests on an assumption I have not checked against the source of `CanSupportSubField`. The skip is only safe if that function always returns true for the main-field index once the field exists. All other `subFieldIndex` values still go through the original check.
+
+```cpp
+FIT_UINT8 Mesg::GetFieldUINT8Value(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+
+    if (field == FIT_NULL)
+        return FIT_UINT8_INVALID;
+
+    if ((subFieldIndex != FIT_SUBFIELD_INDEX_MAIN_FIELD) && (!CanSupportSubField(fieldNum, subFieldIndex)))
+        return FIT_UINT8_INVALID;
+
+    return field->GetUINT8Value(fieldArrayIndex);
+}
+```

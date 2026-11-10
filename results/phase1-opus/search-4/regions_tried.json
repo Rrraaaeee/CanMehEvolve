@@ -1,0 +1,209 @@
+[
+  {
+    "accepted": 3,
+    "attempts": 6,
+    "best_gain": 0.015265971236486542,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::UpdateEndianness",
+    "region": 55,
+    "samples": 18
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.0015421459646283164,
+    "file": "src/fit_developer_field_definition.cpp",
+    "label": "DeveloperFieldDefinition::~DeveloperFieldDefinition",
+    "region": 84,
+    "samples": 49
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0001151889328636635,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 398
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 737
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumComponents",
+    "region": 127,
+    "samples": 67
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0362020708959645,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 461
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.009993997548811473,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetNumValues",
+    "region": 143,
+    "samples": 175
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetUINT32Value",
+    "region": 184,
+    "samples": 11
+  },
+  {
+    "accepted": 0,
+    "attempts": 3,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetValue",
+    "region": 196,
+    "samples": 307
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0076137611379751835,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::Mesg",
+    "region": 213,
+    "samples": 82
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 234,
+    "samples": 211
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0012714804165596671,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetFieldUINT8Value",
+    "region": 248,
+    "samples": 51
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg_broadcaster.cpp",
+    "label": "MesgBroadcaster::AddListener",
+    "region": 362,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg_definition.cpp",
+    "label": "MesgDefinition::GetFieldByIndex",
+    "region": 555,
+    "samples": 109
+  },
+  {
+    "accepted": 2,
+    "attempts": 9,
+    "best_gain": 0.0680104433315144,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1326
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetFieldIndex",
+    "region": 576,
+    "samples": 363
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_connectivity_mesg.hpp",
+    "label": "IsCourseDownloadEnabledValid",
+    "region": 1090,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_lap_mesg.hpp",
+    "label": "IsAvgDepthValid",
+    "region": 2711,
+    "samples": 0
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.00020987626186086406,
+    "file": "src/fit_max_met_data_mesg.hpp",
+    "label": "IsUpdateTimeValid",
+    "region": 2870,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_sdm_profile_mesg.hpp",
+    "label": "IsOdometerRolloverValid",
+    "region": 3550,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_session_mesg.hpp",
+    "label": "GetEnhancedAvgAltitude",
+    "region": 4335,
+    "samples": 0
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.00063388796368824,
+    "file": "src/fit_totals_mesg.hpp",
+    "label": "SetActiveTime",
+    "region": 4937,
+    "samples": 0
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 1.3974311413145202e-05,
+    "file": "src/fit_weather_conditions_mesg.hpp",
+    "label": "SetPrecipitationProbability",
+    "region": 5197,
+    "samples": 0
+  }
+]

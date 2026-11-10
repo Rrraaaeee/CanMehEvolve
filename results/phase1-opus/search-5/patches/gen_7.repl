@@ -1,0 +1,31 @@
+The main change is that the loop no longer re-reads `mesg->numFields` and `mesg->fields` on every iteration:
+
+- **Locals:** the field count and the fields pointer are copied into local variables once. The compiler can then keep them in registers instead of reloading them through `mesg`.
+- **Index type:** the loop counter is a native `unsigned` rather than `FIT_UINT16`, which avoids repeated 16-bit truncation.
+
+Behavior is unchanged:
+
+- **Match order:** the search still runs forward and returns the first match.
+- **Return value:** the result is the same index, converted back to `FIT_UINT16`.
+- **Not found:** if there is no match, or no message, it still returns `FIT_UINT16_INVALID`.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const unsigned n = mesg->numFields;
+    const auto *fields = mesg->fields;
+
+    for (unsigned i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

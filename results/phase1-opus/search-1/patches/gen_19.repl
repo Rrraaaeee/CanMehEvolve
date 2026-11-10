@@ -1,0 +1,63 @@
+The lookup table already covers message numbers below 1024. This version adds two things for numbers at or above 1024:
+
+- **Early reject:** while building the table once, record the smallest and largest profile message numbers that are 1024 or higher. A number outside that range returns `NULL` immediately, with no linear scan. Unknown or manufacturer-specific numbers such as 0xFF00 now take this fast path.
+- **Narrower scan:** a number inside that range is searched from the first such entry. Entries before it are all below 1024, so they cannot match.
+- **Same results:** the first match by index still wins, as before.
+- **Cheaper checks:** the `ok` flag is folded into the range tests, so the normal path does one less test.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        FIT_SINT16 idx[LUT_SIZE];
+        FIT_UINT32 lutLimit;   // LUT_SIZE if ok, else 0
+        FIT_UINT32 hiMin;
+        FIT_UINT32 hiMax;
+        int hiFirst;
+        Lut()
+        {
+            bool ok = (MESGS < 32767);
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = -1;
+            lutLimit = ok ? LUT_SIZE : 0;
+            hiMin = 0xFFFFFFFFu;
+            hiMax = 0;
+            hiFirst = MESGS;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (ok && n < LUT_SIZE)
+                {
+                    idx[n] = (FIT_SINT16)i;
+                }
+                else
+                {
+                    if (n < hiMin) hiMin = n;
+                    if (n > hiMax) hiMax = n;
+                    hiFirst = i;
+                }
+            }
+        }
+    };
+    static const Lut lut;
+
+    if ((FIT_UINT32)num < lut.lutLimit)
+    {
+        int i = lut.idx[num];
+        return (i >= 0) ? &mesgs[i] : NULL;
+    }
+
+    if ((FIT_UINT32)num < lut.hiMin || (FIT_UINT32)num > lut.hiMax)
+        return NULL;
+
+    for (int i = lut.hiFirst; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

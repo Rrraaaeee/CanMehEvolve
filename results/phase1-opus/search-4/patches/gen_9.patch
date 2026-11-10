@@ -1,0 +1,84 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -409,13 +409,39 @@
+ 
+ void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+ {
+-    FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+-    FIT_UINT8 numElements = size / typeSize;
++    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
++        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE))
++        return;
+ 
+-    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) != 0) &&
+-        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) != FIT_ARCH_ENDIAN_LITTLE))
++    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++    const int numElements = size / typeSize;
++    FIT_UINT8* p = &fieldData[0];
++
++    switch (typeSize)
+     {
+-        // Swap the bytes for each element.
++    case 2:
++        for (int e = 0; e < numElements; e++, p += 2)
++        {
++            FIT_UINT8 t = p[0]; p[0] = p[1]; p[1] = t;
++        }
++        return;
++    case 4:
++        for (int e = 0; e < numElements; e++, p += 4)
++        {
++            FIT_UINT8 a = p[0], b = p[1], c = p[2], d = p[3];
++            p[0] = d; p[1] = c; p[2] = b; p[3] = a;
++        }
++        return;
++    case 8:
++        for (int e = 0; e < numElements; e++, p += 8)
++        {
++            FIT_UINT8 b0 = p[0], b1 = p[1], b2 = p[2], b3 = p[3];
++            FIT_UINT8 b4 = p[4], b5 = p[5], b6 = p[6], b7 = p[7];
++            p[0] = b7; p[1] = b6; p[2] = b5; p[3] = b4;
++            p[4] = b3; p[5] = b2; p[6] = b1; p[7] = b0;
++        }
++        return;
++    default:
+         for (int element = 0; element < numElements; element++)
+         {
+             for (int i = 0; i < (typeSize / 2); i++)
+@@ -425,6 +451,7 @@
+                 fieldData[element * typeSize + typeSize - i - 1] = tmp;
+             }
+         }
++        return;
+     }
+ }
+ 
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_mesg_broadcaster.cpp
++++ b/src/fit_mesg_broadcaster.cpp
+@@ -539,7 +539,7 @@
+ 
+ void MesgBroadcaster::AddListener(RecordMesgListener& recordMesgListener)
+ {
+-   recordMesgListeners.push_back(&recordMesgListener);
++   recordMesgListeners.emplace_back(&recordMesgListener);
+ }
+ 
+ void MesgBroadcaster::RemoveListener(RecordMesgListener& recordMesgListener)

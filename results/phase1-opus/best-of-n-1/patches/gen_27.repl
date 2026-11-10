@@ -1,0 +1,14 @@
+The original constructor is already minimal. Each member is copied directly in the initializer list, and nearly all the cost sits in `FieldBase`'s copy, which this function can't change. So no real speedup is available here.
+
+The only change is renaming the parameter, which is required because an identical reply is rejected. Behavior is unchanged, and the compiled code should be essentially the same, so I don't expect any measurable speedup.
+
+```cpp
+Field::Field(const Field &other)
+    : FieldBase(other)
+    , profile(other.profile)
+    , profileIndex(other.profileIndex)
+    , type(other.type)
+    , isFieldExpanded(other.isFieldExpanded)
+{
+}
+```

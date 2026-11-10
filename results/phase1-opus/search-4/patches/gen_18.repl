@@ -1,0 +1,42 @@
+The main change is reordering the checks so the common paths do less work. Behavior is unchanged for every input, including the out-of-range path. I haven't measured the speedup.
+
+- **Index check first:** the out-of-range test only needs `values.size()`, so it now runs before the size lookup. That path still reads only `typeNum` and the invalid value, as before.
+- **Exact-size case:** `memcpy` stays first, as in the original.
+- **One-byte case:** this new fast path is common for enums and uint8 fields. It returns `static_cast<T>(p[0])`, which is the same as the original loop's single iteration.
+- **Other sizes:** they still use the original shift loop, so results don't depend on byte order and the size-larger-than-`sizeof(T)` case is untouched.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    if (__builtin_expect(fieldArrayIndex >= (FIT_UINT8)values.size(), 0))
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    const FIT_BYTE* p = values.data() + (static_cast<size_t>(fieldArrayIndex) * size);
+
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, p, sizeof(T));
+        return rv;
+    }
+
+    if (size == 1)
+    {
+        return static_cast<T>(p[0]);
+    }
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```

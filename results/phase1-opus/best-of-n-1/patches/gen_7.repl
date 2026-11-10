@@ -1,0 +1,52 @@
+The main saving comes from not repeating work for consecutive maps that share the same reference field. In the profile, consecutive subfield maps usually point to the same reference field, for example several values of `event`. Previously each map repeated two costly steps: the linear field search in `GetField` and the `GetFLOAT64Value` conversion.
+
+The rewrite remembers the last reference field number, a pointer to that field, and its rounded value. When the next map uses the same reference field, it reuses those results. When the field number changes, it looks them up again exactly as before.
+
+This keeps behavior identical as long as `GetField` and `GetFLOAT64Value` are deterministic `const` lookups with no side effects. I'm assuming that from their use here; I haven't checked their implementations. The rounding and the cast to `FIT_SINT32` are unchanged.
+
+```cpp
+FIT_BOOL Mesg::CanSupportSubField(const FIT_UINT8 fieldNum, const FIT_UINT16 subFieldIndex) const
+{
+    if ((subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD) || (subFieldIndex == FIT_SUBFIELD_INDEX_ACTIVE_SUBFIELD))
+        return FIT_TRUE;
+
+    const Profile::SUBFIELD* subField = Profile::GetSubField(GetNum(), fieldNum, subFieldIndex);
+
+    if (subField == FIT_NULL)
+        return FIT_FALSE;
+
+    const int numMaps = (int) subField->numMaps;
+    if (numMaps <= 0)
+        return FIT_FALSE;
+
+    const Profile::SUBFIELD_MAP* maps = subField->maps;
+
+    bool haveCache = false;
+    FIT_UINT8 cachedNum = 0;
+    const Field* cachedField = FIT_NULL;
+    FIT_SINT32 cachedValue = 0;
+
+    for (int i = 0; i < numMaps; i++)
+    {
+        const FIT_UINT8 refNum = maps[i].refFieldNum;
+
+        if (!haveCache || refNum != cachedNum)
+        {
+            haveCache = true;
+            cachedNum = refNum;
+            cachedField = GetField(refNum);
+            if (cachedField != FIT_NULL)
+            {
+                FIT_FLOAT64 refValue = cachedField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+                refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+                cachedValue = (FIT_SINT32)refValue;
+            }
+        }
+
+        if (cachedField != FIT_NULL && cachedValue == maps[i].refFieldValue)
+            return FIT_TRUE;
+    }
+
+    return FIT_FALSE;
+}
+```

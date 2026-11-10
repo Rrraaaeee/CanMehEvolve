@@ -1,0 +1,15 @@
+The function already does very little work, so there is not much to gain here. The rewrite below keeps the same checks and results, with two small changes:
+
+- It loads the `profile` member into a local variable once, instead of reading it through `this` each time.
+- It marks the "no profile" path as unlikely, so the compiler lays out the common path first.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto p = profile;
+    const auto idx = profileIndex;
+    if (__builtin_expect((p == NULL) || (idx >= p->numFields), 0))
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

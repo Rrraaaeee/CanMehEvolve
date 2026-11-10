@@ -1,0 +1,13 @@
+The copy constructor already copies each member once, and `std::vector` copy construction allocates exactly the needed size. There is no meaningful work to remove, so I don't expect a measurable speedup from this function.
+
+The change below is behaviour-identical: it builds each vector from an iterator range instead of calling the vector copy constructor. Both allocate once and copy-construct each element in order, so decoded values and side effects are unchanged. The member initialiser order is kept the same as the original.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields.begin(), mesg.fields.end())
+    , devFields(mesg.devFields.begin(), mesg.devFields.end())
+{
+}
+```

@@ -1,0 +1,12 @@
+File: src/fit_totals_mesg.hpp
+Function: SetActiveTime
+One decode of the test corpus takes about 358.717 ms.
+The code below currently runs at 0.918802 of the original SDK's decode time; the best found so far is 0.918802.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetActiveTime(FIT_UINT32 activeTime)
+    {
+        SetFieldUINT32Value(6, activeTime, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

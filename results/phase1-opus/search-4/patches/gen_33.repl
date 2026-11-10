@@ -1,0 +1,8 @@
+This setter is not on the decode path, so no rewrite of it will make decoding measurably faster. The only behavior-preserving change I can make is cosmetic: I pass the defaulted arguments explicitly as unsigned literals and add `final`-free inline-friendly braces. The call and its result are unchanged.
+
+```cpp
+    void SetPrecipitationProbability(FIT_UINT8 precipitationProbability)
+    {
+        SetFieldUINT8Value(5U, precipitationProbability, 0U, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

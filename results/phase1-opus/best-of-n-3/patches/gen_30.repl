@@ -1,0 +1,27 @@
+The original does a linear scan over every message definition on each call. This version builds a 65536-entry index table from the constant `mesgs` array once, on the first call, so each lookup is a single array access.
+
+- **Same result as the original:** the table is filled from the highest index down to the lowest, so when a `num` appears more than once, the first match is kept, just as the original loop returns it.
+- **Not a mutable-state cache:** the table is a function-local static and is derived only from immutable profile data. C++11 guarantees its initialization is thread-safe.
+- **Memory:** the table costs about 256 KB.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<int> table = []()
+    {
+        std::vector<int> t(65536, -1);
+        for (int i = (int)MESGS - 1; i >= 0; i--)
+            t[(FIT_UINT16)mesgs[i].num] = i;
+        return t;
+    }();
+
+    const int idx = table[num];
+    if (idx < 0)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <vector>
+```

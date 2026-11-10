@@ -1,0 +1,42 @@
+The new version uses a single 65536-entry index table that covers every 16-bit message number. A lookup is now one guarded load plus one compare, with no range checks and no linear scan for numbers above 1023.
+
+- **Same result as before:** the table is filled from the last entry to the first, so when several entries share a number, the first one still wins.
+- **Fallback:** if `MESGS` is too large to fit the 16-bit index, the function falls back to a linear scan.
+- **Memory:** the table is 128 KB, built once. Only the cache lines for message numbers actually used get touched during decoding.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Lut
+    {
+        FIT_UINT16 idx[65536];
+        bool ok;
+        Lut()
+        {
+            ok = (MESGS < 0xFFFF);
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            if (ok)
+            {
+                for (int i = MESGS - 1; i >= 0; i--)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        FIT_UINT16 i = lut.idx[num];
+        return (i != 0xFFFF) ? &mesgs[i] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

@@ -1,0 +1,12 @@
+File: src/fit_barometer_data_mesg.hpp
+Function: SetTimestamp
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.985407 of the original SDK's decode time; the best found so far is 0.985407.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetTimestamp(FIT_DATE_TIME timestamp)
+    {
+        SetFieldUINT32Value(253, timestamp, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

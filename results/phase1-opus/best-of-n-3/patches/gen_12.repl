@@ -1,0 +1,9 @@
+This version copy-constructs `values` and `stringIndexes` directly in the member initializer list. The original first default-constructed both members and then copy-assigned into them. Copy-constructing directly skips that empty-construct-then-assign step and sizes each allocation once. It also avoids per-element assignment overhead for the nested vectors. Other members, if any, are default-initialized exactly as before, so behavior is unchanged.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

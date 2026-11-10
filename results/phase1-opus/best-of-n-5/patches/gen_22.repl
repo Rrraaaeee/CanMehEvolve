@@ -1,0 +1,18 @@
+The likely win is skipping the subfield check for the common main-field request. This relies on an assumption I could not confirm: I don't have the source of `CanSupportSubField`, and I'm recalling it from memory of the FIT SDK. I believe it returns true straight away when `subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD` (it may also look up the active subfield first in some versions).
+
+If that holds, the call can be skipped for the main field, which avoids its overhead and possibly a second field lookup. If it does not hold, the shortcut would change behavior, so check `CanSupportSubField` in `fit_mesg.cpp` before using this. All other subfield indices still go through the original check.
+
+```cpp
+FIT_UINT8 Mesg::GetFieldUINT8Value(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+
+    if (field == FIT_NULL)
+        return FIT_UINT8_INVALID;
+
+    if ((subFieldIndex != FIT_SUBFIELD_INDEX_MAIN_FIELD) && (!CanSupportSubField(fieldNum, subFieldIndex)))
+        return FIT_UINT8_INVALID;
+
+    return field->GetUINT8Value(fieldArrayIndex);
+}
+```

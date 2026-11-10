@@ -1,0 +1,9 @@
+`IsAvgDepthValid` does only one field lookup and one validity check, so there is very little to optimize here. This version folds the null check into a single return. The calls and semantics are unchanged, so behavior is identical, but any speed gain will be negligible.
+
+```cpp
+    FIT_BOOL IsAvgDepthValid() const
+    {
+        const Field* const field = GetField(122);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

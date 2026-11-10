@@ -1,0 +1,14 @@
+--- a/src/fit_device_settings_mesg.hpp
++++ b/src/fit_device_settings_mesg.hpp
+@@ -173,7 +173,10 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_UINT8 GetNumTimeMode(void) const
+     {
+-        return GetFieldNumValues(4, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        const Field* field = GetField(4);
++        if (field == FIT_NULL)
++            return 0;
++        return field->GetNumValues();
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

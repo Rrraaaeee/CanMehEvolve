@@ -1,0 +1,28 @@
+The original function scans every message entry each time it is called. This version builds a direct lookup table from `num` to index once, and after that each lookup is a single array access.
+
+- **Table setup:** The table is a function-local `static` built with a thread-safe initializer. It is filled only from the constant `mesgs` array, so it does not depend on global mutable state.
+- **Size and empty slots:** It holds 65536 `FIT_UINT16` entries (128 KB) and stores `index + 1`, so `0` means "not found".
+- **Duplicate numbers:** The table is filled in reverse order. If two entries share a `num`, the first one in the array wins, the same as the original linear scan.
+- **Unchanged results:** It returns `NULL` for unknown numbers and the same pointer as before for known ones.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<FIT_UINT16> table = []()
+    {
+        std::vector<FIT_UINT16> t(65536, 0);
+        for (int i = MESGS - 1; i >= 0; i--)
+            t[mesgs[i].num] = static_cast<FIT_UINT16>(i + 1);
+        return t;
+    }();
+
+    const FIT_UINT16 idx = table[num];
+    if (idx == 0)
+        return NULL;
+    return &mesgs[idx - 1];
+}
+```
+
+```includes
+#include <vector>
+```

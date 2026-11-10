@@ -1,0 +1,231 @@
+--- a/src/fit_crc.cpp
++++ b/src/fit_crc.cpp
+@@ -17,24 +17,20 @@
+ 
+ FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+ {
+-   static const FIT_UINT16 crc_table[16] =
+-   {
+-      0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
+-      0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400
+-   };
+-   FIT_UINT16 tmp;
++   struct Table { FIT_UINT16 v[256]; };
++   static constexpr Table table = []() constexpr {
++      Table t{};
++      for (unsigned i = 0; i < 256; ++i)
++      {
++         unsigned c = i;
++         for (int k = 0; k < 8; ++k)
++            c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
++         t.v[i] = static_cast<FIT_UINT16>(c);
++      }
++      return t;
++   }();
+ 
+-   // compute checksum of lower four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[byte & 0xF];
+-
+-   // now compute checksum of upper four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[(byte >> 4) & 0xF];
+-
+-   return crc;
++   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+ }
+ 
+ FIT_UINT16 CRC::Calc16(const volatile void *data, FIT_UINT32 size)
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -48,10 +48,24 @@
+ Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+     : FieldBase()
+     , profile(Profile::GetMesg(mesgNum))
+-    , profileIndex(Profile::GetFieldIndex(mesgNum, fieldNum))
++    , profileIndex(FIT_UINT16_INVALID)
+     , type(FIT_UINT8_INVALID)
+     , isFieldExpanded(FIT_FALSE)
+ {
++    const Profile::MESG* const mesg = profile;
++    if (mesg != FIT_NULL)
++    {
++        const FIT_UINT16 n = mesg->numFields;
++        const Profile::FIELD* const fields = mesg->fields;
++        for (FIT_UINT16 i = 0; i < n; i++)
++        {
++            if (fields[i].num == fieldNum)
++            {
++                profileIndex = i;
++                break;
++            }
++        }
++    }
+ }
+ 
+ Field::Field(const std::string& mesgName, const std::string& fieldName)
+@@ -99,13 +113,15 @@
+ 
+ FIT_UINT8 Field::GetType() const
+ {
+-    if ( type != FIT_UINT8_INVALID )
+-        return type;
++    const FIT_UINT8 t = type;
++    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
++        return t;
+ 
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const Profile::MESG* const p = profile;
++    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+         return FIT_UINT8_INVALID;
+ 
+-    return profile->fields[profileIndex].type;
++    return p->fields[profileIndex].type;
+ }
+ 
+ std::string Field::GetUnits() const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -351,63 +351,39 @@
+ 
+     switch (GetType()) { // Note: This checks the type of the MAIN field since data is aligned according to that type
+         case FIT_BASE_TYPE_BYTE:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_BYTE>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_BYTE>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_ENUM:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_ENUM>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_ENUM>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_SINT8:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_SINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_UINT8:
+         case FIT_BASE_TYPE_UINT8Z:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_UINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_SINT16:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_SINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_UINT16Z:
+         case FIT_BASE_TYPE_UINT16:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_UINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_SINT32:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_SINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_UINT32:
+         case FIT_BASE_TYPE_UINT32Z:
+-        {
+-            float64Value =
+-                ConvertBaseType<FIT_FLOAT64, FIT_UINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
++            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+             break;
+-        }
+ 
+         case FIT_BASE_TYPE_FLOAT32:
+         {
+@@ -432,7 +408,12 @@
+             return FIT_FLOAT64_INVALID;
+     }
+ 
+-    if (memcmp(&float64Value, baseTypeInvalids[FIT_BASE_TYPE_FLOAT64 & FIT_BASE_TYPE_NUM_MASK], sizeof(FIT_FLOAT64)) == 0)
++    FIT_UINT64 valueBits;
++    FIT_UINT64 invalidBits;
++    memcpy(&valueBits, &float64Value, sizeof(FIT_UINT64));
++    memcpy(&invalidBits, baseTypeInvalids[FIT_BASE_TYPE_FLOAT64 & FIT_BASE_TYPE_NUM_MASK], sizeof(FIT_UINT64));
++
++    if (valueBits == invalidBits)
+     {
+         return float64Value;
+     }
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,7 +3057,51 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
+-    for (int i = 0; i < MESGS; i++)
++    enum { LUT_SIZE = 1024 };
++    struct Lut
++    {
++        FIT_SINT16 idx[LUT_SIZE];
++        FIT_UINT32 lutLimit;   // LUT_SIZE if ok, else 0
++        FIT_UINT32 hiMin;
++        FIT_UINT32 hiMax;
++        int hiFirst;
++        Lut()
++        {
++            bool ok = (MESGS < 32767);
++            for (int k = 0; k < LUT_SIZE; k++)
++                idx[k] = -1;
++            lutLimit = ok ? LUT_SIZE : 0;
++            hiMin = 0xFFFFFFFFu;
++            hiMax = 0;
++            hiFirst = MESGS;
++            for (int i = MESGS - 1; i >= 0; i--)
++            {
++                FIT_UINT16 n = mesgs[i].num;
++                if (ok && n < LUT_SIZE)
++                {
++                    idx[n] = (FIT_SINT16)i;
++                }
++                else
++                {
++                    if (n < hiMin) hiMin = n;
++                    if (n > hiMax) hiMax = n;
++                    hiFirst = i;
++                }
++            }
++        }
++    };
++    static const Lut lut;
++
++    if ((FIT_UINT32)num < lut.lutLimit)
++    {
++        int i = lut.idx[num];
++        return (i >= 0) ? &mesgs[i] : NULL;
++    }
++
++    if ((FIT_UINT32)num < lut.hiMin || (FIT_UINT32)num > lut.hiMax)
++        return NULL;
++
++    for (int i = lut.hiFirst; i < MESGS; i++)
+     {
+         if (mesgs[i].num == num)
+             return &mesgs[i];

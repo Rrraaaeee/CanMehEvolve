@@ -1,0 +1,173 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_developer_field_definition.cpp",
+    "label": "DeveloperFieldDefinition::IsDefined",
+    "region": 85,
+    "samples": 26
+  },
+  {
+    "accepted": 0,
+    "attempts": 3,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 367
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::IsValid",
+    "region": 118,
+    "samples": 65
+  },
+  {
+    "accepted": 0,
+    "attempts": 4,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNum",
+    "region": 122,
+    "samples": 530
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 731
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumComponents",
+    "region": 127,
+    "samples": 65
+  },
+  {
+    "accepted": 3,
+    "attempts": 3,
+    "best_gain": 0.054668320796133374,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 452
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetUINT8Value",
+    "region": 154,
+    "samples": 3
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetValue",
+    "region": 196,
+    "samples": 273
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_definition.cpp",
+    "label": "FieldDefinition::GetType",
+    "region": 205,
+    "samples": 25
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::Mesg",
+    "region": 213,
+    "samples": 89
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 234,
+    "samples": 231
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg_definition.cpp",
+    "label": "MesgDefinition::GetFields",
+    "region": 552,
+    "samples": 20
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg_definition.cpp",
+    "label": "MesgDefinition::GetFieldByIndex",
+    "region": 555,
+    "samples": 93
+  },
+  {
+    "accepted": 12,
+    "attempts": 12,
+    "best_gain": 0.07733780038357296,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1367
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_connectivity_mesg.hpp",
+    "label": "IsCourseDownloadEnabledValid",
+    "region": 1090,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_lap_mesg.hpp",
+    "label": "GetRepetitionNum",
+    "region": 2549,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_record_mesg.hpp",
+    "label": "SetRightPco",
+    "region": 3377,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_session_mesg.hpp",
+    "label": "GetEnhancedAvgAltitude",
+    "region": 4335,
+    "samples": 0
+  }
+]

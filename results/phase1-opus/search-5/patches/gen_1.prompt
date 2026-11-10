@@ -1,0 +1,23 @@
+File: src/fit_profile.cpp
+Function: Profile::GetFieldIndex
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 1 of the original SDK's decode time; the best found so far is 1.
+
+Rewrite this function to make decoding faster:
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    for (FIT_UINT16 i = 0; i < mesg->numFields; i++)
+    {
+        if (mesg->fields[i].num == fieldNum)
+            return i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

@@ -1,0 +1,9 @@
+The original logic is already minimal, so this rewrite only restructures it into a single expression with a branch hint. It looks up field 100 and returns `FIT_FALSE` if the field is absent; otherwise it returns `field->IsValueValid(index)`, exactly as before. Any speedup is likely to be small, since only the control flow layout changes.
+
+```cpp
+    FIT_BOOL IsMaxSaturatedHemoglobinPercentValid(FIT_UINT8 index) const
+    {
+        const Field* const field = GetField(100);
+        return __builtin_expect(field != FIT_NULL, 1) ? field->IsValueValid(index) : FIT_FALSE;
+    }
+```

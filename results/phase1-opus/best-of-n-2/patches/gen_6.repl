@@ -1,0 +1,9 @@
+The original default-constructs `values` and `stringIndexes` and then copy-assigns them. Copying them directly in the member initializer list avoids that empty construction and the assignment. The resulting contents are the same, and the class's other members are still default-initialized as before.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

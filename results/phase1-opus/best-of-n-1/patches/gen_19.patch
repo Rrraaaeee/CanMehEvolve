@@ -1,0 +1,16 @@
+--- a/src/fit_nmea_sentence_mesg.hpp
++++ b/src/fit_nmea_sentence_mesg.hpp
+@@ -45,12 +45,7 @@
+     FIT_BOOL IsTimestampValid() const
+     {
+         const Field* field = GetField(253);
+-        if( FIT_NULL == field )
+-        {
+-            return FIT_FALSE;
+-        }
+-
+-        return field->IsValueValid();
++        return (FIT_NULL != field) ? field->IsValueValid() : FIT_FALSE;
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

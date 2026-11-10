@@ -1,0 +1,14 @@
+The copy constructor is already minimal: it copies the base subobject and four small members. There is no measurable work to remove without changing behavior. The only real cost is in `FieldBase`'s copy, which is outside this function.
+
+The replacement below is semantically identical. It names the base-class copy explicitly with `static_cast`, so the compiler still produces direct member-wise copies with no extra work. Expect no measurable change in decode time from this edit.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

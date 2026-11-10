@@ -1,0 +1,43 @@
+The original does a linear scan over all message definitions on every call. This version builds a 64K-entry direct-index table once, on the first call, from the constant `mesgs` array. After that, each lookup is a single O(1) array read.
+
+- **Same results:** the table is filled in order and only unset slots are written, so the first matching entry wins, exactly as in the linear scan. Message numbers with no entry still return `NULL`.
+- **No mutable global state:** the table is derived only from constant data.
+- **Thread-safe setup:** C++11 guarantees that function-local static initialization runs once, even with concurrent first calls.
+- **Fallback:** if `MESGS` were too large to index with 16 bits, the code falls back to the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct LookupTable
+    {
+        FIT_UINT16 idx[65536];
+        LookupTable()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = static_cast<FIT_UINT16>(i);
+            }
+        }
+    };
+
+    if (MESGS >= 0xFFFF)
+    {
+        for (int i = 0; i < MESGS; i++)
+        {
+            if (mesgs[i].num == num)
+                return &mesgs[i];
+        }
+        return NULL;
+    }
+
+    static const LookupTable table;
+    FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

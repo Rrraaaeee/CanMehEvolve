@@ -1,0 +1,19 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::GetOffset
+One decode of the test corpus takes about 358.373 ms.
+The code below currently runs at 0.923891 of the original SDK's decode time; the best found so far is 0.920641.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == 0xFFFF)
+        return GetOffset();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetOffset();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->offset : 0.0;
+}
+```

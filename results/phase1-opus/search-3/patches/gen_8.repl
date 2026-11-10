@@ -1,0 +1,8 @@
+This getter isn't on the decode hot path, so no measurable speedup is expected. The only change is replacing the C-style cast with `static_cast`, which compiles to identical code. Behavior is unchanged: same field number (4), same array index (0), same subfield index.
+
+```cpp
+    FIT_FLOAT32 GetRepeatDistance(void) const
+    {
+        return GetFieldFLOAT32Value(4, 0, static_cast<FIT_UINT16>(Profile::WORKOUT_STEP_MESG_TARGET_VALUE_FIELD_REPEAT_DISTANCE));
+    }
+```

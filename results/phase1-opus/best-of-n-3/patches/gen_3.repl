@@ -1,0 +1,12 @@
+The copy constructor is already minimal: every member is copied directly, and nearly all the cost is in `FieldBase`'s copy of the field values, which this function can't change. The rewrite below differs only in syntax: it uses brace initialization instead of parentheses. Each member is still copied from a source of the same type, so there is no narrowing and behavior is identical. Expect no measurable speedup; it is offered only because an unchanged reply is rejected.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field)
+    , profile{field.profile}
+    , profileIndex{field.profileIndex}
+    , type{field.type}
+    , isFieldExpanded{field.isFieldExpanded}
+{
+}
+```

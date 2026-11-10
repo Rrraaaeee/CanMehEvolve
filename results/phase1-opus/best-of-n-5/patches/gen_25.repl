@@ -1,0 +1,15 @@
+The defaulted member-wise copy is already close to optimal. Each `std::vector` copy makes exactly one allocation of the right size and copy-constructs the elements, and an empty vector makes no allocation.
+
+The only change is to skip the copy of `devFields` when the source has none, which most messages do. That saves a small amount of construction overhead. Observable behavior is unchanged: `devFields` is default-constructed empty either way.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields)
+    , devFields()
+{
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

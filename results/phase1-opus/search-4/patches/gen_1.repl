@@ -1,0 +1,43 @@
+The main saving is a fast path for the common case where the field's base-type size equals `sizeof(T)`.
+
+- **Fast path:** on little-endian hosts, the bytes are copied in with a single `memcpy`, which compiles to one load. This gives the same bits as the original shift-and-OR loop.
+- **Fallback:** if the sizes differ or the host is big-endian, the original byte loop runs, now reading through a raw pointer to the vector's data.
+- **Single type lookup:** `GetType()` is called once instead of twice. This assumes `GetType()` has no side effects, which is the case for a plain accessor.
+- **Unchanged behavior:** the out-of-range check and the invalid-value return are the same as before.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_BYTE* p = &values[0] + (static_cast<size_t>(fieldArrayIndex) * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, p, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

@@ -1,0 +1,11 @@
+File: src/fit_field.cpp
+Function: Field::IsValid
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return profileIndex != FIT_UINT16_INVALID;
+}
+```

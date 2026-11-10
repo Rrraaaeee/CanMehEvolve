@@ -1,0 +1,43 @@
+The original does a linear scan of the whole profile table on every call. This version builds a small direct-index table once, from the constant `mesgs` data, and uses it to answer lookups.
+
+- **Common case:** most message numbers are below 1024, so a lookup is a single array read.
+- **Same result for duplicates:** the table keeps only the first index seen for each number, so it returns the same entry the linear scan would.
+- **Larger numbers:** anything 1024 or above, such as manufacturer-specific messages, still uses the original linear scan.
+- **Thread safety:** the table is a function-local static, so C++ initializes it safely across threads. It depends only on `mesgs`, so it is not tied to any mutable global state.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Table
+    {
+        enum { SIZE = 1024 };
+        int idx[SIZE];
+        Table()
+        {
+            for (int k = 0; k < SIZE; k++)
+                idx[k] = -1;
+            for (int i = 0; i < MESGS; i++)
+            {
+                const unsigned n = static_cast<unsigned>(mesgs[i].num);
+                if (n < static_cast<unsigned>(SIZE) && idx[n] < 0)
+                    idx[n] = i;
+            }
+        }
+    };
+    static const Table table;
+
+    if (static_cast<unsigned>(num) < static_cast<unsigned>(Table::SIZE))
+    {
+        const int i = table.idx[num];
+        return (i < 0) ? NULL : &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

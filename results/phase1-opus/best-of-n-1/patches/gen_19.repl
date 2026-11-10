@@ -1,0 +1,9 @@
+`GetField` and `IsValueValid` are not shown, so there is little to speed up safely here. The rewrite keeps the exact same behavior and folds the null check and the validity check into one expression. Any speedup will be small at best.
+
+```cpp
+    FIT_BOOL IsTimestampValid() const
+    {
+        const Field* field = GetField(253);
+        return (FIT_NULL != field) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

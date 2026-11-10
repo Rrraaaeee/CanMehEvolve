@@ -1,0 +1,16 @@
+The rewrite walks the vector with raw pointers instead of re-reading `size()` and indexing on every pass. That makes the loop body slightly cheaper. `GetNum()` is still called for every field, so the matching behaviour and the returned pointer are unchanged.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* p = fields.data();
+    Field* const end = p + fields.size();
+    for (; p != end; ++p)
+    {
+        if (p->GetNum() == fieldNum)
+            return p;
+    }
+
+    return FIT_NULL;
+}
+```

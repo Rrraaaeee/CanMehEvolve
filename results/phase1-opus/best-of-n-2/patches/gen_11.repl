@@ -1,0 +1,19 @@
+The copy constructor is already about as cheap as it can be. Each vector copy makes one exact-size allocation and copy-constructs the elements, and empty vectors don't allocate at all. Any real speedup has to come from elsewhere, such as avoiding `Mesg` copies at the call sites or making `Field` cheaper to copy.
+
+This version only adds `noexcept`-free range-construction of the two vectors. The behaviour is identical:
+
+- Same per-element copy constructors.
+- Same member initialization order.
+- Same exception behaviour.
+
+Expect no measurable change in decode time.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields.begin(), mesg.fields.end())
+    , devFields(mesg.devFields.begin(), mesg.devFields.end())
+{
+}
+```

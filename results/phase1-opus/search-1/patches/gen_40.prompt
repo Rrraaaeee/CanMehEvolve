@@ -1,0 +1,85 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::Read
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.908777 of the original SDK's decode time; the best found so far is 0.908777.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        FIT_UINT8 index = 0;
+
+        // Check if the string is empty
+        while (index < size)
+        {
+            if (byteData[index] != 0)
+                break;
+            index++;
+        }
+
+        if (index >= size)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            if (byteData[i] == 0)
+            {
+                FIT_UINT8 stringPos = (FIT_UINT8)(i + 1);
+                if (stringPos + 1 < size)
+                    stringIndexes.push_back(stringPos);
+            }
+        }
+
+        // Null terminate if not already null terminated
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *inv = (const FIT_BYTE *) baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
+
+    if (typeSize == 1)
+    {
+        const FIT_BYTE invByte = inv[0];
+        for (int i = 0; i < (int)size; i++)
+        {
+            if (byteData[i] != invByte)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, inv, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```

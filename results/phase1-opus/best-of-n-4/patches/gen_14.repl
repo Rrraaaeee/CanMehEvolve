@@ -1,0 +1,13 @@
+This version builds `values` and `stringIndexes` directly from the source field in the member initializer list. The original first default-constructed both vectors and then copy-assigned into them, which is redundant work.
+
+Behavior is unchanged:
+- Both members end up as identical copies of the source.
+- Any other members are still default-initialized, exactly as before.
+- The initializer list does not change construction order, because members are always constructed in declaration order.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes(field.stringIndexes)
+{
+}
+```

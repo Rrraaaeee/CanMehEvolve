@@ -1,0 +1,25 @@
+Keeps the original resize test exactly as written, including the `(FIT_UINT8)` truncation of `values.size()`. This matters because for sizes of 256 or more the truncated value can make `resize` shrink the vector.
+
+The change is in the write loop:
+- It fetches the data pointer once instead of going through `operator[]` four times.
+- It writes the four bytes directly, least significant byte first, so the stored bytes don't depend on the host's endianness.
+- The offset is computed once.
+
+```cpp
+void FieldBase::SetUINT32Value(const FIT_UINT32 value, const FIT_UINT8 fieldArrayIndex)
+{
+    const size_t offset = (size_t)fieldArrayIndex * sizeof(FIT_UINT32);
+    const size_t needed = offset + sizeof(FIT_UINT32);
+
+    if ((FIT_UINT8)values.size() < needed)
+    {
+        values.resize(needed);
+    }
+
+    FIT_BYTE* p = &values[offset];
+    p[0] = (FIT_BYTE)(value);
+    p[1] = (FIT_BYTE)(value >> 8);
+    p[2] = (FIT_BYTE)(value >> 16);
+    p[3] = (FIT_BYTE)(value >> 24);
+}
+```

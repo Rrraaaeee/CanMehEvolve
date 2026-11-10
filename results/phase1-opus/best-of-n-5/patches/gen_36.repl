@@ -1,0 +1,47 @@
+The rewrite returns the same values as the original for every input where the original is well-defined.
+
+- **Single type lookup:** `GetType()` is called once and the size lookup is skipped on the early-return path.
+- **Raw data pointer:** bytes are read through `values.data()` instead of `operator[]`, which avoids repeated element accesses.
+- **Fixed sizes:** the common sizes 1, 2, 4 and 8 each get their own case with a compile-time loop count. This lets the compiler unroll the byte assembly and usually fold it into a single load. Shifts are still done in the original `T`/promoted type, so the results match.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    const auto* p = values.data() + (static_cast<int>(fieldArrayIndex) * size);
+
+    T rv = 0;
+
+    switch (size)
+    {
+    case 1:
+        rv |= static_cast<T>(p[0]);
+        break;
+    case 2:
+        for (int i = 0; i < 2; i++)
+            rv |= static_cast<T>(p[i]) << (i * 8);
+        break;
+    case 4:
+        for (int i = 0; i < 4; i++)
+            rv |= static_cast<T>(p[i]) << (i * 8);
+        break;
+    case 8:
+        for (int i = 0; i < 8; i++)
+            rv |= static_cast<T>(p[i]) << (i * 8);
+        break;
+    default:
+        for (int i = 0; i < size; i++)
+            rv |= static_cast<T>(p[i]) << (i * 8);
+        break;
+    }
+
+    return rv;
+}
+```

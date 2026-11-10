@@ -1,0 +1,29 @@
+File: src/fit_field.cpp
+Function: Field::GetNum
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.909561 of the original SDK's decode time; the best found so far is 0.873172.
+
+The previous candidate was rejected:
+stage compile: In file included from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_segment_file_mesg_listener.hpp:16,
+                 from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_mesg_broadcaster.hpp:96,
+                 from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_buffered_mesg_broadcaster.hpp:17,
+                 from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_buffered_mesg_broadcaster.cpp:14:
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_segment_file_mesg.hpp: In member function ‘FIT_MESSAGE_INDEX fit::SegmentFileMesg::GetMessageIndex() const’:
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_segment_file_mesg.hpp:70:37: error: no matching function for call to ‘fit::Field::GetUINT16Value(int, FIT_UINT16) const’
+   70 |         return field->GetUINT16Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+      |                ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_field.hpp:22,
+                 from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_mesg.hpp:21,
+                 from /home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-1106970/tree/src/fit_mesg_broadcaster.hpp:18:
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-5-11069
+... [truncated]
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return FIT_FIELD_NUM_INVALID;
+    return profile->fields[profileIndex].num;
+}
+```

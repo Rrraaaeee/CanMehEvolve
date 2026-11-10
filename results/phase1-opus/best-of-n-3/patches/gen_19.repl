@@ -1,0 +1,16 @@
+This version takes a pointer to the vector's data once, then compares field numbers in a plain pointer loop. That drops the repeated `size()` calls, the `int` casts and the per-index `operator[]` address arithmetic. It still returns the first match, so behavior is unchanged. I haven't timed it, so the speedup is untested.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

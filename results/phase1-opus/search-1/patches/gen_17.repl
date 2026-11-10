@@ -1,0 +1,12 @@
+The copy constructor is already minimal. Each member is copied directly through the initializer list, and the base class copies its own data. I found no change that would make it measurably faster without risking different behavior. The only difference below is that the base-class copy now uses an explicit `static_cast<const FieldBase&>`. That is semantically identical, so behavior is unchanged, and I don't expect it to change speed.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

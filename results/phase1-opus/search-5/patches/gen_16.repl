@@ -1,0 +1,41 @@
+This version replaces the 128 KB lookup table with a 2 KB table covering message numbers below 1024, which is where the common profile messages are. A smaller table stays in cache across calls.
+
+Numbers at 1024 or above fall back to a linear scan that returns the first match. That gives the same result as the old index, which also kept the lowest array position for each number. Every input therefore still gets the same `MESG*` or `NULL`. I have not timed this change.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = mesgs[i].num;
+                if (n < SMALL)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < SMALL)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

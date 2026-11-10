@@ -1,0 +1,40 @@
+This version replaces the 128 KB lookup table with a 2 KB one covering message numbers below 1024, which is where the profile's messages are expected to sit. The small table stays resident in L1 cache, so the hot path should do fewer cache misses than indexing into the large table.
+
+Behavior is unchanged:
+- **Numbers below 1024:** the table stores the first matching index, exactly as before.
+- **Numbers 1024 and above:** a linear scan returns the first match in profile order, or `NULL` if there is none, which matches the original result.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    static FIT_UINT16 table[SMALL];
+    static const bool initialized = []() {
+        for (int k = 0; k < SMALL; k++)
+            table[k] = 0xFFFF;
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            if (n < SMALL && table[n] == 0xFFFF)
+                table[n] = (FIT_UINT16)i;
+        }
+        return true;
+    }();
+    (void)initialized;
+
+    if (num < SMALL)
+    {
+        FIT_UINT16 idx = table[num];
+        if (idx == 0xFFFF)
+            return NULL;
+        return &mesgs[idx];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

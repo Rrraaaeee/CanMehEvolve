@@ -1,0 +1,30 @@
+File: src/fit_field.cpp
+Function: Field::Field
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.917596 of the original SDK's decode time; the best found so far is 0.917596.
+
+Rewrite this function to make decoding faster:
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(Profile::GetMesg(mesgNum))
+    , profileIndex(FIT_UINT16_INVALID)
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+    const Profile::MESG* const mesg = profile;
+    if (mesg != FIT_NULL)
+    {
+        const FIT_UINT16 n = mesg->numFields;
+        const Profile::FIELD* const fields = mesg->fields;
+        for (FIT_UINT16 i = 0; i < n; i++)
+        {
+            if (fields[i].num == fieldNum)
+            {
+                profileIndex = i;
+                break;
+            }
+        }
+    }
+}
+```

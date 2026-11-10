@@ -1,0 +1,46 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -327,17 +327,36 @@
+     if (subField == FIT_NULL)
+         return FIT_FALSE;
+ 
+-    for (int i = 0; i < (int) subField->numMaps; i++)
++    const int numMaps = (int) subField->numMaps;
++    if (numMaps <= 0)
++        return FIT_FALSE;
++
++    const Profile::SUBFIELD_MAP* maps = subField->maps;
++
++    bool haveCache = false;
++    FIT_UINT8 cachedNum = 0;
++    const Field* cachedField = FIT_NULL;
++    FIT_SINT32 cachedValue = 0;
++
++    for (int i = 0; i < numMaps; i++)
+     {
+-        const Field* refField = GetField(subField->maps[i].refFieldNum);
++        const FIT_UINT8 refNum = maps[i].refFieldNum;
+ 
+-        if (refField != FIT_NULL)
++        if (!haveCache || refNum != cachedNum)
+         {
+-            FIT_FLOAT64 refValue = refField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+-            refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+-            if ((FIT_SINT32)refValue == subField->maps[i].refFieldValue)
+-                return FIT_TRUE;
++            haveCache = true;
++            cachedNum = refNum;
++            cachedField = GetField(refNum);
++            if (cachedField != FIT_NULL)
++            {
++                FIT_FLOAT64 refValue = cachedField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++                refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
++                cachedValue = (FIT_SINT32)refValue;
++            }
+         }
++
++        if (cachedField != FIT_NULL && cachedValue == maps[i].refFieldValue)
++            return FIT_TRUE;
+     }
+ 
+     return FIT_FALSE;

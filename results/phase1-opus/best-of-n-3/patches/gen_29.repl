@@ -1,0 +1,14 @@
+This function is already minimal, so any speedup will be tiny. The rewrite loads the `profile` member once into a local and checks each condition separately. Without the local, every `profile->` access reads the member again through `this`. Behavior is unchanged: it returns 0 when `profile` is null or the index is out of range, and the field's `numSubFields` otherwise.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto* const p = profile;
+    if (p == NULL)
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

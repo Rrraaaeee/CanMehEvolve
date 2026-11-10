@@ -1,0 +1,16 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -144,10 +144,9 @@
+ 
+ FIT_UINT16 Mesg::GetNum() const
+ {
+-    if (profile == FIT_NULL)
+-        return FIT_MESG_NUM_INVALID;
+-
+-    return profile->num;
++    return __builtin_expect(profile != FIT_NULL, 1)
++        ? static_cast<FIT_UINT16>(profile->num)
++        : static_cast<FIT_UINT16>(FIT_MESG_NUM_INVALID);
+ }
+ 
+ FIT_UINT8 Mesg::GetLocalNum() const

@@ -1,0 +1,30 @@
+The original does a linear scan over every profile message on each call. This version builds a 64K-entry index table once and then answers each lookup with a single array read.
+
+- **Same results:** Each slot keeps the first matching index, so lookups return exactly what the linear scan returned, including if a message number appears more than once.
+- **Unknown numbers:** These still return `NULL`.
+- **Initialization:** The table is filled inside a function-local static initializer, which C++11 and later make thread-safe.
+- **Not a mutable cache:** The table is derived only from the constant `mesgs` profile data, so it does not depend on global mutable state.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static FIT_UINT16 table[65536];
+    static const bool initialized = []() {
+        for (int k = 0; k < 65536; k++)
+            table[k] = 0xFFFF;
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            if (table[n] == 0xFFFF)
+                table[n] = (FIT_UINT16)i;
+        }
+        return true;
+    }();
+    (void)initialized;
+
+    FIT_UINT16 idx = table[num];
+    if (idx == 0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```

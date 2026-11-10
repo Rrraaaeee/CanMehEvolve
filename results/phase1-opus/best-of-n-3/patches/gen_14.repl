@@ -1,0 +1,16 @@
+This function is already minimal, so there is little to gain. The rewrite caches `fields.size()` in a local and returns `fields.data() + index` instead of `&fields[index]`. That is pointer arithmetic with no operator call. Behaviour is identical: when `fields` is empty, `index < 0` is never true, so `data()` is never dereferenced.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const std::size_t count = fields.size();
+    if (static_cast<std::size_t>(index) < count)
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```
+
+```includes
+#include <cstddef>
+```

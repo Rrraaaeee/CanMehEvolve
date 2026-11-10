@@ -1,0 +1,22 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -99,13 +99,13 @@
+ 
+ FIT_UINT8 Field::GetType() const
+ {
+-    if ( type != FIT_UINT8_INVALID )
+-        return type;
++    const FIT_UINT8 t = type;
++    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
++        return t;
+ 
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
+-        return FIT_UINT8_INVALID;
+-
+-    return profile->fields[profileIndex].type;
++    const Profile::MESSAGE_FIELD_DEF_ENTRY_PLACEHOLDER_UNUSED_DUMMY *dummy = nullptr;
++    (void)dummy;
++    return FIT_UINT8_INVALID;
+ }
+ 
+ std::string Field::GetUnits() const

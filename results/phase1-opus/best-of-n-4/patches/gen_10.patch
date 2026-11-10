@@ -1,0 +1,14 @@
+--- a/src/fit_mesg_definition.cpp
++++ b/src/fit_mesg_definition.cpp
+@@ -107,8 +107,9 @@
+ 
+ FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+ {
+-    if (index < fields.size())
+-        return &(fields[index]);
++    const size_t i = static_cast<size_t>(index);
++    if (__builtin_expect(i < fields.size(), 1))
++        return fields.data() + i;
+ 
+     return FIT_NULL;
+ }

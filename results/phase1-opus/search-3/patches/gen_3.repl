@@ -1,0 +1,10 @@
+`SetTimestamp` is a single forwarding call to `SetFieldUINT32Value`, so there is nothing real to speed up inside it. Any cost is in the field lookup inside the base class.
+
+The only change is an explicit cast of the value to `FIT_UINT32`. `FIT_DATE_TIME` is a typedef for `FIT_UINT32`, so the cast changes nothing: behavior and the generated code stay exactly the same. Do not expect a measurable speedup from it.
+
+```cpp
+    void SetTimestamp(FIT_DATE_TIME timestamp)
+    {
+        SetFieldUINT32Value(253, static_cast<FIT_UINT32>(timestamp), 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

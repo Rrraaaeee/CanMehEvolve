@@ -1,0 +1,12 @@
+File: src/fit_segment_file_mesg.hpp
+Function: GetMessageIndex
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.910923 of the original SDK's decode time; the best found so far is 0.873172.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_MESSAGE_INDEX GetMessageIndex(void) const
+    {
+        return GetFieldUINT16Value(254, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

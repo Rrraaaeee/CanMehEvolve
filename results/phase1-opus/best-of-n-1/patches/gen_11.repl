@@ -1,0 +1,24 @@
+The original reads `mesg->numFields` and `mesg->fields` through the `mesg` pointer on every iteration. This version loads both into locals once and then walks the fields with a pointer. The lookup order, the returned index and the `FIT_UINT16_INVALID` returns are all unchanged.
+
+The gain is likely small, because the time is probably dominated by `GetMesg`, which this function can't safely change.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIT_UINT16 n = mesg->numFields;
+    const auto *fields = mesg->fields;
+
+    for (FIT_UINT16 i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

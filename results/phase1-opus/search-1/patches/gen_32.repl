@@ -1,0 +1,16 @@
+This version walks the vector with raw pointers instead of indexing. The loop then avoids recomputing `fields.size()` and the `int` cast on every iteration. The search is still in the same order, so it returns the same `Field*` (or `FIT_NULL`) as before.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

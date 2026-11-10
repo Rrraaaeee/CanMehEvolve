@@ -1,0 +1,35 @@
+The original function processes each byte as two 4-bit steps, each with two lookups into a 16-entry table. I replaced this with the standard one-lookup-per-byte form, which gives the same result:
+
+`crc = (crc >> 8) ^ T[(crc ^ byte) & 0xFF]`
+
+**Why the result is unchanged:**
+- The FIT CRC is CRC-16/ARC: reflected, with polynomial `0xA001`.
+- The nibble table is linear, so `T[a]^T[b] = T[a^b]`. Two nibble steps therefore combine exactly into one byte step.
+- As a check, building the table with 4 bit-steps from input 1 gives `0xCC01`, which matches the original nibble table's entry 1.
+
+**Why it should be faster:**
+- The 256-entry table is generated at compile time with `constexpr`, so there is no cost when the function runs.
+- Each byte now needs one table lookup instead of four, and fewer shift/xor operations.
+
+```cpp
+FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+{
+   struct Table
+   {
+      FIT_UINT16 v[256];
+      constexpr Table() : v()
+      {
+         for (unsigned i = 0; i < 256; ++i)
+         {
+            unsigned c = i;
+            for (int k = 0; k < 8; ++k)
+               c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
+            v[i] = static_cast<FIT_UINT16>(c);
+         }
+      }
+   };
+   static constexpr Table table{};
+
+   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+}
+```

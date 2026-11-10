@@ -1,0 +1,29 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_mesg_broadcaster.cpp
++++ b/src/fit_mesg_broadcaster.cpp
+@@ -539,7 +539,7 @@
+ 
+ void MesgBroadcaster::AddListener(RecordMesgListener& recordMesgListener)
+ {
+-   recordMesgListeners.push_back(&recordMesgListener);
++   recordMesgListeners.emplace_back(&recordMesgListener);
+ }
+ 
+ void MesgBroadcaster::RemoveListener(RecordMesgListener& recordMesgListener)

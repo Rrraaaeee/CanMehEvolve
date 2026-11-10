@@ -1,0 +1,14 @@
+The original reads the `profile` member up to three times. This version loads it once into a local pointer and does one bounds check, so the compiler doesn't have to reload it and the hot path stays straight-line. Behavior is identical: it still returns 0 for a null profile or an out-of-range index, and otherwise returns the same `numComponents` value.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (p == NULL)
+        return 0;
+    const FIT_UINT16 idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numComponents;
+}
+```

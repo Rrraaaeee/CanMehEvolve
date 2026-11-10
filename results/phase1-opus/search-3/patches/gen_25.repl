@@ -1,0 +1,41 @@
+The original does a linear scan over the large `MESG` structs on every call. This version builds a 65536-entry index table once and then answers each lookup with a single array access.
+
+- **Same results:** the table is filled in reverse order, so when message numbers repeat, the earliest entry wins, exactly as the original loop's first match.
+- **No dependence on mutable state:** the table is built only from the constant `mesgs` profile data, never from mutable globals.
+- **Safe one-time setup:** it is created in a function-local static, which C++ initializes once and thread-safely.
+- **Cost:** the table uses 128 KB of memory.
+- **Fallback:** if there were ever 65535 or more message entries, the 16-bit index could not hold them, so the function falls back to the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[65536];
+        Index()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+                idx[mesgs[i].num] = (FIT_UINT16)i;
+        }
+    };
+
+    if (MESGS < 0xFFFF)
+    {
+        static const Index table;
+        const FIT_UINT16 i = table.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

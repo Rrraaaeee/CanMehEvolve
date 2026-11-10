@@ -1,0 +1,14 @@
+The rewrite keeps the same logic in a more compact form. It merges the two early-return checks into one condition: if `subFieldIndex` is `0xFFFF`, the `||` short-circuits, so `GetNumSubFields()` is still skipped, as before. It also hints that the subfield pointer is usually non-null. Any speedup is likely to be small.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+{
+    if ((subFieldIndex == 0xFFFF) || (subFieldIndex >= GetNumSubFields()))
+        return GetOffset();
+
+    const auto subfield = GetSubField(subFieldIndex);
+    if (__builtin_expect(subfield != NULL, 1))
+        return subfield->offset;
+    return 0.0;
+}
+```

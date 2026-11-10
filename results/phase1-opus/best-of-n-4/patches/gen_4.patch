@@ -1,0 +1,18 @@
+--- a/src/fit_connectivity_mesg.hpp
++++ b/src/fit_connectivity_mesg.hpp
+@@ -308,13 +308,8 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_BOOL IsCourseDownloadEnabledValid() const
+     {
+-        const Field* field = GetField(8);
+-        if( FIT_NULL == field )
+-        {
+-            return FIT_FALSE;
+-        }
+-
+-        return field->IsValueValid();
++        const Field* const field = GetField(8);
++        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

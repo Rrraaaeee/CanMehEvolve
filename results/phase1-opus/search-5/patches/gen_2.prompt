@@ -1,0 +1,20 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::IsSignedInteger
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 1 of the original SDK's decode time; the best found so far is 1.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+{
+    switch (GetType(subFieldIndex)) {
+        case FIT_BASE_TYPE_SINT8:
+        case FIT_BASE_TYPE_SINT16:
+        case FIT_BASE_TYPE_SINT32:
+            return FIT_TRUE;
+
+        default:
+            return FIT_FALSE;
+    }
+}
+```

@@ -1,0 +1,13 @@
+--- a/src/fit_dive_settings_mesg.hpp
++++ b/src/fit_dive_settings_mesg.hpp
+@@ -1049,7 +1049,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     void SetCcrHighSetpointSwitchMode(FIT_CCR_SETPOINT_SWITCH_MODE ccrHighSetpointSwitchMode)
+     {
+-        SetFieldENUMValue(25, ccrHighSetpointSwitchMode, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        constexpr FIT_UINT8 kFieldNum = 25;
++        constexpr FIT_UINT8 kFieldArrayIndex = 0;
++        SetFieldENUMValue(kFieldNum, static_cast<FIT_ENUM>(ccrHighSetpointSwitchMode), kFieldArrayIndex, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

@@ -1,0 +1,12 @@
+The copy constructor has to deep-copy both messages, because the destructor owns and deletes them. Sharing the pointers would therefore change behavior. The only safe change is to create the copies directly in the initializer list instead of first setting the pointers to `nullptr` and then assigning them. Any speedup from this will be small.
+
+```cpp
+DeveloperFieldDefinition::DeveloperFieldDefinition(const DeveloperFieldDefinition& other)
+    : num( other.num )
+    , size( other.size )
+    , developerDataIndex( other.developerDataIndex )
+    , mesg( other.mesg ? new FieldDescriptionMesg( *other.mesg ) : nullptr )
+    , developer( other.developer ? new DeveloperDataIdMesg( *other.developer ) : nullptr )
+{
+}
+```

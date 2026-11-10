@@ -1,0 +1,9 @@
+The original constructor first default-constructs `values` and `stringIndexes`, then assigns to them. Copying them directly in the member initializer list builds each member once, with no empty object followed by an assignment. Copy construction also sizes each buffer exactly to its source. Observable behavior is unchanged: both members end up with the same contents as before.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

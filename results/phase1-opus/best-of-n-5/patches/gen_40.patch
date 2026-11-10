@@ -1,0 +1,11 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -28,7 +28,7 @@
+ }
+ 
+ Field::Field(const Field &field)
+-    : FieldBase(field)
++    : FieldBase(static_cast<const FieldBase &>(field))
+     , profile(field.profile)
+     , profileIndex(field.profileIndex)
+     , type(field.type)

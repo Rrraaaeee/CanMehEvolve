@@ -1,0 +1,9 @@
+This only restructures the code; the logic is unchanged. The null check and the validity check are folded into one short-circuit expression. That removes a separate early-return branch and gives the compiler a single straight-line expression to optimize. The calls to `GetField(199)` and `IsValueValid()` are the same as before, so behavior is identical.
+
+```cpp
+    FIT_BOOL IsTotalFractionalAscentValid() const
+    {
+        const Field* const field = GetField(199);
+        return (field != FIT_NULL) && field->IsValueValid() ? FIT_TRUE : FIT_FALSE;
+    }
+```

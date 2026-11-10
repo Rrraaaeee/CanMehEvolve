@@ -1,0 +1,31 @@
+File: src/fit_field.cpp
+Function: Field::GetType
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.936688 of the original SDK's decode time; the best found so far is 0.936688.
+
+The previous candidate was rejected:
+stage compile: /home/q/qingxuan/CanMehSolve/build/phase1-work-search-3-1106160/tree/src/fit_field.cpp: In member function ‘virtual FIT_UINT8 fit::Field::GetType() const’:
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-3-1106160/tree/src/fit_field.cpp:106:20: error: ‘MSG’ in ‘class fit::Profile’ does not name a type
+  106 |     const Profile::MSG* const p = profile;
+      |                    ^~~
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-3-1106160/tree/src/fit_field.cpp:107:10: error: ‘p’ was not declared in this scope
+  107 |     if ((p == NULL) || (profileIndex >= p->numFields))
+      |          ^
+/home/q/qingxuan/CanMehSolve/build/phase1-work-search-3-1106160/tree/src/fit_field.cpp:110:12: error: ‘p’ was not declared in this scope
+  110 |     return p->fields[profileIndex].type;
+      |            ^
+
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    if ( type != FIT_UINT8_INVALID )
+        return type;
+
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return FIT_UINT8_INVALID;
+
+    return profile->fields[profileIndex].type;
+}
+```

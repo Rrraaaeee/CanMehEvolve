@@ -1,0 +1,44 @@
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,13 +3057,37 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
+-    for (int i = 0; i < MESGS; i++)
++    struct Table
+     {
+-        if (mesgs[i].num == num)
+-            return &mesgs[i];
++        FIT_UINT16 idx[65536];
++        Table()
++        {
++            for (int k = 0; k < 65536; k++)
++                idx[k] = 0xFFFF;
++            for (int i = 0; i < MESGS; i++)
++            {
++                FIT_UINT16 n = mesgs[i].num;
++                if (idx[n] == 0xFFFF)
++                    idx[n] = (FIT_UINT16)i;
++            }
++        }
++    };
++
++    if (MESGS >= 0xFFFF)
++    {
++        for (int i = 0; i < MESGS; i++)
++        {
++            if (mesgs[i].num == num)
++                return &mesgs[i];
++        }
++        return NULL;
+     }
+ 
+-    return NULL;
++    static const Table table;
++    FIT_UINT16 i = table.idx[num];
++    if (i == 0xFFFF)
++        return NULL;
++    return &mesgs[i];
+ }
+ 
+ const Profile::MESG* Profile::GetMesg(const std::string& name)

@@ -1,0 +1,26 @@
+The function body itself has little room to improve, so this is a small micro-optimization; I have not measured it.
+
+- **Hoisted loads:** the field-array pointer and the field count are read into locals once. The compiler can then keep them in registers instead of re-reading them through `mesg` on every iteration.
+- **Wider loop counter:** the counter is a native `unsigned int` rather than `FIT_UINT16`, which avoids 16-bit wraparound handling. It only takes values below `numFields`, so the conversion back to `FIT_UINT16` gives the same index.
+- **Behavior unchanged:** results and return values are identical to the original.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *const fields = mesg->fields;
+    const unsigned int n = mesg->numFields;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

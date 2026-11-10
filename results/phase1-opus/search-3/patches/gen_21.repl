@@ -1,0 +1,45 @@
+The fallback byte loop is replaced by one `memcpy` into a zeroed `T`. On little-endian targets, ORing zero-extended bytes shifted by `i*8` gives the same value as copying `min(size, sizeof(T))` bytes into a zeroed `T`:
+- **`size <= sizeof(T)`:** the copied bytes land in the low part and the rest stays zero.
+- **`size > sizeof(T)`:** the loop keeps only the low `sizeof(T)` bytes, which is exactly what gets copied.
+
+The copy reads no more bytes than the original loop, and the out-of-range case is now marked as unlikely. Big-endian targets keep the original loop.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (__builtin_expect(fieldArrayIndex >= (FIT_UINT8)values.size(), 0))
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const auto* p = values.data() + (fieldArrayIndex * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (sizeof(*p) == 1)
+    {
+        if (size == sizeof(T))
+        {
+            T rv;
+            std::memcpy(&rv, p, sizeof(T));
+            return rv;
+        }
+        T rv = 0;
+        const size_t n = (size < sizeof(T)) ? size : sizeof(T);
+        std::memcpy(&rv, p, n);
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```

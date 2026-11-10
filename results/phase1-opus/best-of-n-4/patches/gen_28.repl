@@ -1,0 +1,16 @@
+The original loop recomputes `fields.size()` and indexes `fields[i]` on every pass. This version gets the vector's start and end pointers once and walks a raw pointer from one to the other. The search order is unchanged, so it still returns the first field whose number matches.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

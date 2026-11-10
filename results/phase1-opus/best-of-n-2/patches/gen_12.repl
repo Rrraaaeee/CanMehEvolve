@@ -1,0 +1,47 @@
+The rewrite keeps the same reads, bounds check and results. It only removes repeated work:
+
+- **Single `GetType()` call:** the type is read once and its base-type index is reused for both the size lookup and the invalid-value lookup.
+- **Direct pointer reads:** the bytes are read through one data pointer offset once, not through `values[...]` with its index arithmetic on every iteration.
+- **Unrolled common sizes:** sizes 1, 2 and 4 are unrolled. They run the same OR-and-shift sequence as the original loop, so integer promotions and truncation to `T` are unchanged. Other sizes fall back to the original loop.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 baseTypeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[baseTypeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[baseTypeNum]);
+    }
+
+    const auto* p = values.data() + (fieldArrayIndex * size);
+
+    T rv = 0;
+
+    switch (size)
+    {
+    case 1:
+        rv |= static_cast<T>(p[0]);
+        break;
+    case 2:
+        rv |= static_cast<T>(p[0]);
+        rv |= static_cast<T>(p[1]) << 8;
+        break;
+    case 4:
+        rv |= static_cast<T>(p[0]);
+        rv |= static_cast<T>(p[1]) << 8;
+        rv |= static_cast<T>(p[2]) << 16;
+        rv |= static_cast<T>(p[3]) << 24;
+        break;
+    default:
+        for (int i = 0; i < size; i++)
+        {
+            rv |= static_cast<T>(p[i]) << (i * 8);
+        }
+        break;
+    }
+
+    return rv;
+}
+```

@@ -1,0 +1,12 @@
+The copy constructor only does member-wise copies, and nearly all of its cost is in `FieldBase`'s copy (its value storage), which I can't change from here. So this version is equivalent and not expected to be measurably faster. The only edit is an explicit upcast to `const FieldBase&`, which compiles to the same code.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

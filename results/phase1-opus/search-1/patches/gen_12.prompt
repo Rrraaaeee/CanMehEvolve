@@ -1,0 +1,14 @@
+File: src/fit_field.cpp
+Function: Field::GetNum
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.938517 of the original SDK's decode time; the best found so far is 0.936234.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return FIT_FIELD_NUM_INVALID;
+    return profile->fields[profileIndex].num;
+}
+```

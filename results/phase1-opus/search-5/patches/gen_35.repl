@@ -1,0 +1,14 @@
+GetNum is already minimal, so any gain here is small. This version reads `profile` and `profileIndex` once each into locals, so the compiler doesn't have to reload them. It marks the invalid paths as unlikely, which favours the common valid case. The checks and return values are unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    if (__builtin_expect(p == NULL, 0))
+        return FIT_FIELD_NUM_INVALID;
+    const auto idx = profileIndex;
+    if (__builtin_expect(idx >= p->numFields, 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

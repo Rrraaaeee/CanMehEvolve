@@ -1,0 +1,14 @@
+The copy constructor already does the minimum work: it copies the base (`FieldBase`) and four small members. There is no meaningful speedup available inside this function itself. Any real gain would come from avoiding copies at call sites or from changing `FieldBase`'s own copy, and both are outside the scope of this edit.
+
+The version below is functionally identical. It initializes each member directly in the initializer list, so the compiler emits the same efficient code. It only changes how the source text is written.
+
+```cpp
+Field::Field(const Field &other)
+    : FieldBase(other),
+      profile(other.profile),
+      profileIndex(other.profileIndex),
+      type(other.type),
+      isFieldExpanded(other.isFieldExpanded)
+{
+}
+```

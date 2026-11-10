@@ -1,0 +1,48 @@
+The main change replaces the `memcmp` against the invalid sentinel with a fixed-width unsigned-integer comparison.
+
+- **Why it is faster:** this is a single register compare. It avoids relying on the compiler to inline `memcmp` and drops the extra load through a byte pointer.
+- **Why behavior is unchanged:** the comparison is still byte-exact.
+  - For floating-point `TFrom`, comparing as `float`/`double` would treat the NaN invalid pattern differently, so bits are compared instead.
+  - For other sizes, the code falls back to the original `memcmp`.
+- **Other changes:** the invalid-value return now uses `memcpy` rather than a `reinterpret_cast` read. This gives the same value without aliasing or alignment issues. `GetType()` is now only evaluated after the value is read. This assumes `GetType()` is a plain getter with no side effects.
+
+```cpp
+template <typename TTo, typename TFrom>
+TTo FieldBase::ConvertBaseType(const FIT_UINT8 fieldArrayIndex, const FIT_UINT8 toBaseType) const
+{
+    const TFrom value = GetValue<TFrom>(fieldArrayIndex);
+    FIT_CONST_UINT8_PTR invalid = baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK];
+
+    bool isInvalid;
+    if constexpr (sizeof(TFrom) == 1 || sizeof(TFrom) == 2 || sizeof(TFrom) == 4 || sizeof(TFrom) == 8)
+    {
+        using Bits = std::conditional_t<sizeof(TFrom) == 1, std::uint8_t,
+                     std::conditional_t<sizeof(TFrom) == 2, std::uint16_t,
+                     std::conditional_t<sizeof(TFrom) == 4, std::uint32_t, std::uint64_t>>>;
+        Bits a;
+        Bits b;
+        std::memcpy(&a, &value, sizeof(Bits));
+        std::memcpy(&b, invalid, sizeof(Bits));
+        isInvalid = (a == b);
+    }
+    else
+    {
+        isInvalid = (std::memcmp(&value, invalid, sizeof(TFrom)) == 0);
+    }
+
+    if (isInvalid)
+    {
+        TTo result;
+        std::memcpy(&result, baseTypeInvalids[toBaseType & FIT_BASE_TYPE_NUM_MASK], sizeof(TTo));
+        return result;
+    }
+
+    return static_cast<TTo>(value);
+}
+```
+
+```includes
+#include <cstring>
+#include <cstdint>
+#include <type_traits>
+```

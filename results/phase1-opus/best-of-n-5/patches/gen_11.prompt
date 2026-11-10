@@ -1,0 +1,11 @@
+File: src/fit_lap_mesg.hpp
+Function: GetTimeStanding
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_FLOAT32 GetTimeStanding(void) const
+    {
+        return GetFieldFLOAT32Value(98, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

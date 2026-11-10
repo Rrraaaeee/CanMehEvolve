@@ -1,0 +1,22 @@
+The main change is in the field scan. The old loop reread `mesg->numFields` and `mesg->fields` on every pass, because the compiler cannot prove they stay the same. The new version loads them once into locals and walks a plain pointer with a native-width counter. The result returned for every input is unchanged.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIT_UINT16 n = mesg->numFields;
+    const FIELD *fields = mesg->fields;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

@@ -1,0 +1,17 @@
+`IsScalingValid` has almost nothing left to optimize. Its cost is the field lookup in `GetField(6)` and the validity check in `IsValueValid()`, and both must stay to keep behavior identical. The rewrite below is equivalent and only:
+- uses a single null-checked branch,
+- marks the missing-field case as unlikely, which helps branch layout a little.
+
+I don't expect a measurable change in decode time from this function alone.
+
+```cpp
+    FIT_BOOL IsScalingValid() const
+    {
+        const Field* const field = GetField(6);
+        if (__builtin_expect(field != FIT_NULL, 1))
+        {
+            return field->IsValueValid();
+        }
+        return FIT_FALSE;
+    }
+```

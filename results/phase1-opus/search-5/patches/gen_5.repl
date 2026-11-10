@@ -1,0 +1,22 @@
+The change: `GetType()` is called once and its result is reused, which saves one virtual call per invocation. When the element size is 1, the function also skips the integer division.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type != FIT_BASE_TYPE_STRING)
+    {
+        const size_t n = values.size();
+        const FIT_UINT8 sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+        if (sz == 1)
+            return (FIT_UINT8)n;
+        return (FIT_UINT8)(n / sz);
+    }
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

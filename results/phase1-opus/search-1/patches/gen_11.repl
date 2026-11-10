@@ -1,0 +1,59 @@
+The current version uses a 128 KB lookup table, which can cost cache misses on every lookup. This version replaces it with two small tables, about 2.5 KB in total:
+- **Low table:** message numbers below 1024, which covers the standard profile.
+- **High table:** numbers 0xFF00 and above, the manufacturer-specific range.
+
+Each table is filled in reverse index order, so it keeps the original first-match result. A number outside both ranges falls back to the original linear scan, but only if some profile message actually lies outside those ranges. Otherwise it returns `NULL` straight away.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Lut
+    {
+        FIT_UINT16 lo[1024];
+        FIT_UINT16 hi[256];
+        bool ok;
+        bool other;
+        Lut() : lo(), hi(), ok(MESGS < 65535), other(false)
+        {
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                unsigned n = mesgs[i].num;
+                if (n < 1024)
+                    lo[n] = (FIT_UINT16)(i + 1);
+                else if (n >= 0xFF00)
+                    hi[n - 0xFF00] = (FIT_UINT16)(i + 1);
+                else
+                    other = true;
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        unsigned n = num;
+        if (n < 1024)
+        {
+            unsigned i = lut.lo[n];
+            return i ? &mesgs[i - 1] : NULL;
+        }
+        if (n >= 0xFF00)
+        {
+            unsigned i = lut.hi[n - 0xFF00];
+            return i ? &mesgs[i - 1] : NULL;
+        }
+        if (!lut.other)
+            return NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

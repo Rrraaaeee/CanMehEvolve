@@ -1,0 +1,15 @@
+The function is already tiny, so the only change is a cheaper control flow. The common case (a valid profile and index) gets a branch hint and is handled first. The original's return values are unchanged, including `FIT_FIELD_NUM_INVALID` for a null profile or out-of-range index.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect(p != NULL, 1))
+    {
+        const FIT_UINT16 idx = profileIndex;
+        if (__builtin_expect(idx < p->numFields, 1))
+            return p->fields[idx].num;
+    }
+    return FIT_FIELD_NUM_INVALID;
+}
+```

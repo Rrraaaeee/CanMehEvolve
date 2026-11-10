@@ -1,0 +1,8 @@
+This version evaluates both pointer checks with a non-short-circuit `&` instead of `&&`. Both checks are side-effect-free, so the result is identical. The compiler can then produce a branchless pair of compare-and-set instructions.
+
+```cpp
+FIT_BOOL DeveloperFieldDefinition::IsDefined() const
+{
+    return static_cast<FIT_BOOL>((nullptr != mesg) & (nullptr != developer));
+}
+```

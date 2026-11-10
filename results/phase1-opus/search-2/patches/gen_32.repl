@@ -1,0 +1,14 @@
+The function now copies `profile` and `profileIndex` into locals once, so the compiler doesn't reload members between the checks and the array access. Behavior is identical: the same NULL check and bounds check run, and the same value is returned. Any speedup is likely small; I haven't measured it.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    if (p == NULL)
+        return FIT_FIELD_NUM_INVALID;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

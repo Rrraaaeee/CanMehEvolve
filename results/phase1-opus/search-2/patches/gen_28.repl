@@ -1,0 +1,106 @@
+The rewrite below should give the same results for every input. Behavior notes:
+
+- **Type lookup once:** `GetType()` is called once instead of on every loop iteration.
+- **Faster invalid check:** for 1-, 2-, 4- and 8-byte types, each element is compared using a fixed-size `memcpy` into an integer instead of a variable-length `memcmp`. Every other type size still uses `memcmp`. The byte ranges read are exactly the same as before.
+- **String copy in one step:** the string bytes are copied into `values` with a single `insert` instead of one `push_back` per byte. The `stringIndexes` entries come out the same: a byte at position `i` that is 0 adds `i + 1` when `i + 2 < size`.
+
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        FIT_UINT8 index = 0;
+        while (index < size && byteData[index] == 0)
+            index++;
+        if (index >= size)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+        values.insert(values.end(), byteData, byteData + size);
+
+        for (int i = 0; i < (int)size; i++)
+        {
+            if (byteData[i] == 0 && (i + 2) < (int)size)
+                stringIndexes.push_back((FIT_UINT8)(i + 1));
+        }
+
+        if (values.back() != 0)
+            values.push_back(0);
+        return FIT_TRUE;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+    const FIT_BYTE *inv = (const FIT_BYTE *) baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
+    bool valid = false;
+
+    switch (typeSize)
+    {
+        case 1:
+        {
+            const FIT_BYTE iv = inv[0];
+            for (int i = 0; i < bytes; i++)
+            {
+                if (point[i] != iv) { valid = true; break; }
+            }
+        }
+            break;
+        case 2:
+        {
+            FIT_UINT16 iv; memcpy(&iv, inv, 2);
+            while (bytes > 0)
+            {
+                FIT_UINT16 v; memcpy(&v, point, 2);
+                if (v != iv) { valid = true; break; }
+                point += 2; bytes -= 2;
+            }
+        }
+            break;
+        case 4:
+        {
+            FIT_UINT32 iv; memcpy(&iv, inv, 4);
+            while (bytes > 0)
+            {
+                FIT_UINT32 v; memcpy(&v, point, 4);
+                if (v != iv) { valid = true; break; }
+                point += 4; bytes -= 4;
+            }
+        }
+            break;
+        case 8:
+        {
+            FIT_UINT64 iv; memcpy(&iv, inv, 8);
+            while (bytes > 0)
+            {
+                FIT_UINT64 v; memcpy(&v, point, 8);
+                if (v != iv) { valid = true; break; }
+                point += 8; bytes -= 8;
+            }
+        }
+            break;
+        default:
+            while (bytes > 0)
+            {
+                if (memcmp(point, inv, typeSize) != 0) { valid = true; break; }
+                point += typeSize;
+                bytes -= typeSize;
+            }
+            break;
+    }
+
+    if (valid)
+        values.insert(values.end(), byteData, byteData + size);
+
+    return FIT_TRUE;
+}
+```
+
+```includes
+#include <cstring>
+```

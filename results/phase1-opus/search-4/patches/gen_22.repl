@@ -1,0 +1,9 @@
+This function is called rarely during decoding, so no rewrite will measurably change decode time. The version below is a minimal rewrite with identical behavior: a missing field still returns `FIT_FALSE`, and otherwise it returns the field's `IsValueValid()` result.
+
+```cpp
+    FIT_BOOL IsUpdateTimeValid() const
+    {
+        const Field* field = GetField(0);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

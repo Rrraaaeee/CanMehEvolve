@@ -1,0 +1,28 @@
+File: src/fit_decode.cpp
+Function: Decode::UpdateEndianness
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.867271 of the original SDK's decode time; the best found so far is 0.863854.
+
+Rewrite this function to make decoding faster:
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    FIT_UINT8 numElements = size / typeSize;
+
+    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) != 0) &&
+        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) != FIT_ARCH_ENDIAN_LITTLE))
+    {
+        // Swap the bytes for each element.
+        for (int element = 0; element < numElements; element++)
+        {
+            for (int i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 tmp = fieldData[element * typeSize + i];
+                fieldData[element * typeSize + i] = fieldData[element * typeSize + typeSize - i - 1];
+                fieldData[element * typeSize + typeSize - i - 1] = tmp;
+            }
+        }
+    }
+}
+```

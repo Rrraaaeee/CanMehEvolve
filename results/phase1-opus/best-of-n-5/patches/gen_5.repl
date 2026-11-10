@@ -1,0 +1,43 @@
+Replaced the linear scan with a direct-index table: one 16-bit slot per possible message number, holding the position of that message in `mesgs`.
+
+- **Construction:** the table is built once, on the first call, from the constant profile array. Function-local static initialization is thread-safe in C++17.
+- **Unchanged behavior:**
+  - The table is filled in reverse order, so when two entries share a `num`, the first one wins, as in the original loop.
+  - Unknown numbers still return `NULL`.
+- **Index fallback:** this assumes `MESGS` is below 65535, so 0xFFFF can mark an empty slot. If `MESGS` were ever larger, the function falls back to the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<FIT_UINT16> table = []()
+    {
+        std::vector<FIT_UINT16> t(65536, (FIT_UINT16)0xFFFF);
+        if (MESGS < 0xFFFF)
+        {
+            for (int i = MESGS - 1; i >= 0; i--)
+                t[mesgs[i].num] = (FIT_UINT16)i;
+        }
+        return t;
+    }();
+
+    if (MESGS < 0xFFFF)
+    {
+        FIT_UINT16 idx = table[num];
+        if (idx == 0xFFFF)
+            return NULL;
+        return &mesgs[idx];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```
+
+```includes
+#include <vector>
+```

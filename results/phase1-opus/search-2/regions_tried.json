@@ -1,0 +1,137 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 375
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::IsValid",
+    "region": 118,
+    "samples": 75
+  },
+  {
+    "accepted": 2,
+    "attempts": 6,
+    "best_gain": 0.003443907188019679,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNum",
+    "region": 122,
+    "samples": 512
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 719
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumComponents",
+    "region": 127,
+    "samples": 82
+  },
+  {
+    "accepted": 5,
+    "attempts": 5,
+    "best_gain": 0.03296679408776548,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 492
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.0005337597526545723,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetOffset",
+    "region": 140,
+    "samples": 53
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetNumValues",
+    "region": 143,
+    "samples": 181
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.003523721191700635,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetFLOAT64Value",
+    "region": 166,
+    "samples": 157
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.005027386541818446,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::Read",
+    "region": 192,
+    "samples": 170
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::AddField",
+    "region": 226,
+    "samples": 69
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 234,
+    "samples": 232
+  },
+  {
+    "accepted": 6,
+    "attempts": 12,
+    "best_gain": 0.06571025014230458,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1361
+  },
+  {
+    "accepted": 0,
+    "attempts": 3,
+    "best_gain": 0.0,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetFieldIndex",
+    "region": 576,
+    "samples": 279
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_id_mesg.hpp",
+    "label": "IsUserProfilePrimaryKeyValid",
+    "region": 3600,
+    "samples": 0
+  }
+]

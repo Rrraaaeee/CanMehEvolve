@@ -1,0 +1,9 @@
+This function does one field lookup and one validity check, and there is little to optimize. I've folded the null check into a single expression. It returns the same values and has the same side effects as before. Any speedup will be negligible, because this function is unlikely to be on the decode hot path.
+
+```cpp
+    FIT_BOOL IsOdometerRolloverValid() const
+    {
+        const Field* field = GetField(7);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

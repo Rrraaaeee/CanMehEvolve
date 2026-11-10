@@ -1,0 +1,32 @@
+The original does a linear scan over the whole profile table on every lookup. The rewrite does that scan once, at first use, to build a 65536-entry index table keyed by message number. Every later lookup is a single array access.
+
+Behavior is unchanged:
+- **First match wins:** an entry is only written while its slot is still empty, so duplicate `num`s resolve to the same entry the linear scan would return.
+- **Read-only source:** the table is built only from the constant `mesgs` array, so it doesn't depend on any mutable global state.
+- **Thread-safe setup:** initialization uses a C++11 function-local static, so no extra locking is needed.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<FIT_UINT16> index = []()
+    {
+        std::vector<FIT_UINT16> t(65536, (FIT_UINT16)0xFFFF);
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+            if (t[n] == (FIT_UINT16)0xFFFF)
+                t[n] = (FIT_UINT16)i;
+        }
+        return t;
+    }();
+
+    FIT_UINT16 idx = index[num];
+    if (idx == (FIT_UINT16)0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <vector>
+```

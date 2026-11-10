@@ -1,0 +1,13 @@
+File: src/fit_field.cpp
+Function: Field::GetNumComponents
+One decode of the test corpus takes about 358.729 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return 0;
+    return profile->fields[profileIndex].numComponents;
+}
+```

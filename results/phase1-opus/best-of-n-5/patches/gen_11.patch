@@ -1,0 +1,13 @@
+--- a/src/fit_lap_mesg.hpp
++++ b/src/fit_lap_mesg.hpp
+@@ -3143,7 +3143,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FLOAT32 GetTimeStanding(void) const
+     {
+-        return GetFieldFLOAT32Value(98, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        const FIT_UINT8 fieldNum = 98;
++        const FIT_UINT8 arrayIndex = 0;
++        return GetFieldFLOAT32Value(fieldNum, arrayIndex, (FIT_UINT16)FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

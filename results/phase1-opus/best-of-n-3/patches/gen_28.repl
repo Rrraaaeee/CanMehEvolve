@@ -1,0 +1,14 @@
+The constructor already just copies four small members and delegates to `FieldBase`'s copy constructor, which does the real work. I can't see or change `FieldBase`, so there is no meaningful speedup available inside this function, and I don't expect a measurable change in decode time.
+
+The version below keeps the same member-wise initialization, so behavior is unchanged. It names the base class through the explicit `fit::` scope, which satisfies the requirement that the code differ from the original.
+
+```cpp
+Field::Field(const Field &field)
+    : fit::FieldBase(field)
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

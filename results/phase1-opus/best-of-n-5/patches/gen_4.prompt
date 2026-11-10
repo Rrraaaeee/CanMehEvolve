@@ -1,0 +1,11 @@
+File: src/fit_segment_file_mesg.hpp
+Function: GetLeaderActivityIdString
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_WSTRING GetLeaderActivityIdString(FIT_UINT8 index) const
+    {
+        return GetFieldSTRINGValue(10, index, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

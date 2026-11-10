@@ -1,0 +1,57 @@
+The function now does less repeated work, with the same results:
+
+- **Field reference hoisted:** `fields[fieldIndex]` and its sub-field count are looked up once, outside the loop.
+- **Reference value cached:** sub-field maps usually point at the same reference field, often with several values each. The code remembers the last reference field number, whether that field exists, and its rounded value. Repeated maps then skip both the linear `GetField` search and the `GetFLOAT64Value` conversion.
+
+Results only stay identical if `GetField` and `GetFLOAT64Value` have no side effects and return the same answer for the same input. They are `const` lookups, which is assumed to be enough.
+
+```cpp
+FIT_UINT16 Mesg::GetActiveSubFieldIndexByFieldIndex(const FIT_UINT16 fieldIndex) const
+{
+    if ((int) fieldIndex >= GetNumFields())
+        return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+
+    const Field& field = fields[fieldIndex];
+    const FIT_UINT16 numSubFields = field.GetNumSubFields();
+
+    int cachedNum = -1;
+    bool cachedFound = false;
+    FIT_SINT32 cachedValue = 0;
+
+    for (FIT_UINT16 i = 0; i < numSubFields; i++)
+    {
+        const Profile::SUBFIELD* subField = field.GetSubField(i);
+
+        if (subField != FIT_NULL)
+        {
+            const int numMaps = (int) subField->numMaps;
+            for (int j = 0; j < numMaps; j++)
+            {
+                const int refNum = (int) subField->maps[j].refFieldNum;
+
+                if (refNum != cachedNum)
+                {
+                    cachedNum = refNum;
+                    const Field* refField = GetField(subField->maps[j].refFieldNum);
+                    if (refField != FIT_NULL)
+                    {
+                        cachedFound = true;
+                        FIT_FLOAT64 refValue = refField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+                        refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+                        cachedValue = (FIT_SINT32)refValue;
+                    }
+                    else
+                    {
+                        cachedFound = false;
+                    }
+                }
+
+                if (cachedFound && cachedValue == subField->maps[j].refFieldValue)
+                    return ((FIT_UINT16) i);
+            }
+        }
+    }
+
+    return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+}
+```

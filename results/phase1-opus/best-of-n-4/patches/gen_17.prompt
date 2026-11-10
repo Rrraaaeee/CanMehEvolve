@@ -1,0 +1,11 @@
+File: src/fit_field_definition.cpp
+Function: FieldDefinition::GetType
+One decode of the test corpus takes about 358.66 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 FieldDefinition::GetType() const
+{
+    return type;
+}
+```

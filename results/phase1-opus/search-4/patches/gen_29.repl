@@ -1,0 +1,64 @@
+The function was already close to optimal, so this is a small, behavior-preserving cleanup:
+
+- **Early return for 1-byte types:** when `typeSize <= 1`, the original's swap loops do nothing, so the function now returns right away.
+- **Cached state:** `fieldData` and the arch byte are read into locals, so the compiler doesn't reload members inside the loops.
+- **Unchanged edge case:** `size / typeSize` still runs before that check. A zero `typeSize` therefore behaves exactly as it did in the original.
+
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    if ((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0)
+        return;
+    if ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE)
+        return;
+
+    const unsigned typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const unsigned numElements = (FIT_UINT8)(size / typeSize);
+    if (typeSize <= 1 || numElements == 0)
+        return;
+
+    FIT_UINT8* p = fieldData;
+
+    switch (typeSize)
+    {
+    case 2:
+        for (unsigned e = 0; e < numElements; e++, p += 2)
+        {
+            uint16_t v;
+            std::memcpy(&v, p, 2);
+            v = __builtin_bswap16(v);
+            std::memcpy(p, &v, 2);
+        }
+        break;
+    case 4:
+        for (unsigned e = 0; e < numElements; e++, p += 4)
+        {
+            uint32_t v;
+            std::memcpy(&v, p, 4);
+            v = __builtin_bswap32(v);
+            std::memcpy(p, &v, 4);
+        }
+        break;
+    case 8:
+        for (unsigned e = 0; e < numElements; e++, p += 8)
+        {
+            uint64_t v;
+            std::memcpy(&v, p, 8);
+            v = __builtin_bswap64(v);
+            std::memcpy(p, &v, 8);
+        }
+        break;
+    default:
+        for (unsigned e = 0; e < numElements; e++, p += typeSize)
+        {
+            for (unsigned i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 t = p[i];
+                p[i] = p[typeSize - i - 1];
+                p[typeSize - i - 1] = t;
+            }
+        }
+        break;
+    }
+}
+```

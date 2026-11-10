@@ -1,0 +1,9 @@
+The change replaces default-construct-then-assign with member initialization, so each vector is built once directly from the source. This skips the empty default construction and the extra assignment, including any reallocation it might cause. Behavior is unchanged: the same two members are copied and every other member is still default-initialized.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

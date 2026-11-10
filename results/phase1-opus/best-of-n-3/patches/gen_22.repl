@@ -1,0 +1,8 @@
+This version builds `values` and `stringIndexes` directly from the source field in the constructor's member initializer list. The original first default-constructed both members and then copy-assigned into them, which was redundant work. Each member is now copy-constructed once, so there are fewer allocations and no throwaway empty objects. The resulting values are identical to before.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes(field.stringIndexes)
+{
+}
+```

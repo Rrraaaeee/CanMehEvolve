@@ -1,0 +1,8 @@
+The original function is already a single forwarding call, so I could not find a rewrite that is both meaningfully faster and certain to keep the same behavior. The field-access path would have to be inlined by hand, and I can't confirm its exact semantics. I have only made the argument types explicit, which avoids implicit conversions at the call site; any speed difference will likely be negligible. The decoded values, return value and side effects are unchanged.
+
+```cpp
+    FIT_WSTRING GetLeaderActivityIdString(FIT_UINT8 index) const
+    {
+        return GetFieldSTRINGValue(static_cast<FIT_UINT8>(10), index, static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

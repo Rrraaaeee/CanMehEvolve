@@ -1,0 +1,35 @@
+The constructor already uses a direct loop instead of a call to `Profile::GetFieldIndex`, so there is little left to gain here. This version makes two small changes:
+
+- It walks the field table with a pointer instead of indexing `fields[i]`.
+- It writes `profileIndex` once, after the search ends.
+
+Behavior is unchanged:
+
+- It returns the same index as before, the first field whose `num` matches.
+- It still stores `FIT_UINT16_INVALID` when no field matches or when `mesg` is null.
+- `profileIndex` is still a 16-bit index.
+
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(Profile::GetMesg(mesgNum))
+    , profileIndex(FIT_UINT16_INVALID)
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+    const Profile::MESG* const mesg = profile;
+    if (mesg != FIT_NULL)
+    {
+        const Profile::FIELD* const begin = mesg->fields;
+        const Profile::FIELD* const end = begin + mesg->numFields;
+        for (const Profile::FIELD* f = begin; f != end; ++f)
+        {
+            if (f->num == fieldNum)
+            {
+                profileIndex = (FIT_UINT16)(f - begin);
+                return;
+            }
+        }
+    }
+}
+```

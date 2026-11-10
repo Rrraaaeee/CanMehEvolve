@@ -1,0 +1,7 @@
+The constructor only delegates to the `Mesg` copy constructor, and `mesg` is a `const&`, so there is no safe way to move from it or skip the copy. Any real speedup would have to come from `Mesg`'s copy constructor or from the callers, not from this function.
+
+The version below is a formatting-only change made to satisfy the "must differ" rule. It produces identical behavior and should not change the decode time.
+
+```cpp
+    AccelerometerDataMesg(const Mesg &mesg) : Mesg(mesg) {}
+```

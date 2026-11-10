@@ -1,0 +1,12 @@
+The constructor already does the minimum work: a base copy plus four trivially copyable members. There is no safe rewrite that is measurably faster. The version below is the same logic expressed slightly differently and keeps identical behavior. Any change in timing will be within noise.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

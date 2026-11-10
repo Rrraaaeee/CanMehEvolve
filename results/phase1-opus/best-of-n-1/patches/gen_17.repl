@@ -1,0 +1,25 @@
+The original folds each byte in as two 4-bit steps with a 16-entry table. This version folds it in with a single 8-bit step and a 256-entry table: `crc = (crc >> 8) ^ T[(crc ^ byte) & 0xFF]`.
+
+- **Same CRC:** The nibble table is the reflected CRC-16 with polynomial 0xA001. For example, entry 1 = 0xCC01 is what four shift steps with 0xA001 produce. One 8-bit step with the matching 256-entry table therefore gives identical results for every `crc` and `byte`.
+- **No runtime setup:** The table is built at compile time by a `constexpr` lambda, so there is no initialization cost or global state.
+- **Less work per byte:** Each call drops from four table lookups to one lookup, one shift and two XORs.
+
+```cpp
+FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+{
+   struct CrcTable { FIT_UINT16 v[256]; };
+   static constexpr CrcTable table = []() constexpr {
+      CrcTable t{};
+      for (unsigned i = 0; i < 256; ++i)
+      {
+         unsigned c = i;
+         for (int k = 0; k < 8; ++k)
+            c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
+         t.v[i] = static_cast<FIT_UINT16>(c);
+      }
+      return t;
+   }();
+
+   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+}
+```

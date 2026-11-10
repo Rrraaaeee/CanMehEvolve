@@ -1,0 +1,10 @@
+This setter is not on the decode path, so there is no real speedup available here. The rewrite below makes the field number and array index explicitly typed. Behavior is identical, since the `SetFieldFLOAT32Value` call is unchanged.
+
+```cpp
+    void SetMaxDescentRate(FIT_FLOAT32 maxDescentRate)
+    {
+        const FIT_UINT8 fieldNum = 24;
+        const FIT_UINT8 arrayIndex = 0;
+        SetFieldFLOAT32Value(fieldNum, maxDescentRate, arrayIndex, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

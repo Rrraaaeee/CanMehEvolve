@@ -1,0 +1,12 @@
+--- a/src/fit_developer_field_definition.cpp
++++ b/src/fit_developer_field_definition.cpp
+@@ -85,8 +85,7 @@
+ 
+ FIT_BOOL DeveloperFieldDefinition::IsDefined() const
+ {
+-    return nullptr != mesg &&
+-           nullptr != developer;
++    return static_cast<FIT_BOOL>((nullptr != mesg) & (nullptr != developer));
+ }
+ 
+ FIT_UINT8 DeveloperFieldDefinition::GetNum() const

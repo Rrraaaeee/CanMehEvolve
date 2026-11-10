@@ -1,0 +1,10 @@
+2026-11-10T13:51:13+08:00
+Running /home/q/qingxuan/CanMehSolve/build/CanMehDecodeForSampler
+Run on (24 X 3200 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x12)
+  L1 Instruction 32 KiB (x12)
+  L2 Unified 256 KiB (x12)
+  L3 Unified 15360 KiB (x2)
+Load Average: 0.96, 0.47, 0.24
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.

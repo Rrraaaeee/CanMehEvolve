@@ -1,0 +1,8 @@
+`AddListener` only runs during setup, not in the decode loop, so no rewrite here will measurably change decode time. The one safe change is to build the stored pointer in place with `emplace_back` instead of `push_back`. Behavior is unchanged: the same pointer is appended to the same vector in the same order, and duplicates are still allowed.
+
+```cpp
+void MesgBroadcaster::AddListener(RecordMesgListener& recordMesgListener)
+{
+   recordMesgListeners.emplace_back(&recordMesgListener);
+}
+```

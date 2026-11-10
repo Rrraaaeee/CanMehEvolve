@@ -1,0 +1,28 @@
+The nibble-based CRC below is replaced with the standard byte-at-a-time table lookup for the same CRC (CRC-16/ARC, reflected polynomial 0xA001):
+
+- **Why the result is identical:** CRC tables are linear over XOR, so `T[a] ^ T[b] == T[a ^ b]`. The original nibble steps are therefore exactly the 4-bit form of this reflected CRC. A single 256-entry lookup applies both nibble steps at once.
+- **Why it is faster:** it does one table lookup per byte instead of four, and drops the dependent shift/mask chain.
+- **Table construction:** the 256-entry table is built at compile time with a `constexpr` constructor, so there is no runtime initialization and no mutable state.
+
+```cpp
+FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+{
+   struct Table
+   {
+      FIT_UINT16 v[256];
+      constexpr Table() : v()
+      {
+         for (unsigned i = 0; i < 256; i++)
+         {
+            unsigned c = i;
+            for (int k = 0; k < 8; k++)
+               c = (c & 1) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
+            v[i] = static_cast<FIT_UINT16>(c);
+         }
+      }
+   };
+   static constexpr Table table{};
+
+   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+}
+```

@@ -1,0 +1,16 @@
+The logic is unchanged. The function now copies `type` and `profile` into locals and merges the null-profile and index checks into one condition. This lets the compiler keep the values in registers and test the common path first. Any speedup from this is expected to be small.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (t != FIT_UINT8_INVALID)
+        return t;
+
+    const Profile::MESG* const p = profile;
+    if ((p != NULL) && (profileIndex < p->numFields))
+        return p->fields[profileIndex].type;
+
+    return FIT_UINT8_INVALID;
+}
+```

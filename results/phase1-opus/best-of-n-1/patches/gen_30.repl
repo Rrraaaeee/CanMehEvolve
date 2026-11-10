@@ -1,0 +1,9 @@
+This setter is a single forwarding call, so there is little real speedup available. The rewrite keeps exactly the same call and arguments. The only changes are hoisting the subfield index into a `constexpr` constant and replacing the C-style cast with `static_cast`. This guarantees the index is a compile-time constant and leaves behavior unchanged.
+
+```cpp
+    void SetTotalStrokes(FIT_UINT32 totalStrokes)
+    {
+        constexpr FIT_UINT16 kSubField = static_cast<FIT_UINT16>(Profile::SEGMENT_LAP_MESG_TOTAL_CYCLES_FIELD_TOTAL_STROKES);
+        SetFieldUINT32Value(10, totalStrokes, 0, kSubField);
+    }
+```

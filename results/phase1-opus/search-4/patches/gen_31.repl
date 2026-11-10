@@ -1,0 +1,35 @@
+The lookup table now stores a smaller index type. Lookup behavior is unchanged.
+
+- **Smaller table:** `MESGS` is a compile-time enum constant. When it is below 255, each table entry is one byte instead of two, which halves the table to 64 KB and improves cache locality on lookups.
+- **Same results:** an all-ones value of the chosen type still means "no message". The first match per message number still wins, so every return value is identical.
+- **Same lookup path:** the access is still a single table load.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type idx_t;
+    static const idx_t NONE = (idx_t)~(idx_t)0;
+    static idx_t table[65536];
+    static const bool initialized = []() {
+        for (int k = 0; k < 65536; k++)
+            table[k] = NONE;
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            if (table[n] == NONE)
+                table[n] = (idx_t)i;
+        }
+        return true;
+    }();
+    (void)initialized;
+
+    idx_t idx = table[num];
+    if (idx == NONE)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <type_traits>
+```

@@ -1,0 +1,18 @@
+File: src/fit_segment_id_mesg.hpp
+Function: IsUserProfilePrimaryKeyValid
+One decode of the test corpus takes about 358.373 ms.
+The code below currently runs at 0.8817 of the original SDK's decode time; the best found so far is 0.86632.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_BOOL IsUserProfilePrimaryKeyValid() const
+    {
+        const Field* field = GetField(4);
+        if( FIT_NULL == field )
+        {
+            return FIT_FALSE;
+        }
+
+        return field->IsValueValid();
+    }
+```

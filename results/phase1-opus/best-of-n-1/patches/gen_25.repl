@@ -1,0 +1,14 @@
+This function is already minimal, so any speedup will be marginal at best. The rewrite reads the `profile` and `profileIndex` members into locals once. That spares the compiler from reloading them after the null check, and it marks the null-profile path as unlikely. Behavior is unchanged.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto p = profile;
+    if (__builtin_expect(p == NULL, 0))
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

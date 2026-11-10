@@ -1,0 +1,30 @@
+The rewrite reads the field type once and then assembles the value from at most `sizeof(T)` bytes.
+
+- **Type lookup:** `GetType()` is called once instead of twice, and the base-type index is reused for both table lookups.
+- **Byte loop:** bytes are combined in a 64-bit unsigned accumulator, so no shift ever overflows or touches a negative value. The loop stops at `min(size, sizeof(T))`.
+- **Same result:** the original's extra bytes beyond `sizeof(T)` were truncated away when assigned to `T`, so skipping them changes nothing. For signed `T`, the final conversion keeps the same low-order bit pattern the original produced.
+- **Unchanged behavior:** the bounds check against `values.size()` and the invalid-value return are exactly as before.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const int size = baseTypeSizes[typeNum];
+    const int limit = (size < (int)sizeof(T)) ? size : (int)sizeof(T);
+    const int base = (int)fieldArrayIndex * size;
+
+    unsigned long long acc = 0;
+    for (int i = 0; i < limit; i++)
+    {
+        acc |= static_cast<unsigned long long>(static_cast<FIT_UINT8>(values[base + i])) << (i * 8);
+    }
+
+    return static_cast<T>(acc);
+}
+```

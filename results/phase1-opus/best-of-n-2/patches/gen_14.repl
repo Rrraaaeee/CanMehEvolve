@@ -1,0 +1,11 @@
+The function is already minimal, so the gain is small. This version reads `profile` into a local once, puts the common valid case first, and marks it as the likely branch so the compiler lays out the fast path linearly. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto p = profile;
+    if (__builtin_expect((p != NULL) && (profileIndex < p->numFields), 1))
+        return p->fields[profileIndex].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

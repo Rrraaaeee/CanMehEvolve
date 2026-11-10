@@ -1,0 +1,43 @@
+The current version looks up a 128 KB table indexed by every possible message number. That table is mostly empty and adds cache pressure. The rewrite keeps only a 2 KB table for message numbers below 1024, which covers the common profile messages. Rarer numbers, such as manufacturer-specific ones, fall back to a linear search.
+
+Both paths return the same entry as before, including when a number appears more than once in `mesgs`:
+- **Table build:** it runs from the last entry down to the first, so the lowest index wins.
+- **Linear search:** it scans from the start and stops at the first match.
+
+Numbers not in `mesgs` still return `NULL`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[1024];
+        Index()
+        {
+            for (int k = 0; k < 1024; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < 1024)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < 1024)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

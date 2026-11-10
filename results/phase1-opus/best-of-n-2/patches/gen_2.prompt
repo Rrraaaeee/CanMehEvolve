@@ -1,0 +1,11 @@
+File: src/fit_field.cpp
+Function: Field::GetIsAccumulated
+One decode of the test corpus takes about 358.729 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL Field::GetIsAccumulated() const
+{
+    return profile->fields[profileIndex].isAccumulated;
+}
+```

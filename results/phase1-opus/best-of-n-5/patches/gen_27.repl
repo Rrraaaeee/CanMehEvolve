@@ -1,0 +1,47 @@
+The original does a linear scan over all `MESGS` entries on every call. This version builds a 64K-entry index once and then answers each lookup with a single array access.
+
+- **When it is built:** a function-local `static`, initialized once on first use. C++11 guarantees this initialization is thread-safe.
+- **What it depends on:** only the constant `mesgs` table, not any mutable global state.
+- **Same results:** each slot stores the first matching index, so duplicate message numbers resolve to the same entry as the linear scan. Numbers with no match return `NULL`, as before.
+- **Fallback:** if the table were ever too large for the 16-bit index, every slot stays at the sentinel and the original linear scan runs instead. This keeps behavior identical in that case.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::array<FIT_UINT16, 65536> table = []()
+    {
+        std::array<FIT_UINT16, 65536> t;
+        t.fill(0xFFFF);
+        if (MESGS < 0xFFFF)
+        {
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (t[n] == 0xFFFF)
+                    t[n] = (FIT_UINT16)i;
+            }
+        }
+        return t;
+    }();
+
+    if (MESGS < 0xFFFF)
+    {
+        FIT_UINT16 idx = table[num];
+        if (idx == 0xFFFF)
+            return NULL;
+        return &mesgs[idx];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```
+
+```includes
+#include <array>
+```

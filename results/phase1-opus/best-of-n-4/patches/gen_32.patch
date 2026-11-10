@@ -1,0 +1,15 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -131,9 +131,10 @@
+ 
+ FIT_UINT16 Field::GetNumComponents(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const Profile::MESG* const p = profile;
++    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+         return 0;
+-    return profile->fields[profileIndex].numComponents;
++    return p->fields[profileIndex].numComponents;
+ }
+ 
+ FIT_UINT16 Field::GetNumSubFields(void) const

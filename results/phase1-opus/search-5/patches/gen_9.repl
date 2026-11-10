@@ -1,0 +1,42 @@
+The rewrite below reads the value with a single `memcpy` when the field's byte size equals `sizeof(T)` on a little-endian host. That replaces the per-byte shift/OR loop, which remains as the fallback for size mismatches and big-endian hosts. `GetType()` is now called once instead of twice. The result is unchanged:
+
+- **Little-endian byte assembly:** the original loop builds the value in little-endian order, so on a little-endian host a direct `memcpy` produces the same bit pattern.
+- **Signed `T`:** the bits come out the same, so values match too.
+- **Out-of-range index:** the invalid-value return is unchanged.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const FIT_UINT8* src = values.data() + (fieldArrayIndex * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, src, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(src[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

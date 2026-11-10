@@ -1,0 +1,8 @@
+This function is already a single comparison, so no rewrite can make it meaningfully faster. The only change is the explicit `FIT_TRUE`/`FIT_FALSE` result, which returns the same values as the original.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return (profileIndex != FIT_UINT16_INVALID) ? FIT_TRUE : FIT_FALSE;
+}
+```

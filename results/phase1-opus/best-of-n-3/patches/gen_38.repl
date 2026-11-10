@@ -1,0 +1,43 @@
+The main cost is repeated work per call, so this version cuts that down while returning the same values:
+
+- **Single type lookup:** `GetType()` is called once and the result is reused.
+- **Direct buffer access:** the bytes are read through a raw pointer into `values`, without indexing the vector each time.
+- **Fast path:** on little-endian targets, when the field's byte size equals `sizeof(T)`, a single `memcpy` replaces the loop. It produces the same bytes the shift loop would assemble.
+- **Other cases:** these fall back to the original loop with the same type conversions, so the results do not change.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const auto* data = values.data() + (fieldArrayIndex * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if (size == sizeof(T))
+    {
+        T rv;
+        std::memcpy(&rv, data, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(data[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

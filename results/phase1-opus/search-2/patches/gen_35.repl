@@ -1,0 +1,57 @@
+This replaces the 64K-entry lookup table (64–128 KB, which pollutes the cache) with a small direct table of 1024 entries. Real FIT message numbers fall almost entirely in that range. Numbers of 1024 or more go to a compact overflow list that holds only the profile entries in that range, scanned linearly; it is likely empty or nearly so.
+
+Lookup results are unchanged. The tables are filled from the highest index down to the lowest, so for duplicate numbers the lowest index wins, which matches a first-match linear search.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    enum { DIRECT = 1024 };
+    struct Index
+    {
+        IdxT idx[DIRECT];
+        FIT_UINT16 hiNum[MESGS > 0 ? MESGS : 1];
+        IdxT hiIdx[MESGS > 0 ? MESGS : 1];
+        int hiCount;
+        Index()
+        {
+            const IdxT none = (IdxT)~(IdxT)0;
+            for (int k = 0; k < DIRECT; k++)
+                idx[k] = none;
+            hiCount = 0;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < DIRECT)
+                    idx[n] = (IdxT)i;
+            }
+            // Overflow list in ascending profile index order (first match wins).
+            for (int i = 0; i < (int)MESGS; i++)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n >= DIRECT)
+                {
+                    hiNum[hiCount] = n;
+                    hiIdx[hiCount] = (IdxT)i;
+                    hiCount++;
+                }
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < DIRECT)
+    {
+        const IdxT i = table.idx[num];
+        if (i == (IdxT)~(IdxT)0)
+            return NULL;
+        return &mesgs[i];
+    }
+    for (int k = 0; k < table.hiCount; k++)
+    {
+        if (table.hiNum[k] == num)
+            return &mesgs[table.hiIdx[k]];
+    }
+    return NULL;
+}
+```

@@ -1,0 +1,182 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_crc.cpp",
+    "label": "CRC::Get16",
+    "region": 26,
+    "samples": 120
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0003634793247685453,
+    "file": "src/fit_developer_field.cpp",
+    "label": "DeveloperField::GetType",
+    "region": 67,
+    "samples": 23
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_developer_field_definition.cpp",
+    "label": "DeveloperFieldDefinition::DeveloperFieldDefinition",
+    "region": 80,
+    "samples": 86
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.0017470220081179377,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 385
+  },
+  {
+    "accepted": 1,
+    "attempts": 3,
+    "best_gain": 0.011146417922040519,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 115,
+    "samples": 69
+  },
+  {
+    "accepted": 0,
+    "attempts": 3,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNum",
+    "region": 122,
+    "samples": 493
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 760
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetFLOAT64Value",
+    "region": 166,
+    "samples": 172
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetUINT32Value",
+    "region": 184,
+    "samples": 18
+  },
+  {
+    "accepted": 2,
+    "attempts": 2,
+    "best_gain": 0.00881906109416819,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::Read",
+    "region": 192,
+    "samples": 169
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.003263927702724323,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::Mesg",
+    "region": 213,
+    "samples": 92
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::HasField",
+    "region": 225,
+    "samples": 28
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.007048197604753059,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 234,
+    "samples": 245
+  },
+  {
+    "accepted": 7,
+    "attempts": 14,
+    "best_gain": 0.062171224877407005,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1348
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_dive_summary_mesg.hpp",
+    "label": "SetMaxDescentRate",
+    "region": 1618,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_description_mesg.hpp",
+    "label": "GetFitBaseTypeId",
+    "region": 1864,
+    "samples": 12
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_lap_mesg.hpp",
+    "label": "GetAvgRightPedalSmoothness",
+    "region": 3817,
+    "samples": 0
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0008783315127776081,
+    "file": "src/fit_session_mesg.hpp",
+    "label": "IsMaxSaturatedHemoglobinPercentValid",
+    "region": 4260,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_sleep_assessment_mesg.hpp",
+    "label": "SetAwakeningsCount",
+    "region": 4574,
+    "samples": 0
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0010709573291811658,
+    "file": "src/fit_time_in_zone_mesg.hpp",
+    "label": "SetFunctionalThresholdPower",
+    "region": 4885,
+    "samples": 0
+  }
+]

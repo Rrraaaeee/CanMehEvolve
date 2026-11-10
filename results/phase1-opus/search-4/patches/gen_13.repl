@@ -1,0 +1,14 @@
+The function was already minimal. This version reads `profile` and `profileIndex` into locals once, so the compiler can keep them in registers instead of reloading members. The null-check and bounds-check semantics are unchanged.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const auto* const p = profile;
+    if (p == NULL)
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numComponents;
+}
+```

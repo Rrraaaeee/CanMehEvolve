@@ -1,0 +1,16 @@
+`GetType()` is called once and stored in a local, instead of up to three times. It is likely a virtual call. The `IsValid()` check stays first, as in the original. This assumes `GetType()` is a side-effect-free const getter, so calling it once returns the same value the repeated calls did.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+
+    if (type != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

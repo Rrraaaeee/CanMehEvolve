@@ -1,0 +1,59 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -728,7 +728,6 @@
+ // correct underlying type
+ void FieldBase::AddRawValue(const FIT_FLOAT64 rawValue, const FIT_UINT8 fieldArrayIndex)
+ {
+-    FIT_FLOAT64 roundedValue = FieldBase::Round(rawValue);
+     switch ( GetType() )
+     {
+         case FIT_BASE_TYPE_BYTE:
+@@ -736,24 +735,24 @@
+         case FIT_BASE_TYPE_SINT8:
+         case FIT_BASE_TYPE_UINT8:
+         case FIT_BASE_TYPE_UINT8Z:
+-            SetUINT8Value((FIT_UINT8)roundedValue, fieldArrayIndex);
++            SetUINT8Value((FIT_UINT8)FieldBase::Round(rawValue), fieldArrayIndex);
+             break;
+ 
+         case FIT_BASE_TYPE_SINT16:
+         case FIT_BASE_TYPE_UINT16:
+         case FIT_BASE_TYPE_UINT16Z:
+-            SetUINT16Value((FIT_UINT16)roundedValue, fieldArrayIndex);
++            SetUINT16Value((FIT_UINT16)FieldBase::Round(rawValue), fieldArrayIndex);
+             break;
+ 
+         case FIT_BASE_TYPE_SINT32:
+         case FIT_BASE_TYPE_UINT32:
+         case FIT_BASE_TYPE_UINT32Z:
+-            SetUINT32Value((FIT_UINT32)roundedValue, fieldArrayIndex);
++            SetUINT32Value((FIT_UINT32)FieldBase::Round(rawValue), fieldArrayIndex);
+             break;
+ 
+         case FIT_BASE_TYPE_FLOAT32:
+         {
+-            FIT_FLOAT32 float32Value = (FIT_FLOAT32)roundedValue;
++            FIT_FLOAT32 float32Value = (FIT_FLOAT32)FieldBase::Round(rawValue);
+             FIT_UINT32 uint32Value;
+             memcpy(&uint32Value, &float32Value, sizeof(FIT_FLOAT32));
+             SetUINT32Value(uint32Value, fieldArrayIndex);
+@@ -762,15 +761,12 @@
+ 
+         case FIT_BASE_TYPE_FLOAT64:
+         {
+-            if ((FIT_UINT8)values.size() < ((fieldArrayIndex + 1) * sizeof(FIT_FLOAT64)))
++            const size_t needed = ((size_t)fieldArrayIndex + 1) * sizeof(FIT_FLOAT64);
++            if ((size_t)(FIT_UINT8)values.size() < needed)
+             {
+-                values.resize((fieldArrayIndex + 1) * 8);
+-            }
+-
+-            for (size_t i = 0; i < sizeof(FIT_FLOAT64); i++)
+-            {
+-                values[(fieldArrayIndex * sizeof(FIT_FLOAT64) + i)] = (*(((FIT_BYTE *)&rawValue) + i));
++                values.resize(needed);
+             }
++            memcpy(&values[(size_t)fieldArrayIndex * sizeof(FIT_FLOAT64)], &rawValue, sizeof(FIT_FLOAT64));
+             break;
+         }
+ 

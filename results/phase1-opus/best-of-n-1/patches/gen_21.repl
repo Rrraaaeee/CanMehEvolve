@@ -1,0 +1,33 @@
+The original does a linear scan over all message definitions on every call. This version builds a lookup table once, on the first call, and then answers each query with a single array access.
+
+- **Table layout:** a function-local static array with 65536 entries, indexed by message number, stores each number's index into `mesgs`.
+- **Same result as the scan:** each entry keeps the first index with that number, and numbers with no definition still return `NULL`.
+- **Thread-safe setup:** C++ guarantees the static is initialized exactly once.
+- **No mutable global dependency:** the table is built only from the constant `mesgs` array.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Table
+    {
+        FIT_UINT16 idx[65536];
+        Table()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Table table;
+
+    FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

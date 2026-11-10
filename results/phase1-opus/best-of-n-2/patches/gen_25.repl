@@ -1,0 +1,33 @@
+The original does a linear scan over the profile on every lookup. This version builds, once, a 64K-entry index table mapping each message number to its position in `mesgs`. Each lookup then becomes a single array read.
+
+- **Same results:** the table is filled only on the first occurrence of each number, so it returns exactly what the original loop's first match would return. Numbers not in the profile still give `NULL`.
+- **Allowed cache:** the table is derived only from the constant `mesgs` array, not from global mutable state.
+- **Thread safety:** it is a function-local static, so C++11 and later guarantee its one-time initialization is thread-safe.
+- **Sentinel is safe:** `0xFFFF` marks "no entry" and cannot be a real index, because the profile has far fewer than 65535 messages.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct IndexTable
+    {
+        FIT_UINT16 idx[65536];
+        IndexTable()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                const FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const IndexTable table;
+
+    const FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

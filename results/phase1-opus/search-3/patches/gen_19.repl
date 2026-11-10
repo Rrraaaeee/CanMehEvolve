@@ -1,0 +1,12 @@
+The copy constructor already copies both vectors member-wise, and an empty vector copy does not allocate. There is no real speedup available here, so expect timing to stay about the same.
+
+The rewrite below is behaviorally identical. It default-constructs `stringIndexes` and copies it only when the source is non-empty. This skips the empty-vector copy-construction path, which is the common case for non-string fields.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes()
+{
+    if (!field.stringIndexes.empty())
+        stringIndexes = field.stringIndexes;
+}
+```

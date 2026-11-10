@@ -1,0 +1,14 @@
+This function is a single call that forwards the field lookup to the base `Mesg` class. There is nothing inside it to optimise, and any real speedup would have to come from the lookup code, which is outside this function.
+
+The rewrite only names the arguments as `constexpr` locals, so the behaviour is identical. I don't expect a measurable change in decode time.
+
+I kept the subfield argument explicit on purpose. The default for that parameter is the active subfield, not the main field, so dropping it would change which value is returned.
+
+```cpp
+    FIT_UINT32 GetSurfaceInterval(void) const
+    {
+        constexpr FIT_UINT8 kFieldNum = 4;
+        constexpr FIT_UINT8 kArrayIndex = 0;
+        return GetFieldUINT32Value(kFieldNum, kArrayIndex, static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

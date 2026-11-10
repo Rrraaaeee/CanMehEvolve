@@ -1,0 +1,48 @@
+The existing version already answers each lookup from precomputed tables. This rewrite keeps that and only cuts per-call overhead:
+
+- **Flat field table:** the per-message field tables are now one contiguous array (`numMesgs * 256` entries) instead of a `std::vector` of `std::array`. A lookup no longer has to load the vector's data pointer first.
+- **Cache-friendly row lookup:** a lookup reads one `mesgIdx` entry, then reads directly at `m * 256 + fieldNum` in the flat array.
+- **Fewer branches:** a shared row filled with `FIT_UINT16_INVALID` takes the place of the "unknown message" branch. Unknown message numbers map to that row and read it like any other row.
+- **Same results:** the first matching message and the first matching field index are kept exactly as before, so every return value is unchanged.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    static constexpr size_t kNumMesgs = sizeof(Profile::mesgs) / sizeof(Profile::mesgs[0]);
+
+    struct Tables
+    {
+        FIT_UINT16 mesgIdx[65536];
+        FIT_UINT16 fieldIdx[(kNumMesgs + 1) * 256];
+
+        Tables()
+        {
+            // Row kNumMesgs is the "invalid message" row: all entries invalid.
+            for (size_t i = 0; i < 65536; i++)
+                mesgIdx[i] = (FIT_UINT16)kNumMesgs;
+            for (size_t i = 0; i < (kNumMesgs + 1) * 256; i++)
+                fieldIdx[i] = FIT_UINT16_INVALID;
+
+            for (size_t m = 0; m < kNumMesgs; m++)
+            {
+                const MESG &mesg = Profile::mesgs[m];
+                if (mesgIdx[mesg.num] == (FIT_UINT16)kNumMesgs)
+                    mesgIdx[mesg.num] = (FIT_UINT16)m;
+
+                FIT_UINT16 *tbl = &fieldIdx[m * 256];
+                for (FIT_UINT16 i = 0; i < mesg.numFields; i++)
+                {
+                    const FIT_UINT8 fnum = mesg.fields[i].num;
+                    if (tbl[fnum] == FIT_UINT16_INVALID)
+                        tbl[fnum] = i;
+                }
+            }
+        }
+    };
+
+    static const Tables &tables = *new Tables();
+
+    const size_t m = tables.mesgIdx[mesgNum];
+    return tables.fieldIdx[m * 256 + fieldNum];
+}
+```

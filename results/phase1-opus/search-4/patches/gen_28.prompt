@@ -1,0 +1,55 @@
+File: src/fit_decode.cpp
+Function: Decode::UpdateEndianness
+One decode of the test corpus takes about 358.717 ms.
+The code below currently runs at 0.911843 of the original SDK's decode time; the best found so far is 0.905772.
+
+Rewrite this function to make decoding faster:
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
+        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE))
+        return;
+
+    FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    FIT_UINT8 numElements = size / typeSize;
+    FIT_UINT8* p = fieldData;
+
+    switch (typeSize)
+    {
+    case 2:
+        for (int e = 0; e < numElements; e++, p += 2)
+        {
+            FIT_UINT8 t = p[0]; p[0] = p[1]; p[1] = t;
+        }
+        break;
+    case 4:
+        for (int e = 0; e < numElements; e++, p += 4)
+        {
+            FIT_UINT8 a = p[0], b = p[1];
+            p[0] = p[3]; p[1] = p[2]; p[2] = b; p[3] = a;
+        }
+        break;
+    case 8:
+        for (int e = 0; e < numElements; e++, p += 8)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                FIT_UINT8 t = p[i]; p[i] = p[7 - i]; p[7 - i] = t;
+            }
+        }
+        break;
+    default:
+        for (int e = 0; e < numElements; e++, p += typeSize)
+        {
+            for (int i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 t = p[i];
+                p[i] = p[typeSize - i - 1];
+                p[typeSize - i - 1] = t;
+            }
+        }
+        break;
+    }
+}
+```

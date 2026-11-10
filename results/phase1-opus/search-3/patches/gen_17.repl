@@ -1,0 +1,33 @@
+The original constructor looks up the message twice: once in `Profile::GetMesg`, and again inside `Profile::GetFieldIndex`, which calls `GetMesg` internally. The rewrite does the message lookup once and then scans that message's fields directly in the constructor body.
+
+Behaviour should be unchanged, assuming the standard SDK definition of `GetFieldIndex`:
+- If the message isn't found, `profileIndex` stays `FIT_UINT16_INVALID`.
+- If the message is found, `profileIndex` is the index of the first field whose number matches.
+- If no field matches, `profileIndex` stays `FIT_UINT16_INVALID`.
+
+`profileIndex` is computed in the body rather than the initializer list. That makes the result correct whatever order `profile` and `profileIndex` are declared in the class.
+
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(Profile::GetMesg(mesgNum))
+    , profileIndex(FIT_UINT16_INVALID)
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+    const Profile::MESG* const mesg = profile;
+    if (mesg != FIT_NULL)
+    {
+        const FIT_UINT16 n = mesg->numFields;
+        const Profile::FIELD* const fields = mesg->fields;
+        for (FIT_UINT16 i = 0; i < n; i++)
+        {
+            if (fields[i].num == fieldNum)
+            {
+                profileIndex = i;
+                break;
+            }
+        }
+    }
+}
+```

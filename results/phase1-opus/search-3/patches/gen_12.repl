@@ -1,0 +1,43 @@
+The changes:
+
+- **Single type lookup.** `GetType()` was called up to twice. It is now called once, and the masked index is reused.
+- **Direct buffer access.** The bytes are read through `values.data()`, which removes repeated `operator[]` indexing.
+- **`memcpy` fast path.** When the base-type size equals `sizeof(T)`, the buffer holds 1-byte elements, and the build is little-endian, the value is loaded with one `memcpy`. On little-endian machines this produces the same value as the shift loop.
+- **Unchanged fallback.** Every other case runs the original shift loop, so results and out-of-range behavior stay identical.
+
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+    const FIT_UINT8 size = baseTypeSizes[typeNum];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+    }
+
+    const auto* p = values.data() + (fieldArrayIndex * size);
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    if ((size == sizeof(T)) && (sizeof(*p) == 1))
+    {
+        T rv;
+        std::memcpy(&rv, p, sizeof(T));
+        return rv;
+    }
+#endif
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(p[i]) << (i * 8);
+    }
+
+    return rv;
+}
+```
+
+```includes
+#include <cstring>
+```

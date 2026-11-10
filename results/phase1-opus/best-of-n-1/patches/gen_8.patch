@@ -1,0 +1,11 @@
+--- a/src/fit_segment_lap_mesg.hpp
++++ b/src/fit_segment_lap_mesg.hpp
+@@ -2329,7 +2329,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FLOAT32 GetAvgRightPedalSmoothness(void) const
+     {
+-        return GetFieldFLOAT32Value(62, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return GetFieldFLOAT32Value(static_cast<FIT_UINT8>(62), static_cast<FIT_UINT8>(0), FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

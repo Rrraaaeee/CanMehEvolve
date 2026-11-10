@@ -1,0 +1,15 @@
+The function is already about as lean as it gets: one pointer check, one bounds check and one load. The rewrite keeps exactly the same logic and the same result for every input. It only adds `__builtin_expect` hints that tell the compiler the valid-profile path is the common case, so that path is laid out as straight-line code. Any speedup from this will be small.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    if (__builtin_expect(p != NULL, 1))
+    {
+        const auto idx = profileIndex;
+        if (__builtin_expect(idx < p->numFields, 1))
+            return p->fields[idx].num;
+    }
+    return FIT_FIELD_NUM_INVALID;
+}
+```

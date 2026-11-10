@@ -1,0 +1,8 @@
+The destructor is already empty: member cleanup happens automatically, and nothing remains to remove. No rewrite of this function can make decoding measurably faster. The change below exists only because an unchanged reply is rejected. It produces the same code as the original and has identical behavior.
+
+```cpp
+FieldBase::~FieldBase()
+{
+   return;
+}
+```

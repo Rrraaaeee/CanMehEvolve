@@ -1,0 +1,28 @@
+The original does a linear scan over every profile message on each call, which is O(MESGS) per lookup. The rewrite builds a direct-index table once and then does an O(1) lookup.
+
+- **Table build:** The table is a function-local static, built from the constant `mesgs` array the first time the function runs. It does not depend on any mutable global state, and C++11 guarantees this one-time initialization is thread-safe.
+- **Duplicate numbers:** The table is filled from the last message to the first, so if two messages share a number, the earlier one wins. This matches the original scan, which returns the first match.
+- **Missing numbers:** Unused slots hold `0xFFFF`, so a number with no message still returns `NULL`.
+- **Assumption:** This relies on `MESGS` being well below `0xFFFF`, which holds for the FIT profile (a few hundred messages).
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<FIT_UINT16> table = []()
+    {
+        std::vector<FIT_UINT16> t(65536, (FIT_UINT16)0xFFFF);
+        for (int i = MESGS - 1; i >= 0; i--)
+            t[mesgs[i].num] = (FIT_UINT16)i;
+        return t;
+    }();
+
+    const FIT_UINT16 idx = table[num];
+    if (idx == (FIT_UINT16)0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <vector>
+```

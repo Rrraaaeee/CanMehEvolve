@@ -1,0 +1,22 @@
+The member-wise copy here is already close to optimal. `std::vector` copy construction allocates exactly the source size and copies the elements in one pass. There is no real algorithmic gain available inside this function, so expect any speedup to be marginal.
+
+The change below only skips work for empty vectors. Most messages have no developer fields, so the `devFields` branch is the one that usually fires. When a vector is empty, it is simply left default-constructed instead of going through the copy path.
+
+Observable behavior is unchanged:
+- Every non-empty vector is still copied element by element.
+- Empty vectors stay empty.
+- `profile` and `localNum` are copied exactly as before.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields()
+    , devFields()
+{
+    if (!mesg.fields.empty())
+        fields = mesg.fields;
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

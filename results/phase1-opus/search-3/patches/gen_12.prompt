@@ -1,0 +1,26 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::GetValue
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.937266 of the original SDK's decode time; the best found so far is 0.936688.
+
+Rewrite this function to make decoding faster:
+```cpp
+template <typename T>
+T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    FIT_UINT8 size = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
+    if (fieldArrayIndex >= (FIT_UINT8)values.size())
+    {
+        return *reinterpret_cast<const T*>(baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK]);
+    }
+
+    T rv = 0;
+
+    for (int i = 0; i < size; i++)
+    {
+        rv |= static_cast<T>(values[(fieldArrayIndex * size) + i]) << (i * 8);
+    }
+
+    return rv;
+}
+```

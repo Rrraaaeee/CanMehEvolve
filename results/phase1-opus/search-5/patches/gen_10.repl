@@ -1,0 +1,44 @@
+The current version indexes a 128 KB table on every lookup, which pollutes the cache. This rewrite uses a 2 KB direct-index table for message numbers below 1024, which covers all common profile messages. Numbers of 1024 and above fall back to a linear scan.
+
+Results are unchanged for every input:
+- **Duplicate numbers:** the table is filled in reverse, so the lowest index wins, just as the scan returns the first match.
+- **Small numbers not in the profile:** they map to `0xFFFF` and return `NULL`.
+- **Large numbers:** the scan finds the same first match, or returns `NULL` if there is none.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[TABLE_SIZE];
+        Index()
+        {
+            for (int k = 0; k < TABLE_SIZE; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = mesgs[i].num;
+                if (n < TABLE_SIZE)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < TABLE_SIZE)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

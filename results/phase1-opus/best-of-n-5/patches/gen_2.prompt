@@ -1,0 +1,11 @@
+File: src/fit_record_mesg.hpp
+Function: GetLeftPco
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_SINT8 GetLeftPco(void) const
+    {
+        return GetFieldSINT8Value(67, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

@@ -1,0 +1,12 @@
+File: src/fit_developer_field_definition.cpp
+Function: DeveloperFieldDefinition::IsDefined
+One decode of the test corpus takes about 358.66 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL DeveloperFieldDefinition::IsDefined() const
+{
+    return nullptr != mesg &&
+           nullptr != developer;
+}
+```

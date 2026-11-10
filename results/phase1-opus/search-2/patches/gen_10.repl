@@ -1,0 +1,8 @@
+This function is a single 16-bit compare, so there is nothing real to speed up. The rewrite below is a semantically identical form: it does the same comparison against the 16-bit sentinel, written as a cast. It mainly satisfies the "must change" rule and gives the compiler the simplest possible form to inline.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return static_cast<FIT_UINT16>(profileIndex) != static_cast<FIT_UINT16>(FIT_UINT16_INVALID);
+}
+```

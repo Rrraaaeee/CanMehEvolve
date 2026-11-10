@@ -1,0 +1,12 @@
+Behavior is unchanged. The rewrite reads `profile` and `profileIndex` into locals once, so the compiler doesn't reload the members. It also marks the valid path as the likely one with `__builtin_expect`. I haven't measured it, so any speedup is likely to be small.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* p = profile;
+    const auto idx = profileIndex;
+    if (__builtin_expect((p != NULL) && (idx < p->numFields), 1))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

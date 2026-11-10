@@ -1,0 +1,43 @@
+A one-time lookup table, built from the constant `mesgs` array on the first call, replaces the linear scan for message numbers below 1024. That should cover most messages in practice.
+
+- **Same results:** the table records the first index for each number, so it returns the same entry the original loop would.
+- **Fallback:** numbers of 1024 and above, and any number not in the table, still use the original linear search.
+- **Thread safety:** the table is a function-local static. C++ initializes it safely across threads, it depends only on constant profile data, and it is never modified after that.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Table
+    {
+        short idx[1024];
+        Table()
+        {
+            for (int k = 0; k < 1024; k++)
+                idx[k] = -1;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < 1024 && idx[n] < 0)
+                    idx[n] = (short)i;
+            }
+        }
+    };
+    static const Table table;
+
+    if (num < 1024)
+    {
+        int i = table.idx[num];
+        if (i >= 0)
+            return &mesgs[i];
+        return NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

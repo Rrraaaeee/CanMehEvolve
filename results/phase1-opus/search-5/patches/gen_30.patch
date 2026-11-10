@@ -1,0 +1,207 @@
+--- a/src/fit_accelerometer_data_mesg.hpp
++++ b/src/fit_accelerometer_data_mesg.hpp
+@@ -43,7 +43,7 @@
+     {
+     }
+ 
+-    AccelerometerDataMesg(const Mesg &mesg) : Mesg(mesg)
++    AccelerometerDataMesg(const Mesg &mesg) : Mesg(static_cast<const Mesg &>(mesg))
+     {
+     }
+ 
+--- a/src/fit_crc.cpp
++++ b/src/fit_crc.cpp
+@@ -17,24 +17,23 @@
+ 
+ FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+ {
+-   static const FIT_UINT16 crc_table[16] =
++   struct Table
+    {
+-      0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
+-      0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400
++      FIT_UINT16 t[256];
++      constexpr Table() : t()
++      {
++         for (unsigned i = 0; i < 256; i++)
++         {
++            unsigned c = i;
++            for (int k = 0; k < 8; k++)
++               c = (c & 1) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
++            t[i] = static_cast<FIT_UINT16>(c);
++         }
++      }
+    };
+-   FIT_UINT16 tmp;
++   static constexpr Table table{};
+ 
+-   // compute checksum of lower four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[byte & 0xF];
+-
+-   // now compute checksum of upper four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[(byte >> 4) & 0xF];
+-
+-   return crc;
++   return static_cast<FIT_UINT16>((crc >> 8) ^ table.t[(crc ^ byte) & 0xFF]);
+ }
+ 
+ FIT_UINT16 CRC::Calc16(const volatile void *data, FIT_UINT32 size)
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -72,6 +73,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+@@ -81,15 +85,10 @@
+ 
+ FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+ {
+-    switch (GetType(subFieldIndex)) {
+-        case FIT_BASE_TYPE_SINT8:
+-        case FIT_BASE_TYPE_SINT16:
+-        case FIT_BASE_TYPE_SINT32:
+-            return FIT_TRUE;
+-
+-        default:
+-            return FIT_FALSE;
+-    }
++    const FIT_UINT8 type = static_cast<FIT_UINT8>(GetType(subFieldIndex));
++    return ((type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT8)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT16)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT32))) ? FIT_TRUE : FIT_FALSE;
+ }
+ 
+ FIT_UINT8 FieldBase::GetSize(void) const
+@@ -105,8 +104,16 @@
+     if (!IsValid())
+         return 0;
+ 
+-    if (GetType() != FIT_BASE_TYPE_STRING)
+-        return (FIT_UINT8)(values.size() / baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++    const FIT_UINT8 type = GetType();
++
++    if (type != FIT_BASE_TYPE_STRING)
++    {
++        const size_t n = values.size();
++        const FIT_UINT8 sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++        if (sz == 1)
++            return (FIT_UINT8)n;
++        return (FIT_UINT8)(n / sz);
++    }
+ 
+     return (FIT_UINT8)stringIndexes.size();
+ }
+@@ -1131,17 +1138,29 @@
+ template <typename T>
+ T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    FIT_UINT8 size = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
++    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
++    const FIT_UINT8 size = baseTypeSizes[typeNum];
+     if (fieldArrayIndex >= (FIT_UINT8)values.size())
+     {
+-        return *reinterpret_cast<const T*>(baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
++    }
++
++    const FIT_UINT8* src = values.data() + (fieldArrayIndex * size);
++
++#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
++    if (size == sizeof(T))
++    {
++        T rv;
++        std::memcpy(&rv, src, sizeof(T));
++        return rv;
+     }
++#endif
+ 
+     T rv = 0;
+ 
+     for (int i = 0; i < size; i++)
+     {
+-        rv |= static_cast<T>(values[(fieldArrayIndex * size) + i]) << (i * 8);
++        rv |= static_cast<T>(src[i]) << (i * 8);
+     }
+ 
+     return rv;
+--- a/src/fit_hsa_body_battery_data_mesg.hpp
++++ b/src/fit_hsa_body_battery_data_mesg.hpp
+@@ -207,12 +207,7 @@
+     FIT_BOOL IsUnchargedValid(FIT_UINT8 index) const
+     {
+         const Field* field = GetField(3);
+-        if( FIT_NULL == field )
+-        {
+-            return FIT_FALSE;
+-        }
+-
+-        return field->IsValueValid(index);
++        return (FIT_NULL == field) ? FIT_FALSE : field->IsValueValid(index);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,12 +3057,43 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    enum { SMALL = 1024 };
++    struct Index
++    {
++        FIT_UINT16 idx[SMALL];
++        bool hasLarge;
++        Index()
++        {
++            hasLarge = false;
++            for (int k = 0; k < SMALL; k++)
++                idx[k] = 0xFFFF;
++            for (int i = MESGS - 1; i >= 0; i--)
++            {
++                if (mesgs[i].num < SMALL)
++                    idx[mesgs[i].num] = (FIT_UINT16)i;
++                else
++                    hasLarge = true;
++            }
++        }
++    };
++    static const Index index;
++
++    if (__builtin_expect(num < SMALL, 1))
++    {
++        const FIT_UINT16 i = index.idx[num];
++        if (__builtin_expect(i == 0xFFFF, 0))
++            return NULL;
++        return &mesgs[i];
++    }
++
++    if (!index.hasLarge)
++        return NULL;
++
+     for (int i = 0; i < MESGS; i++)
+     {
+         if (mesgs[i].num == num)
+             return &mesgs[i];
+     }
+-
+     return NULL;
+ }
+ 

@@ -1,0 +1,8 @@
+I can't see `GetValue<T>`, so I can't safely reimplement it. Its handling of invalid indices, base types and scale/offset is unknown, and copying it from memory could change decoded values. The rewrite therefore keeps the exact call and only adds the `this->` qualifier. The compiler already inlines this template call at -O2, so expect no measurable speedup. A real gain would need changes inside `GetValue` itself.
+
+```cpp
+FIT_UINT8 FieldBase::GetUINT8Value(const FIT_UINT8 fieldArrayIndex) const
+{
+    return this->GetValue<FIT_UINT8>(fieldArrayIndex);
+}
+```

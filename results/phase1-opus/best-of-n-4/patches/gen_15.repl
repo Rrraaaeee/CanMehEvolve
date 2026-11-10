@@ -1,0 +1,12 @@
+This version loads `profile` and `profileIndex` into locals once. The original repeats member reads that the compiler may not be able to merge because of possible aliasing, so this removes redundant loads. Behavior is identical: the same NULL and bounds checks run, and the same values are returned.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    const FIT_UINT16 idx = profileIndex;
+    if ((p == NULL) || (idx >= p->numFields))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

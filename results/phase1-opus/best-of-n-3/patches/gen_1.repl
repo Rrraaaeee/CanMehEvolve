@@ -1,0 +1,14 @@
+The work here is copying the `FieldBase` subobject, and that code lives outside this function. The only other work is four trivial member copies. A copy constructor has no faster correct form, because every member still has to be copied, in declaration order.
+
+So this version is semantically identical to the original. The only edit is an explicit cast to `const FieldBase&` for the base-class copy. Expect no measurable speedup from this function alone; any real gain would have to come from `FieldBase`'s copy constructor.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

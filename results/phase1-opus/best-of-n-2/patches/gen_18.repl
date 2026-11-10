@@ -1,0 +1,15 @@
+The original calls the virtual `GetType()` up to twice per invocation. This version calls it once and reuses the result. That saves one virtual dispatch on a hot path. Behavior is unchanged, assuming `GetType()` has no side effects, which is expected for a const getter.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+    if (type != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

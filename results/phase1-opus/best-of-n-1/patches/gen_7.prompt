@@ -1,0 +1,32 @@
+File: src/fit_mesg.cpp
+Function: Mesg::CanSupportSubField
+One decode of the test corpus takes about 358.135 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_BOOL Mesg::CanSupportSubField(const FIT_UINT8 fieldNum, const FIT_UINT16 subFieldIndex) const
+{
+    if ((subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD) || (subFieldIndex == FIT_SUBFIELD_INDEX_ACTIVE_SUBFIELD))
+        return FIT_TRUE;
+
+    const Profile::SUBFIELD* subField = Profile::GetSubField(GetNum(), fieldNum, subFieldIndex);
+
+    if (subField == FIT_NULL)
+        return FIT_FALSE;
+
+    for (int i = 0; i < (int) subField->numMaps; i++)
+    {
+        const Field* refField = GetField(subField->maps[i].refFieldNum);
+
+        if (refField != FIT_NULL)
+        {
+            FIT_FLOAT64 refValue = refField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+            refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+            if ((FIT_SINT32)refValue == subField->maps[i].refFieldValue)
+                return FIT_TRUE;
+        }
+    }
+
+    return FIT_FALSE;
+}
+```

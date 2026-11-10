@@ -1,0 +1,8 @@
+This function is already a single comparison, so no rewrite can make it meaningfully faster. The version below only changes how the result is spelled. It returns `FIT_TRUE` or `FIT_FALSE` explicitly instead of relying on the implicit `bool` to `FIT_BOOL` conversion. Behavior is identical: it returns 1 when `profileIndex` is valid and 0 otherwise. Any speed difference will be negligible.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return (profileIndex != FIT_UINT16_INVALID) ? FIT_TRUE : FIT_FALSE;
+}
+```

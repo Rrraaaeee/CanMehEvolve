@@ -1,0 +1,12 @@
+File: src/fit_segment_lap_mesg.hpp
+Function: SetMaxNegVerticalSpeed
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.92453 of the original SDK's decode time; the best found so far is 0.911069.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetMaxNegVerticalSpeed(FIT_FLOAT32 maxNegVerticalSpeed)
+    {
+        SetFieldFLOAT32Value(48, maxNegVerticalSpeed, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

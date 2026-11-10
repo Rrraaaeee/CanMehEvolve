@@ -1,0 +1,46 @@
+The previous version only had a 1024-entry lookup table. Any message number at or above 1024, such as a manufacturer-specific one, fell back to a linear scan over `mesgs`. That scan usually ends in a miss, which is its worst case.
+
+This version widens the table to all 65536 possible `FIT_UINT16` values (128 KB). Every call is now one bounds-free load plus a static-guard check, and the linear scan is never reached in normal operation.
+
+Behaviour is unchanged:
+- The table is filled in reverse order, so when several entries share a number, the first match still wins.
+- Unknown numbers still return `NULL`.
+- The fallback scan remains for the degenerate case `MESGS >= 65535`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 65536 };
+    struct Lut
+    {
+        FIT_UINT16 idx[LUT_SIZE];
+        bool ok;
+        Lut() : idx(), ok(MESGS < 65535)
+        {
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                unsigned n = mesgs[i].num;
+                if (n < LUT_SIZE)
+                    idx[n] = (FIT_UINT16)(i + 1);
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        unsigned i = lut.idx[num];
+        return i ? &mesgs[i - 1] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

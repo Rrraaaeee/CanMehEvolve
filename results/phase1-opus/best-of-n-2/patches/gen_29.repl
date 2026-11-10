@@ -1,0 +1,8 @@
+This version copy-constructs both members in the initializer list. The original default-constructed them and then copy-assigned over them. Behavior is the same, minus the extra default-construct-then-assign step.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes(field.stringIndexes)
+{
+}
+```

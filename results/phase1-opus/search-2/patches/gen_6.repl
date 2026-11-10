@@ -1,0 +1,17 @@
+This version reads `profile` and `profileIndex` into locals once. That lets the compiler keep them in registers instead of reloading the members. It also marks the valid-field path as the likely branch, so the common case falls straight through. The result is identical for every input:
+- If `profile` is null or the index is out of range, it returns `FIT_FIELD_NUM_INVALID`.
+- Otherwise it returns the field's `num`.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* p = profile;
+    if (__builtin_expect(p != NULL, 1))
+    {
+        const auto idx = profileIndex;
+        if (__builtin_expect(idx < p->numFields, 1))
+            return p->fields[idx].num;
+    }
+    return FIT_FIELD_NUM_INVALID;
+}
+```

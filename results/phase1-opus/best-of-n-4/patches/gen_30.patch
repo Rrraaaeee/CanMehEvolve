@@ -1,0 +1,11 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -181,7 +181,7 @@
+ 
+ FIT_UINT8 FieldBase::GetUINT8Value(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    return GetValue<FIT_UINT8>(fieldArrayIndex);
++    return this->GetValue<FIT_UINT8>(fieldArrayIndex);
+ }
+ 
+ FIT_UINT8Z FieldBase::GetUINT8ZValue(const FIT_UINT8 fieldArrayIndex) const

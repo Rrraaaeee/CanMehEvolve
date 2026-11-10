@@ -1,0 +1,63 @@
+The main change is to check the endian condition first. Most decoded data is little-endian, so the common path now returns right away. It no longer reads the size table or does the division.
+
+When a swap is needed, sizes 2, 4 and 8 use byte-swap intrinsics with `memcpy`. Any other size falls back to the original element-by-element loop, so the output is identical.
+
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    if (((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
+        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE))
+        return;
+
+    FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    FIT_UINT8 numElements = size / typeSize;
+    FIT_UINT8* p = &fieldData[0];
+
+    switch (typeSize)
+    {
+    case 2:
+        for (int e = 0; e < numElements; e++, p += 2)
+        {
+            uint16_t v;
+            memcpy(&v, p, 2);
+            v = __builtin_bswap16(v);
+            memcpy(p, &v, 2);
+        }
+        break;
+    case 4:
+        for (int e = 0; e < numElements; e++, p += 4)
+        {
+            uint32_t v;
+            memcpy(&v, p, 4);
+            v = __builtin_bswap32(v);
+            memcpy(p, &v, 4);
+        }
+        break;
+    case 8:
+        for (int e = 0; e < numElements; e++, p += 8)
+        {
+            uint64_t v;
+            memcpy(&v, p, 8);
+            v = __builtin_bswap64(v);
+            memcpy(p, &v, 8);
+        }
+        break;
+    default:
+        for (int element = 0; element < numElements; element++)
+        {
+            for (int i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 tmp = fieldData[element * typeSize + i];
+                fieldData[element * typeSize + i] = fieldData[element * typeSize + typeSize - i - 1];
+                fieldData[element * typeSize + typeSize - i - 1] = tmp;
+            }
+        }
+        break;
+    }
+}
+```
+
+```includes
+#include <cstring>
+#include <cstdint>
+```

@@ -1,0 +1,22 @@
+The rewrite caches the message's field pointer and field count in locals. This avoids reloading them through `mesg` on each loop iteration. Behavior is unchanged: it still returns the index of the first matching field, or `FIT_UINT16_INVALID`. The gain is probably small, because at -O2 the compiler may already keep these values in registers. I left the `GetMesg` lookup itself alone, since it relies on profile internals not shown here.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *fields = mesg->fields;
+    const FIT_UINT16 n = mesg->numFields;
+
+    for (FIT_UINT16 i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

@@ -1,0 +1,209 @@
+[
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.00021417704226422973,
+    "file": "src/fit_crc.cpp",
+    "label": "CRC::Get16",
+    "region": 26,
+    "samples": 132
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0012787981956203787,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::UpdateEndianness",
+    "region": 55,
+    "samples": 20
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0005330761621440416,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 423
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.01699543493802813,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 115,
+    "samples": 79
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0007664603964453454,
+    "file": "src/fit_field.cpp",
+    "label": "Field::IsValid",
+    "region": 118,
+    "samples": 74
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.011817984791500868,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNum",
+    "region": 122,
+    "samples": 509
+  },
+  {
+    "accepted": 1,
+    "attempts": 4,
+    "best_gain": 0.0008637809570597454,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetType",
+    "region": 123,
+    "samples": 734
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::GetNumSubFields",
+    "region": 128,
+    "samples": 126
+  },
+  {
+    "accepted": 2,
+    "attempts": 3,
+    "best_gain": 0.0489886276260012,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 464
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::~FieldBase",
+    "region": 135,
+    "samples": 104
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetScale",
+    "region": 139,
+    "samples": 75
+  },
+  {
+    "accepted": 4,
+    "attempts": 4,
+    "best_gain": 0.024544339444840357,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetNumValues",
+    "region": 143,
+    "samples": 211
+  },
+  {
+    "accepted": 0,
+    "attempts": 2,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetFLOAT64Value",
+    "region": 166,
+    "samples": 195
+  },
+  {
+    "accepted": 1,
+    "attempts": 2,
+    "best_gain": 0.0049649512395169015,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::Read",
+    "region": 192,
+    "samples": 146
+  },
+  {
+    "accepted": 2,
+    "attempts": 2,
+    "best_gain": 0.005917809091886772,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetValue",
+    "region": 196,
+    "samples": 297
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetActiveSubFieldIndexByFieldIndex",
+    "region": 242,
+    "samples": 56
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.0019824349468426927,
+    "file": "src/fit_mesg_definition.cpp",
+    "label": "MesgDefinition::GetFieldByIndex",
+    "region": 555,
+    "samples": 101
+  },
+  {
+    "accepted": 4,
+    "attempts": 4,
+    "best_gain": 0.02993513617412502,
+    "file": "src/fit_profile.cpp",
+    "label": "Profile::GetMesg",
+    "region": 574,
+    "samples": 1342
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_barometer_data_mesg.hpp",
+    "label": "SetTimestamp",
+    "region": 801,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_course_point_mesg.hpp",
+    "label": "IsFavoriteValid",
+    "region": 1142,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_lap_mesg.hpp",
+    "label": "IsAvgCombinedPedalSmoothnessValid",
+    "region": 3819,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_segment_lap_mesg.hpp",
+    "label": "GetMaxFractionalCadence",
+    "region": 3832,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_workout_step_mesg.hpp",
+    "label": "GetRepeatDistance",
+    "region": 5381,
+    "samples": 0
+  }
+]

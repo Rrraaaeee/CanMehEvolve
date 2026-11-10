@@ -1,0 +1,23 @@
+`GetMesg` is still called once. The field scan now reads `numFields` and the `fields` pointer into locals. It walks the array with a plain pointer instead of indexing through `mesg` on every iteration. The function returns the same index, or `FIT_UINT16_INVALID`, in every case.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIT_UINT16 count = mesg->numFields;
+    const auto *fields = mesg->fields;
+    const auto *f = fields;
+
+    for (FIT_UINT16 i = 0; i < count; i++, f++)
+    {
+        if (f->num == fieldNum)
+            return i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

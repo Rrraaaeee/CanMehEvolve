@@ -1,0 +1,23 @@
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3122,12 +3122,15 @@
+     if (mesg == NULL)
+         return NULL;
+ 
+-    FIT_UINT16 fieldIndex = GetFieldIndex(mesgNum, fieldNum);
++    const FIELD *fields = mesg->fields;
++    const FIT_UINT16 n = mesg->numFields;
++    for (FIT_UINT16 i = 0; i < n; i++)
++    {
++        if (fields[i].num == fieldNum)
++            return &fields[i];
++    }
+ 
+-    if (fieldIndex >= mesg->numFields)
+-        return NULL;
+-
+-    return &(mesg->fields[fieldIndex]);
++    return NULL;
+ }
+ 
+ const Profile::FIELD* Profile::GetField(const std::string& mesgName, const std::string& fieldName)

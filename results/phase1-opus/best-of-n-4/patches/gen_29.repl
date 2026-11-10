@@ -1,0 +1,49 @@
+The original does a linear scan over every message definition on each call. This version builds a 65536-entry index table once, on the first call, and then answers each lookup with a single table read.
+
+- **Same result as before:** the table is filled only from the constant profile data (`mesgs`). If two entries share a `num`, only the first one is recorded, so the function returns the same pointer the scan would have found.
+- **Thread safety:** the table is a function-local static, so C++ initializes it once and safely even if several threads call at once.
+- **Memory:** about 128 KB.
+- **Assumption:** there are fewer than 65535 message definitions, which the profile easily meets. If that ever stopped holding, the function falls back to the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[65536];
+        bool ok;
+        Index()
+        {
+            ok = (MESGS < 0xFFFF);
+            for (int i = 0; i < 65536; i++)
+                idx[i] = 0xFFFF;
+            if (ok)
+            {
+                for (int i = 0; i < MESGS; i++)
+                {
+                    FIT_UINT16 n = mesgs[i].num;
+                    if (idx[n] == 0xFFFF)
+                        idx[n] = (FIT_UINT16)i;
+                }
+            }
+        }
+    };
+    static const Index index;
+
+    if (index.ok)
+    {
+        FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

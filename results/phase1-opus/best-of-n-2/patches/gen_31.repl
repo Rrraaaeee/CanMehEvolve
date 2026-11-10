@@ -1,0 +1,22 @@
+The function's behavior is unchanged. The rewrite copies the field array pointer and field count into locals so the loop doesn't reload them through `mesg` on every iteration. It also uses a plain `unsigned` loop counter instead of `FIT_UINT16`, which avoids repeated 16-bit truncation. Without benchmarking, I'd expect only a small speedup.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *fields = mesg->fields;
+    const unsigned n = (unsigned)mesg->numFields;
+
+    for (unsigned i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

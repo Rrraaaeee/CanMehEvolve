@@ -1,0 +1,9 @@
+This function is only a field lookup plus a validity check, so there is little to gain inside it. The rewrite folds the null check into one expression that returns the same values. Any speedup would come only from slightly simpler branching; I haven't measured it.
+
+```cpp
+    FIT_BOOL IsCourseDownloadEnabledValid() const
+    {
+        const Field* const field = GetField(8);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

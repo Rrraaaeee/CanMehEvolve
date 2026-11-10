@@ -1,0 +1,62 @@
+File: src/fit_profile.cpp
+Function: Profile::GetMesg
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.908777 of the original SDK's decode time; the best found so far is 0.908777.
+
+Rewrite this function to make decoding faster:
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        FIT_SINT16 idx[LUT_SIZE];
+        FIT_UINT32 lutLimit;   // LUT_SIZE if ok, else 0
+        FIT_UINT32 hiMin;
+        FIT_UINT32 hiMax;
+        int hiFirst;
+        Lut()
+        {
+            bool ok = (MESGS < 32767);
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = -1;
+            lutLimit = ok ? LUT_SIZE : 0;
+            hiMin = 0xFFFFFFFFu;
+            hiMax = 0;
+            hiFirst = MESGS;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (ok && n < LUT_SIZE)
+                {
+                    idx[n] = (FIT_SINT16)i;
+                }
+                else
+                {
+                    if (n < hiMin) hiMin = n;
+                    if (n > hiMax) hiMax = n;
+                    hiFirst = i;
+                }
+            }
+        }
+    };
+    static const Lut lut;
+
+    if ((FIT_UINT32)num < lut.lutLimit)
+    {
+        int i = lut.idx[num];
+        return (i >= 0) ? &mesgs[i] : NULL;
+    }
+
+    if ((FIT_UINT32)num < lut.hiMin || (FIT_UINT32)num > lut.hiMax)
+        return NULL;
+
+    for (int i = lut.hiFirst; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

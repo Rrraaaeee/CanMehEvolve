@@ -1,0 +1,13 @@
+This version calls `GetField(126)` directly and returns `FIT_FLOAT32_INVALID` if the field is missing. That skips the generic dispatch on the sub-field index inside `GetFieldFLOAT32Value`.
+
+It should return the same values only if the SDK's `GetFieldFLOAT32Value` is a null check followed by a direct call to the field when given `FIT_SUBFIELD_INDEX_MAIN_FIELD`. I wrote this from memory of the SDK and have not checked it against the actual source, and I have not measured the speedup.
+
+```cpp
+    FIT_FLOAT32 GetEnhancedAvgAltitude(void) const
+    {
+        const Field* field = GetField(126);
+        if (field == FIT_NULL)
+            return FIT_FLOAT32_INVALID;
+        return field->GetFLOAT32Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

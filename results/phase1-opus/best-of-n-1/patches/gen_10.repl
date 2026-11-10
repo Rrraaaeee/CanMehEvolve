@@ -1,0 +1,34 @@
+The original does a linear scan over `mesgs` on every call. This version builds a 65536-entry lookup table once (a function-local static) that maps a message number to its index plus one, with 0 meaning "not found". After that, each lookup is a single array access.
+
+- **Same results:** the table is filled in forward order and only empty slots are written. If a number appears more than once, the first index wins, exactly as in the linear scan.
+- **No mutable state:** the table is derived only from the constant `mesgs` profile array, not from any global mutable state.
+- **Safe initialization:** C++17 guarantees a function-local static is initialized exactly once, even under concurrent calls.
+- **Cost:** the table uses about 128 KB of static memory.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct LookupTable
+    {
+        FIT_UINT16 idx[65536];
+        LookupTable()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0)
+                    idx[n] = (FIT_UINT16)(i + 1);
+            }
+        }
+    };
+    static const LookupTable table;
+
+    FIT_UINT16 v = table.idx[num];
+    if (v != 0)
+        return &mesgs[v - 1];
+
+    return NULL;
+}
+```

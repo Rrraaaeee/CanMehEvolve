@@ -1,0 +1,35 @@
+The original does a linear scan over the whole message table on every call. This version builds a 65536-entry direct lookup table once, on first use, so each later call is a single array access.
+
+- **Same results:** each entry stores the index of the *first* match, so the function returns exactly what the linear scan returned, including `NULL` for unknown numbers.
+- **What the table depends on:** it is built only from the constant `mesgs` table, not from any mutable global state.
+- **Thread safety:** C++11 initializes function-local statics in a thread-safe way, so concurrent first calls are safe.
+- **Memory cost:** the table takes 128 KB.
+- **Unchecked assumption:** I assume `MESGS` is below 65535, so every index fits in 16 bits.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct LookupTable
+    {
+        FIT_UINT16 idx[65536];
+        LookupTable()
+        {
+            for (int n = 0; n < 65536; n++)
+                idx[n] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 k = mesgs[i].num;
+                if (idx[k] == 0xFFFF)
+                    idx[k] = (FIT_UINT16)i;
+            }
+        }
+    };
+
+    static const LookupTable table;
+
+    FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

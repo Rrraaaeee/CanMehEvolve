@@ -1,0 +1,17 @@
+The original loop reads `fields.size()` and indexes into the vector on every iteration. This version iterates with raw pointers over the vector's storage, which removes the repeated size reads and index arithmetic. It still returns the first field whose number matches, or `FIT_NULL` if none does, so behavior is unchanged. I haven't measured the speedup; it is likely small.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

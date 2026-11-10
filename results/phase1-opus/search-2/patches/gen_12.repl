@@ -1,0 +1,14 @@
+The logic is unchanged. The rewrite reads the `profile` and `profileIndex` members once into locals, so the compiler can keep them in registers instead of re-reading them. It also marks the valid-index path as likely with `__builtin_expect`. Any speedup will be small, and I haven't measured it.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const auto* const mesg = profile;
+    if (__builtin_expect(mesg == NULL, 0))
+        return 0;
+    const auto idx = profileIndex;
+    if (__builtin_expect(idx >= mesg->numFields, 0))
+        return 0;
+    return mesg->fields[idx].numComponents;
+}
+```

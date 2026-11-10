@@ -1,0 +1,14 @@
+File: src/fit_field.cpp
+Function: Field::GetNumSubFields
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.92453 of the original SDK's decode time; the best found so far is 0.910445.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return 0;
+    return profile->fields[profileIndex].numSubFields;
+}
+```

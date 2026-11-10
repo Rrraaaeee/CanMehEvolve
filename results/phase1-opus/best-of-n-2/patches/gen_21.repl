@@ -1,0 +1,17 @@
+The common call passes `subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD` (0xFFFF). `GetNumSubFields()` returns a `FIT_UINT16`, so 0xFFFF is always `>=` its result, and the original code always takes the `GetOffset()` path for that value. Checking for 0xFFFF first skips a virtual `GetNumSubFields()` call in that hot case. All other indices follow the original logic unchanged.
+
+This assumes `GetNumSubFields()` is a pure getter with no side effects, which is how it is used here.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == (FIT_UINT16)0xFFFF)
+        return GetOffset();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetOffset();
+
+    const auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->offset : 0.0;
+}
+```

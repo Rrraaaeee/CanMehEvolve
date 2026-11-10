@@ -1,0 +1,39 @@
+This version stores message pointers directly in the lookup table instead of indices. A hit is then one load, with no index-to-address multiply and no `0xFFFF` sentinel check. Missing entries are `NULL`.
+
+- **Memory:** the table grows from 2 KB to 8 KB. A decode only looks up a few message numbers, so only a few cache lines are actually touched.
+- **Behavior:** this is unchanged. The table is still filled in reverse, so the first matching message wins, as in a linear search. Numbers of 1024 and above still use the linear fallback.
+
+I haven't measured the speedup, and I expect it to be small.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        const Profile::MESG* ptr[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                ptr[k] = NULL;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < SMALL)
+                    ptr[n] = &mesgs[i];
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < SMALL)
+        return table.ptr[num];
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

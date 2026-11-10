@@ -1,0 +1,11 @@
+The switch is replaced by a single `GetType` call into a local, followed by direct comparisons against the same three base types. The set of types reported as signed is unchanged: `SINT8`, `SINT16` and `SINT32`, with `SINT64` still excluded as in the original. The compiler can turn the comparisons into a few branchless instructions. Any speedup will be small, and I have not measured it.
+
+```cpp
+FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+{
+    const FIT_UINT8 type = static_cast<FIT_UINT8>(GetType(subFieldIndex));
+    return ((type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT8)) |
+            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT16)) |
+            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT32))) ? FIT_TRUE : FIT_FALSE;
+}
+```

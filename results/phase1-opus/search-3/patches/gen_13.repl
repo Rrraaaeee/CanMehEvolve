@@ -1,0 +1,14 @@
+The original reads the `profile` and `profileIndex` members more than once. This version loads each into a local once, and adds branch-likelihood hints that favour the valid-profile path. Behavior is unchanged: the same invalid-number return for a null profile or out-of-range index, and the same field lookup otherwise. Any speedup is likely to be small.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    if (__builtin_expect(p == NULL, 0))
+        return FIT_FIELD_NUM_INVALID;
+    const auto idx = profileIndex;
+    if (__builtin_expect(idx >= p->numFields, 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

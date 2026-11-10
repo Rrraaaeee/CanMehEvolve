@@ -1,0 +1,37 @@
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -11,6 +11,8 @@
+ 
+ 
+ #include "fit_profile.hpp"
++#include <memory>
++#include <algorithm>
+ 
+ namespace fit
+ {
+@@ -3057,13 +3059,19 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
+-    for (int i = 0; i < MESGS; i++)
++    static const std::unique_ptr<FIT_UINT16[]> table = []()
+     {
+-        if (mesgs[i].num == num)
+-            return &mesgs[i];
+-    }
+-
+-    return NULL;
++        std::unique_ptr<FIT_UINT16[]> t(new FIT_UINT16[65536]);
++        std::fill(t.get(), t.get() + 65536, (FIT_UINT16)0xFFFF);
++        for (int i = (int)MESGS - 1; i >= 0; i--)
++            t[mesgs[i].num] = (FIT_UINT16)i;
++        return t;
++    }();
++
++    const FIT_UINT16 idx = table[num];
++    if (idx == 0xFFFF)
++        return NULL;
++    return &mesgs[idx];
+ }
+ 
+ const Profile::MESG* Profile::GetMesg(const std::string& name)

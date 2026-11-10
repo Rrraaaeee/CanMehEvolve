@@ -1,0 +1,29 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -72,6 +72,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == 0xFFFF)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3084,9 +3084,12 @@
+     if (mesg == NULL)
+         return FIT_UINT16_INVALID;
+ 
+-    for (FIT_UINT16 i = 0; i < mesg->numFields; i++)
++    const FIELD *fields = mesg->fields;
++    const FIT_UINT16 n = mesg->numFields;
++
++    for (FIT_UINT16 i = 0; i < n; i++)
+     {
+-        if (mesg->fields[i].num == fieldNum)
++        if (fields[i].num == fieldNum)
+             return i;
+     }
+ 

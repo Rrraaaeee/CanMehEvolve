@@ -1,0 +1,45 @@
+null run: ratio 0.99956, p 0.679688, baseline 358.373 ms
+5514 of 5514 regions are drawable
+profile: perf took 19956 samples, 6879 inside a region, 1848 in the tree outside every region
+gen 1: ratio 0.997205 p 0.00195312
+gen 2: ratio 0.997367 p 0.00390625
+gen 3: ratio 0.989531 p 0.00195312
+gen 4: ratio 0.99399 p 0.00195312
+gen 5: ratio 0.998063 p 0.00195312
+gen 6: ratio 0.994522 p 0.00195312
+gen 7: ratio 0.92382 p 0.00195312 CONFIRMED improved
+gen 8: ratio 0.92388 p 0.00195312 CONFIRMED improved
+gen 9: ratio 0.925842 p 0.00195312 CONFIRMED
+gen 10: ratio 0.927154 p 0.00195312 CONFIRMED
+gen 11: ratio 0.981648 p 0.00195312
+gen 12: ratio 0.923891 p 0.00195312 CONFIRMED
+gen 13: ratio 0.920641 p 0.00195312 CONFIRMED improved
+gen 14: ratio 0.924103 p 0.00195312 CONFIRMED
+gen 15: ratio 0.924352 p 0.00195312 CONFIRMED
+gen 16: ratio 0.923358 p 0.00195312 CONFIRMED improved
+gen 17: ratio 0.923232 p 0.00195312 CONFIRMED improved
+gen 18: ratio 0.923447 p 0.00195312 CONFIRMED
+gen 19: ratio 0.920117 p 0.00195312 CONFIRMED improved
+gen 20: ratio 0.919984 p 0.00195312 CONFIRMED improved
+gen 21: ratio 0.921529 p 0.00195312 CONFIRMED
+gen 22: ratio 0.887675 p 0.00195312 CONFIRMED improved
+gen 23: ratio 0.921749 p 0.00195312 CONFIRMED
+gen 24: ratio 0.889266 p 0.00195312 CONFIRMED
+gen 25: ratio 0.91646 p 0.00195312 CONFIRMED improved
+gen 26: ratio 0.887805 p 0.00195312 CONFIRMED improved
+gen 27: ratio 0.917195 p 0.00195312 CONFIRMED
+gen 28: ratio 0.882778 p 0.00195312 CONFIRMED improved
+gen 29: ratio 0.892242 p 0.00195312 CONFIRMED
+gen 30: ratio 0.8817 p 0.00195312 CONFIRMED improved
+gen 31: ratio 0.889636 p 0.00195312 CONFIRMED
+gen 32: ratio 0.879334 p 0.00195312 CONFIRMED improved
+gen 33: ratio 0.870246 p 0.00195312 CONFIRMED improved
+gen 34: ratio 0.879704 p 0.00195312 CONFIRMED
+gen 35: ratio 0.885626 p 0.00195312 CONFIRMED
+gen 36: ratio 0.879799 p 0.00195312 CONFIRMED
+gen 37: ratio 0.86632 p 0.00195312 CONFIRMED improved
+gen 38: ratio 0.884815 p 0.00195312 CONFIRMED
+gen 39: ratio 0.871818 p 0.00195312 CONFIRMED improved
+gen 40: ratio 0.882136 p 0.00195312 CONFIRMED
+best confirmed speedup 1.15431 after 40 calls and 59489 tokens
+exit status: 0

@@ -1,0 +1,17 @@
+The original evaluates `fields.size()` and `fields[i]` on every pass of the loop. This version reads the `begin` and `end` pointers once and walks the vector with a plain pointer, which gives a tighter loop. It still checks the fields in the same order and returns the first match, so its results are unchanged. I haven't timed it against the corpus, so I can't say how much it saves.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

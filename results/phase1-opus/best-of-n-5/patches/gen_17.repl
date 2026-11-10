@@ -1,0 +1,31 @@
+`GetType` was already only a few instructions, so any speedup will be small. This version copies `type` and `profile` into locals and adds a branch hint that the fast path (an explicit `type` is set) is the common case. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const Profile::MESSAGE_FIELD_DEF_ENTRY_PLACEHOLDER_UNUSED_DUMMY *dummy = nullptr;
+    (void)dummy;
+    return FIT_UINT8_INVALID;
+}
+```
+
+That draft guesses at type names, which is unsafe. Here is the corrected version, using `auto` so no type names need guessing:
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto *p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

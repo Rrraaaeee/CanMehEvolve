@@ -1,0 +1,59 @@
+The main cost here is probably `Profile::GetMesg`, which scans the whole message table linearly every time a `Field` is constructed. The rewrite replaces that scan with a direct lookup for message numbers below 1024.
+
+- **How the lookup works:** a function-local `static const` table maps each message number below 1024 to its index in `Profile::mesgs`. The table is built once, in a thread-safe way, from the constant profile data only, so it does not depend on any mutable global state.
+- **Same result as before:** when a message number appears more than once, the table keeps the first match, just as the linear search would. Numbers of 1024 or more, and numbers with no entry, still go through `Profile::GetMesg`.
+- **Field search:** the field-number loop is unchanged apart from using a pointer walk.
+- **Assumption:** this relies on `Profile::mesgs` and `Profile::MESGS` being publicly accessible, as they are in the standard FIT SDK's `fit_profile.hpp`.
+
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(FIT_NULL)
+    , profileIndex(FIT_UINT16_INVALID)
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+    struct MesgTable
+    {
+        FIT_UINT16 idx[1024];
+        MesgTable()
+        {
+            for (int k = 0; k < 1024; k++)
+                idx[k] = FIT_UINT16_INVALID;
+            for (int m = (int)Profile::MESGS - 1; m >= 0; m--)
+            {
+                const FIT_UINT16 num = Profile::mesgs[m].num;
+                if (num < 1024)
+                    idx[num] = (FIT_UINT16)m;
+            }
+        }
+    };
+    static const MesgTable table;
+
+    const Profile::MESG* mesg;
+    if (mesgNum < 1024)
+    {
+        const FIT_UINT16 m = table.idx[mesgNum];
+        mesg = (m != FIT_UINT16_INVALID) ? &Profile::mesgs[m] : Profile::GetMesg(mesgNum);
+    }
+    else
+    {
+        mesg = Profile::GetMesg(mesgNum);
+    }
+    profile = mesg;
+
+    if (mesg != FIT_NULL)
+    {
+        const FIT_UINT16 n = mesg->numFields;
+        const Profile::FIELD* f = mesg->fields;
+        for (FIT_UINT16 i = 0; i < n; i++, f++)
+        {
+            if (f->num == fieldNum)
+            {
+                profileIndex = i;
+                break;
+            }
+        }
+    }
+}
+```

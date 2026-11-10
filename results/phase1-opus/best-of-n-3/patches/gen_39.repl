@@ -1,0 +1,12 @@
+The member copies are already as cheap as they can be. Nearly all the work here happens in `FieldBase`'s copy constructor, which this function cannot change. So the rewrite keeps the same initializer-list form, which the compiler turns into direct member copies, and expect no measurable speedup. Behavior is identical.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

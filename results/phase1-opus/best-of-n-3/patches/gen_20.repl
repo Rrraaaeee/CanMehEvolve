@@ -1,0 +1,16 @@
+The loop now walks raw pointers over the vector's storage instead of calling `size()` and `operator[]` on every iteration. It checks the same fields in the same order and returns the same pointer, so behavior is unchanged. Any speedup is likely small, because the per-field `GetNum()` call is still there.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* p = fields.data();
+    Field* const end = p + fields.size();
+    for (; p != end; ++p)
+    {
+        if (p->GetNum() == fieldNum)
+            return p;
+    }
+
+    return FIT_NULL;
+}
+```

@@ -1,0 +1,16 @@
+The original reads `type` and `profile` from `this` more than once. This version loads each into a local once. That lets the compiler keep them in registers and avoids re-reading through `this` when it can't rule out aliasing. A branch hint marks the common case: the field's own `type` is already set. Return values and checks are unchanged. Any speedup is likely small, since the function was already short.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto* const p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

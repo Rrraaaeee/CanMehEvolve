@@ -1,0 +1,27 @@
+`Profile::GetFieldIndex` calls `Profile::GetMesg` again internally, so the original constructor searches the message table twice. This version looks the message up once and then scans only that message's fields.
+
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(Profile::GetMesg(mesgNum))
+    , profileIndex([this, fieldNum]() -> FIT_UINT16 {
+        const Profile::MESG* m = this->profile;
+        if (m == FIT_NULL)
+            return FIT_UINT16_INVALID;
+        const FIT_UINT16 n = m->numFields;
+        for (FIT_UINT16 i = 0; i < n; i++)
+        {
+            if (m->fields[i].num == fieldNum)
+                return i;
+        }
+        return FIT_UINT16_INVALID;
+    }())
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+}
+```
+
+Assumptions to check before merging:
+- **Member order:** the field search uses the `profile` member, so `profile` must be declared before `profileIndex` in the class. The original initializer list follows that order, so it most likely matches.
+- **SDK internals:** I wrote this from memory of the SDK, not from the files here. It assumes `GetFieldIndex` returns the first field whose `num` matches, or `FIT_UINT16_INVALID` when the message or field is missing. It also assumes `Profile::MESG` exposes `numFields` and `fields[i].num`. If either differs, the replacement must be adjusted to match.

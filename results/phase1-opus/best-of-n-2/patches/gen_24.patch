@@ -1,0 +1,121 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -1007,73 +1007,70 @@
+ 
+ FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+ {
+-    FIT_UINT8 bytesLeft = size;
+-    FIT_UINT8 typeSize = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
+-    FIT_BYTE *byteData = (FIT_BYTE *) data;
++    const FIT_UINT8 type = GetType();
++    const FIT_UINT8 typeIdx = type & FIT_BASE_TYPE_NUM_MASK;
++    const FIT_UINT8 typeSize = baseTypeSizes[typeIdx];
++    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+ 
+     values.clear();
+ 
+-    switch (GetType())
++    if (type == FIT_BASE_TYPE_STRING)
+     {
+-        case FIT_BASE_TYPE_STRING:
+-        {
+-            FIT_BOOL hasData = FIT_FALSE;
+-            FIT_UINT8 stringPos = 0;
+-            FIT_UINT8 index = 0;
++        FIT_UINT8 index = 0;
++        while (index < size && byteData[index] == 0)
++            index++;
++
++        if (index >= size)
++            return FIT_TRUE;
+ 
+-            // Check if the string is empty
+-            while (index < bytesLeft)
++        stringIndexes.push_back(0);
++        values.assign(byteData, byteData + size);
++
++        for (int i = 0; i < (int)size; i++)
++        {
++            if (byteData[i] == 0)
+             {
+-                if (byteData[index] != 0)
+-                {
+-                    hasData = FIT_TRUE;
+-                    break;
+-                }
+-                index++;
++                int stringPos = (FIT_UINT8)(i + 1);
++                if (stringPos + 1 < (int)size)
++                    stringIndexes.push_back((FIT_UINT8)stringPos);
+             }
++        }
+ 
+-            if (!hasData)
+-                break;
++        if (values.back() != 0)
++            values.push_back(0);
+ 
+-            stringIndexes.push_back(stringPos);
++        return FIT_TRUE;
++    }
+ 
+-            while (bytesLeft-- > 0)
+-            {
+-                FIT_BYTE byte = *byteData++;
+-                values.push_back(byte);
+-                stringPos++;
+-
+-                if ( ( byte == 0 ) && ( stringPos + 1 < size ) )
+-                {
+-                    stringIndexes.push_back(stringPos);
+-                }
+-            }
++    const FIT_BYTE *invalid = (const FIT_BYTE *) baseTypeInvalids[typeIdx];
+ 
+-            // Null terminate if not already null terminated
+-            if ( values.back() != 0 )
++    if (typeSize == 1)
++    {
++        const FIT_BYTE inv = invalid[0];
++        for (int i = 0; i < (int)size; i++)
++        {
++            if (byteData[i] != inv)
+             {
+-                values.push_back(0);
++                values.assign(byteData, byteData + size);
++                break;
+             }
+         }
+-            break;
++    }
++    else
++    {
++        int bytes = size;
++        const FIT_BYTE *point = byteData;
+ 
+-        default:
++        while (bytes > 0)
+         {
+-            int bytes = bytesLeft;
+-            FIT_BYTE *point = byteData;
+-
+-            while (bytes > 0)
++            if (memcmp(point, invalid, typeSize) != 0)
+             {
+-                if (memcmp(point, baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK], typeSize) != 0)
+-                {
+-                    values.insert(values.end(), byteData, byteData + bytesLeft);
+-                    break;
+-                }
+-                point += typeSize;
+-                bytes -= typeSize;
++                values.assign(byteData, byteData + size);
++                break;
+             }
++            point += typeSize;
++            bytes -= typeSize;
+         }
+-            break;
+     }
+ 
+     return FIT_TRUE;

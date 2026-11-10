@@ -1,0 +1,37 @@
+I replaced the linear scan with a lookup table indexed by message number. The table is built once, on the first call, from the `mesgs` data and then reused for every lookup.
+
+Why behavior is unchanged:
+- **First match wins.** The table keeps only the first `mesgs` entry for each `num`, matching the original loop if there are duplicates.
+- **Unknown numbers return `NULL`.** Any `num` with no entry maps to a sentinel and returns `NULL`, as before.
+- **Initialization is thread-safe.** The table is a function-local static, so C++ guarantees it is built safely and only once.
+
+Cost and speed:
+- **Memory:** the table uses 128 KB (65,536 two-byte slots).
+- **Speed:** each lookup becomes a single memory read instead of a scan over all messages.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Table
+    {
+        FIT_UINT16 idx[65536];
+        Table()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Table table;
+
+    FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

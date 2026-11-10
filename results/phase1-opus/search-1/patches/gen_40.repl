@@ -1,0 +1,281 @@
+The main change replaces the per-element `memcmp` call with type-specific integer comparisons for 2-, 4- and 8-byte base types. These are the common multi-byte cases. Unaligned loads go through `memcpy` into a local integer, which the compiler turns into a plain load.
+
+Behavior is unchanged:
+- **Comparison:** equal integers mean equal bytes, so each element is judged exactly as `memcmp` judged it.
+- **Stepping and overread:** the loop steps and stops the same way. When `size` is not a multiple of the type size, it reads past the end of the buffer by the same amount as the original.
+- **Other sizes:** any other type size, including the degenerate 0, still goes through the original `memcmp` loop.
+- **Strings:** the string path is unchanged except for minor tightening.
+
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        int index = 0;
+        const int n = (int)size;
+
+        while (index < n && byteData[index] == 0)
+            index++;
+
+        if (index >= n)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        for (int i = index; i < n; i++)
+        {
+            if (byteData[i] == 0)
+            {
+                FIT_UINT8 stringPos = (FIT_UINT8)(i + 1);
+                if (stringPos + 1 < size)
+                    stringIndexes.push_back(stringPos);
+            }
+        }
+        // leading zeros (i < index) also need processing
+        if (index > 0)
+        {
+            // Re-run for leading zero positions in order: must preserve ordering.
+            // Undo and redo fully to keep exact order.
+            stringIndexes.resize(stringIndexes.size()); // no-op placeholder
+        }
+
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *inv = (const FIT_BYTE *) baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
+    const int n = (int)size;
+
+    switch (typeSize)
+    {
+    case 1:
+    {
+        const FIT_BYTE invByte = inv[0];
+        for (int i = 0; i < n; i++)
+        {
+            if (byteData[i] != invByte)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 2:
+    {
+        FIT_UINT16 iv;
+        memcpy(&iv, inv, 2);
+        for (int off = 0; off < n; off += 2)
+        {
+            FIT_UINT16 v;
+            memcpy(&v, byteData + off, 2);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 4:
+    {
+        FIT_UINT32 iv;
+        memcpy(&iv, inv, 4);
+        for (int off = 0; off < n; off += 4)
+        {
+            FIT_UINT32 v;
+            memcpy(&v, byteData + off, 4);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 8:
+    {
+        FIT_UINT64 iv;
+        memcpy(&iv, inv, 8);
+        for (int off = 0; off < n; off += 8)
+        {
+            FIT_UINT64 v;
+            memcpy(&v, byteData + off, 8);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    default:
+        break;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, inv, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```
+
+In the string path, starting the scan at `index` instead of 0 skips nothing that matters: if `index > 0`, the string is non-empty only when a non-zero byte exists, so every position before `index` is a zero byte. Pushing those positions would change `stringIndexes`, so starting the scan at `index` is not equivalent. The block below restores the exact original scan.
+
+Corrected final version:
+
+```cpp
+FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+{
+    const FIT_UINT8 type = GetType();
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+
+    values.clear();
+
+    if (type == FIT_BASE_TYPE_STRING)
+    {
+        int index = 0;
+        const int n = (int)size;
+
+        while (index < n && byteData[index] == 0)
+            index++;
+
+        if (index >= n)
+            return FIT_TRUE;
+
+        stringIndexes.push_back(0);
+
+        values.assign(byteData, byteData + size);
+
+        for (int i = 0; i < n; i++)
+        {
+            if (byteData[i] == 0)
+            {
+                FIT_UINT8 stringPos = (FIT_UINT8)(i + 1);
+                if (stringPos + 1 < size)
+                    stringIndexes.push_back(stringPos);
+            }
+        }
+
+        if (values.back() != 0)
+        {
+            values.push_back(0);
+        }
+        return FIT_TRUE;
+    }
+
+    const FIT_BYTE *inv = (const FIT_BYTE *) baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
+    const int n = (int)size;
+
+    switch (typeSize)
+    {
+    case 1:
+    {
+        const FIT_BYTE invByte = inv[0];
+        for (int i = 0; i < n; i++)
+        {
+            if (byteData[i] != invByte)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 2:
+    {
+        FIT_UINT16 iv;
+        memcpy(&iv, inv, 2);
+        for (int off = 0; off < n; off += 2)
+        {
+            FIT_UINT16 v;
+            memcpy(&v, byteData + off, 2);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 4:
+    {
+        FIT_UINT32 iv;
+        memcpy(&iv, inv, 4);
+        for (int off = 0; off < n; off += 4)
+        {
+            FIT_UINT32 v;
+            memcpy(&v, byteData + off, 4);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    case 8:
+    {
+        FIT_UINT64 iv;
+        memcpy(&iv, inv, 8);
+        for (int off = 0; off < n; off += 8)
+        {
+            FIT_UINT64 v;
+            memcpy(&v, byteData + off, 8);
+            if (v != iv)
+            {
+                values.assign(byteData, byteData + size);
+                break;
+            }
+        }
+        return FIT_TRUE;
+    }
+    default:
+        break;
+    }
+
+    int bytes = size;
+    const FIT_BYTE *point = byteData;
+
+    while (bytes > 0)
+    {
+        if (memcmp(point, inv, typeSize) != 0)
+        {
+            values.assign(byteData, byteData + size);
+            break;
+        }
+        point += typeSize;
+        bytes -= typeSize;
+    }
+
+    return FIT_TRUE;
+}
+```
+
+```includes
+#include <cstring>
+#include <cstdint>
+```

@@ -1,0 +1,9 @@
+The function is already minimal, so there is little to gain. This version is equivalent: `profileIndex` is an unsigned 16-bit value, so `!= 0xFFFF` and `< 0xFFFF` accept exactly the same values. The comparison is written against a typed local constant so the compiler can emit a single 16-bit compare with no integer promotion. Any speedup is likely negligible.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    const FIT_UINT16 invalid = FIT_UINT16_INVALID;
+    return static_cast<FIT_BOOL>(profileIndex < invalid);
+}
+```

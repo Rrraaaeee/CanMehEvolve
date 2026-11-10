@@ -1,0 +1,17 @@
+The original loop called `fields.size()` and `fields[i]` on every iteration. This version reads the vector's begin and end pointers once and walks them directly, so each step is just a pointer increment and a compare. Fields are still checked in the same order, so it returns the same `Field*` (or `FIT_NULL`) as before.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* it = fields.data();
+    Field* const end = it + fields.size();
+
+    for (; it != end; ++it)
+    {
+        if (it->GetNum() == fieldNum)
+            return it;
+    }
+
+    return FIT_NULL;
+}
+```

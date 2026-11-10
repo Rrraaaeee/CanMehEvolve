@@ -1,0 +1,12 @@
+The function already does very little work. This rewrite copies `profile` into a local variable once, so the pointer is not reloaded across the bounds check and the array access. It also uses `__builtin_expect` to mark the valid path as the likely one. Behavior is unchanged: a null profile or an out-of-range index still returns `FIT_FIELD_NUM_INVALID`. Any speedup will be small, since there was little to remove.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    const FIT_UINT16 idx = profileIndex;
+    if (__builtin_expect((p != NULL) && (idx < p->numFields), 1))
+        return p->fields[idx].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

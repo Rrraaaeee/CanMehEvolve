@@ -1,0 +1,51 @@
+The main change is in the path for message numbers of 1024 and above. Before, every lookup there scanned the whole `mesgs` array. Now, while the static index is built once, it also records whether any profile message has a number that large. If none does, which is likely the case for the standard profile, unknown high numbers return `NULL` immediately with no scan.
+
+Behavior is unchanged:
+- For numbers below 1024 the table still stores the first matching index, so first-match semantics hold.
+- For numbers of 1024 and above, the linear scan still runs whenever the profile does contain such entries.
+
+The hot path for numbers below 1024 stays a single 2 KB table lookup, with a branch hint marking the miss case as unlikely. I have not measured the speed-up.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[SMALL];
+        bool hasLarge;
+        Index()
+        {
+            hasLarge = false;
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < SMALL)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+                else
+                    hasLarge = true;
+            }
+        }
+    };
+    static const Index index;
+
+    if (__builtin_expect(num < SMALL, 1))
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (__builtin_expect(i == 0xFFFF, 0))
+            return NULL;
+        return &mesgs[i];
+    }
+
+    if (!index.hasLarge)
+        return NULL;
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

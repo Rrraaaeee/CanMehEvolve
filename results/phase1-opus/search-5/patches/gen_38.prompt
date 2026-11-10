@@ -1,0 +1,47 @@
+File: src/fit_profile.cpp
+Function: Profile::GetFieldIndex
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.873172 of the original SDK's decode time; the best found so far is 0.873172.
+
+Rewrite this function to make decoding faster:
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    struct Tables
+    {
+        FIT_UINT16 mesgIdx[65536];
+        std::vector<std::array<FIT_UINT16, 256>> fieldIdx;
+
+        Tables()
+        {
+            const size_t numMesgs = sizeof(Profile::mesgs) / sizeof(Profile::mesgs[0]);
+            for (size_t i = 0; i < 65536; i++)
+                mesgIdx[i] = FIT_UINT16_INVALID;
+            fieldIdx.resize(numMesgs);
+            for (size_t m = 0; m < numMesgs; m++)
+            {
+                const MESG &mesg = Profile::mesgs[m];
+                if (mesgIdx[mesg.num] == FIT_UINT16_INVALID)
+                    mesgIdx[mesg.num] = (FIT_UINT16)m;
+
+                std::array<FIT_UINT16, 256> &tbl = fieldIdx[m];
+                tbl.fill(FIT_UINT16_INVALID);
+                for (FIT_UINT16 i = 0; i < mesg.numFields; i++)
+                {
+                    const FIT_UINT8 fnum = mesg.fields[i].num;
+                    if (tbl[fnum] == FIT_UINT16_INVALID)
+                        tbl[fnum] = i;
+                }
+            }
+        }
+    };
+
+    static const Tables *tables = new Tables();
+
+    const FIT_UINT16 m = tables->mesgIdx[mesgNum];
+    if (m == FIT_UINT16_INVALID)
+        return FIT_UINT16_INVALID;
+
+    return tables->fieldIdx[m][fieldNum];
+}
+```

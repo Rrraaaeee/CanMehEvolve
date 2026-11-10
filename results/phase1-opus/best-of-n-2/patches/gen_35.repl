@@ -1,0 +1,12 @@
+The copy constructor is already about as cheap as it can be. Almost all of its cost is in `FieldBase(field)`, which copies the base class's data, and this function cannot change that. Since the rules require some change, I switched the member initializers to brace syntax. Each member is still copied from the same-typed member of `field`, so there is no narrowing and behavior is identical. Expect no measurable speedup from this.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field)
+    , profile{field.profile}
+    , profileIndex{field.profileIndex}
+    , type{field.type}
+    , isFieldExpanded{field.isFieldExpanded}
+{
+}
+```

@@ -1,0 +1,12 @@
+The only change is a branch hint. `index` is widened explicitly to `size_t` before the bounds check, and `__builtin_expect` marks the in-range case as the likely one, which is the normal case during decoding. The pointer is taken from `fields.data()`, giving the same element address as `&fields[index]`. Behavior is unchanged: an in-range index returns a pointer to that field, and anything else returns `FIT_NULL`. Any speedup will be small, since the function was already a single compare and add.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const size_t i = static_cast<size_t>(index);
+    if (__builtin_expect(i < fields.size(), 1))
+        return fields.data() + i;
+
+    return FIT_NULL;
+}
+```

@@ -1,0 +1,9 @@
+This function is already minimal: one field lookup followed by a validity check. The rewrite keeps the same logic and the same calls, and returns through a single conditional expression. Any speed difference will be marginal.
+
+```cpp
+    FIT_BOOL IsAvgCombinedPedalSmoothnessValid() const
+    {
+        const Field* field = GetField(63);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

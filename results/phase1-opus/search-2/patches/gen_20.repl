@@ -1,0 +1,12 @@
+The original reads `profile` from the object several times. This version loads it into a local once. The compiler can then drop the repeated member loads. The behavior is identical, including returning `FIT_FIELD_NUM_INVALID` when there is no profile or the index is out of range.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const auto* const p = profile;
+    const auto idx = profileIndex;
+    if ((p == NULL) || (idx >= p->numFields))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

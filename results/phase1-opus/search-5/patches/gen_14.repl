@@ -1,0 +1,15 @@
+The common call passes `FIT_SUBFIELD_INDEX_MAIN_FIELD` (0xFFFF). Because `GetNumSubFields()` returns a `FIT_UINT16`, that index is always `>=` the subfield count. So I return `GetOffset()` straight away for it and skip the virtual `GetNumSubFields()` call. This assumes `GetNumSubFields()` has no side effects. For every other index the logic is unchanged.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD)
+        return GetOffset();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetOffset();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->offset : 0.0;
+}
+```

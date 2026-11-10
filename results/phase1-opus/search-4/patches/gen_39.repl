@@ -1,0 +1,9 @@
+Copy-construct both members directly in the initializer list. The original default-constructed each vector and then copy-assigned into it. Behavior is identical: same values copied, and any other members are default-initialized exactly as before.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

@@ -1,0 +1,20 @@
+--- a/src/fit_exd_data_concept_configuration_mesg.hpp
++++ b/src/fit_exd_data_concept_configuration_mesg.hpp
+@@ -238,13 +238,12 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_BOOL IsScalingValid() const
+     {
+-        const Field* field = GetField(6);
+-        if( FIT_NULL == field )
++        const Field* const field = GetField(6);
++        if (__builtin_expect(field != FIT_NULL, 1))
+         {
+-            return FIT_FALSE;
++            return field->IsValueValid();
+         }
+-
+-        return field->IsValueValid();
++        return FIT_FALSE;
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

@@ -1,0 +1,10 @@
+The previous version default-constructed `stringIndexes` and then assigned to it when the source was non-empty. This version copy-constructs both members directly in the initializer list, which drops the branch and the separate assignment.
+
+Behavior is the same in every case. Copy-constructing an empty vector allocates nothing, which matches the old empty path. A non-empty `stringIndexes` gets the same contents either way.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes(field.stringIndexes)
+{
+}
+```

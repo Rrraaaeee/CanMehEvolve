@@ -1,0 +1,5 @@
+The destructor body is already empty, so there is no work in it to remove. The only safe change is to define it out-of-line as `= default`. Members are still destroyed exactly as before, so behavior is identical. Any speedup is likely negligible: the compiler may treat it as trivially inlinable, but I don't expect a measurable change in decode time.
+
+```cpp
+FieldBase::~FieldBase() = default;
+```

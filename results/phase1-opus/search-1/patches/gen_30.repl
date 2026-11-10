@@ -1,0 +1,12 @@
+The function is already minimal, so this is only a small cleanup with the same behavior. It copies `profile` and `profileIndex` into locals, so each member is loaded once, and marks the invalid path as the unlikely one.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    const FIT_UINT16 idx = profileIndex;
+    if (__builtin_expect((p == NULL) || (idx >= p->numFields), 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[idx].num;
+}
+```

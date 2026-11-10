@@ -1,0 +1,32 @@
+The original does a linear scan over the whole message table on every call. This version builds a one-time direct-index table keyed by message number.
+
+- **Lookup cost:** each call becomes a single O(1) array read.
+- **Same result as before:** the table is filled from the highest index down, so when two entries share a number the lowest index wins. That is the same entry the linear scan returns first.
+- **Behavior otherwise unchanged:** numbers with no entry still return `NULL`.
+- **Initialization:** the table depends only on the constant `mesgs` array. It is built once through a function-local static, which C++ initializes thread-safely.
+- **Assumption:** the scheme relies on `MESGS` being well below `0xFFFF`, since that value marks "no entry".
+- **Memory:** the table uses 128 KB.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::unique_ptr<FIT_UINT16[]> table = []()
+    {
+        std::unique_ptr<FIT_UINT16[]> t(new FIT_UINT16[65536]);
+        std::fill(t.get(), t.get() + 65536, (FIT_UINT16)0xFFFF);
+        for (int i = (int)MESGS - 1; i >= 0; i--)
+            t[mesgs[i].num] = (FIT_UINT16)i;
+        return t;
+    }();
+
+    const FIT_UINT16 idx = table[num];
+    if (idx == 0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <memory>
+#include <algorithm>
+```

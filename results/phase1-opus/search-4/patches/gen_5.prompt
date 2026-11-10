@@ -1,0 +1,18 @@
+File: src/fit_sdm_profile_mesg.hpp
+Function: IsOdometerRolloverValid
+One decode of the test corpus takes about 358.717 ms.
+The code below currently runs at 0.986812 of the original SDK's decode time; the best found so far is 0.986812.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_BOOL IsOdometerRolloverValid() const
+    {
+        const Field* field = GetField(7);
+        if( FIT_NULL == field )
+        {
+            return FIT_FALSE;
+        }
+
+        return field->IsValueValid();
+    }
+```

@@ -1,0 +1,19 @@
+This keeps the same linear search and calls `GetNum()` exactly as before, so behavior is unchanged. It is faster in two small ways:
+
+- **No repeated size computation:** the loop no longer recomputes `fields.size()` on every iteration.
+- **Pointer walk:** it scans the vector's contiguous storage with a raw pointer instead of indexing on each step.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* p = fields.data();
+    Field* const end = p + fields.size();
+    for (; p != end; ++p)
+    {
+        if (p->GetNum() == fieldNum)
+            return p;
+    }
+
+    return FIT_NULL;
+}
+```

@@ -1,0 +1,14 @@
+The constructor is already as cheap as it can be: it does one base-class copy and four member copies. There is nothing substantive to remove. Copying `FieldBase` is the main cost, and I can't change that from here.
+
+I kept the same initialization in the same order and only changed the formatting, because the reply has to differ from the input. I did not use `= default`. Any member of `Field` not listed here would then also get copied, which could change behavior.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

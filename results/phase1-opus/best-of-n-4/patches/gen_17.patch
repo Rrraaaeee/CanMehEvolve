@@ -1,0 +1,11 @@
+--- a/src/fit_field_definition.cpp
++++ b/src/fit_field_definition.cpp
+@@ -54,7 +54,7 @@
+ 
+ FIT_UINT8 FieldDefinition::GetType() const
+ {
+-    return type;
++    return this->type;
+ }
+ 
+ void FieldDefinition::SetNum(const FIT_UINT8 newNum)

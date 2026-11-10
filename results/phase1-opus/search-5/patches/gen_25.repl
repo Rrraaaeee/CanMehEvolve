@@ -1,0 +1,42 @@
+The original version used a 128 KB lookup table covering every possible message number, which pollutes the cache. This version uses a 1024-entry table (2 KB) for low message numbers, which are the ones that occur in practice. Larger numbers fall back to a linear scan.
+
+Behavior is unchanged. In both paths, the lowest-index entry with a matching `num` wins:
+- **Table path:** filling the table in reverse leaves the lowest index in each slot.
+- **Scan path:** scanning forward returns the first match, which is the lowest index.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[TABLE_SIZE];
+        Index()
+        {
+            for (int k = 0; k < TABLE_SIZE; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < TABLE_SIZE)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < TABLE_SIZE)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

@@ -1,0 +1,21 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -27,12 +27,12 @@
+ {
+ }
+ 
+-Field::Field(const Field &field)
+-    : FieldBase(field)
+-    , profile(field.profile)
+-    , profileIndex(field.profileIndex)
+-    , type(field.type)
+-    , isFieldExpanded(field.isFieldExpanded)
++Field::Field(const Field &other)
++    : FieldBase(other)
++    , profile(other.profile)
++    , profileIndex(other.profileIndex)
++    , type(other.type)
++    , isFieldExpanded(other.isFieldExpanded)
+ {
+ }
+ 

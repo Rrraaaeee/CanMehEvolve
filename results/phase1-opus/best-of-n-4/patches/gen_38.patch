@@ -1,0 +1,13 @@
+--- a/src/fit_lap_mesg.hpp
++++ b/src/fit_lap_mesg.hpp
+@@ -2238,7 +2238,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_UINT16 GetRepetitionNum(void) const
+     {
+-        return GetFieldUINT16Value(61, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        constexpr FIT_UINT8 kFieldNum = 61;
++        constexpr FIT_UINT8 kArrayIndex = 0;
++        return GetFieldUINT16Value(kFieldNum, kArrayIndex, (FIT_UINT16)FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

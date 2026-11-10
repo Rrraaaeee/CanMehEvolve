@@ -1,0 +1,27 @@
+This replaces the linear scan over the profile table with a lookup table built once, so each call is a single O(1) index lookup.
+
+- **How it works:** a function-local static maps every possible 16-bit message number to its index in `mesgs`. It is built from the constant profile data and does not depend on any global mutable state.
+- **Same results:** the table is filled from the last entry to the first, so duplicate `num` values still resolve to the first match, as before. Unknown numbers still return `NULL`.
+- **Thread safety:** C++11 guarantees that initialization of a function-local static is thread-safe.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static const std::vector<int> table = []()
+    {
+        std::vector<int> t(65536, -1);
+        for (int i = MESGS - 1; i >= 0; i--)
+            t[(FIT_UINT16)mesgs[i].num] = i;
+        return t;
+    }();
+
+    const int idx = table[num];
+    if (idx < 0)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <vector>
+```

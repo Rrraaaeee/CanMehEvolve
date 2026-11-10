@@ -1,0 +1,11 @@
+The function is already minimal, so the gain here is small. This version reads `profile` into a local once. The success path gets a branch hint and the bounds check is written as one comparison. Behavior is unchanged: it returns the same invalid value for a null profile or an out-of-range index, and the same field number otherwise.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p != NULL) && (profileIndex < p->numFields), 1))
+        return p->fields[profileIndex].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

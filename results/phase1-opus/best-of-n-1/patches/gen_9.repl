@@ -1,0 +1,14 @@
+The copy constructor is already about as cheap as it can be. It does a member-wise copy of a pointer, an index, a type tag and a flag, plus the base-class copy. Nothing in this function can be made measurably faster without changing `FieldBase` or the class layout, and those are outside the allowed scope.
+
+The only change is switching the member initializers to brace initialization. This has the same semantics: each member is copied from a value of its own type, so no narrowing can occur. The compiler generates identical, minimal code, so expect no measurable speedup from this rewrite.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field)
+    , profile{field.profile}
+    , profileIndex{field.profileIndex}
+    , type{field.type}
+    , isFieldExpanded{field.isFieldExpanded}
+{
+}
+```

@@ -1,0 +1,11 @@
+File: src/fit_dive_summary_mesg.hpp
+Function: GetSurfaceInterval
+One decode of the test corpus takes about 358.638 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_UINT32 GetSurfaceInterval(void) const
+    {
+        return GetFieldUINT32Value(4, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

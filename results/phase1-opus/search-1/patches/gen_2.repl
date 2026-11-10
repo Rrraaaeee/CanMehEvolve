@@ -1,0 +1,16 @@
+The loop now walks raw pointers from `data()` to `data() + size()`. This drops the per-iteration `size()` reload and the signed-int cast. Each element is still compared with `GetNum() == fieldNum`, and the first match returns true, so results and side effects are unchanged.
+
+```cpp
+FIT_BOOL Mesg::HasField(const int fieldNum) const
+{
+    const Field* p = fields.data();
+    const Field* const end = p + fields.size();
+    for (; p != end; ++p)
+    {
+        if (p->GetNum() == fieldNum)
+            return FIT_TRUE;
+    }
+
+    return FIT_FALSE;
+}
+```

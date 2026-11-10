@@ -1,0 +1,14 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -30,8 +30,10 @@
+     : profile(mesg.profile)
+     , localNum(mesg.localNum)
+     , fields(mesg.fields)
+-    , devFields(mesg.devFields)
++    , devFields()
+ {
++    if (!mesg.devFields.empty())
++        devFields = mesg.devFields;
+ }
+ 
+ Mesg::Mesg(const Profile::MESG_INDEX index)

@@ -1,0 +1,8 @@
+This setter is a one-line forward to `SetFieldSINT32Value`. The real work is the field lookup and creation inside `Mesg`, which I can't reach without changing other code. So the only safe change is a cosmetic one: the arguments now carry explicit types, but the call is the same. It produces identical code, so I don't expect a measurable speedup.
+
+```cpp
+    void SetPositionLong(FIT_SINT32 positionLong)
+    {
+        SetFieldSINT32Value(static_cast<FIT_UINT8>(3), positionLong, static_cast<FIT_UINT8>(0), static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

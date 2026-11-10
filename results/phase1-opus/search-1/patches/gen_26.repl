@@ -1,0 +1,16 @@
+This function is already minimal, so the gain is likely small. The change caches `type` in a local and adds branch-prediction hints (`__builtin_expect`) for the common case, where the field's own type is already set. Behavior is unchanged: the same checks run in the same order and return the same values.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

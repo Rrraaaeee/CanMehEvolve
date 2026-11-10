@@ -1,0 +1,15 @@
+The copy constructor already does the minimum work: it copies the base class and four small members. The real cost is in `FieldBase`'s copy, which this function cannot change.
+
+This version keeps the same behavior and member initialization order. The only change is in the body. That empty-body edit is cosmetic and should not measurably change decode time.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{
+    // Trivially copied members; all work done in the initializer list.
+}
+```

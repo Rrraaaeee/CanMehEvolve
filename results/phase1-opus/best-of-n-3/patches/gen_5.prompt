@@ -1,0 +1,17 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::GetNumValues
+One decode of the test corpus takes about 358.548 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    if (GetType() != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

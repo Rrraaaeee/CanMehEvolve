@@ -1,0 +1,12 @@
+File: src/fit_segment_lap_mesg.hpp
+Function: GetAvgRightPedalSmoothness
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 1 of the original SDK's decode time; the best found so far is 0.936544.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_FLOAT32 GetAvgRightPedalSmoothness(void) const
+    {
+        return GetFieldFLOAT32Value(62, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

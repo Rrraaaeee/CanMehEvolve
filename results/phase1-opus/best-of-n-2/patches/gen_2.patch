@@ -1,0 +1,12 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -75,7 +75,8 @@
+ 
+ FIT_BOOL Field::GetIsAccumulated() const
+ {
+-    return profile->fields[profileIndex].isAccumulated;
++    const auto& fieldDef = profile->fields[profileIndex];
++    return fieldDef.isAccumulated;
+ }
+ 
+ FIT_UINT16 Field::GetIndex(void) const

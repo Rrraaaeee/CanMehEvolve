@@ -1,0 +1,12 @@
+The copy is restructured so each pointer is set once in the member-initializer list, instead of being set to `nullptr` and then reassigned. Behavior is the same. Both owned messages are still deep-copied, which is required because the destructor deletes them. Any speedup is likely to be small, since the cost of the two deep copies dominates.
+
+```cpp
+DeveloperFieldDefinition::DeveloperFieldDefinition(const DeveloperFieldDefinition& other)
+    : num( other.num )
+    , size( other.size )
+    , developerDataIndex( other.developerDataIndex )
+    , mesg( other.mesg ? new FieldDescriptionMesg( *other.mesg ) : nullptr )
+    , developer( other.developer ? new DeveloperDataIdMesg( *other.developer ) : nullptr )
+{
+}
+```

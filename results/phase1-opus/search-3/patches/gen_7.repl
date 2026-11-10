@@ -1,0 +1,21 @@
+The previous attempt failed because it named the profile pointer's type as `Profile::MSG`, which does not exist. This version uses `auto` to avoid naming it.
+
+The change does three things:
+- It copies `type` and the profile pointer into locals, so each is read only once.
+- It marks the common case, where `type` is already set, as likely, so the compiler lays out that path first.
+- It casts `profileIndex` to `unsigned` before the bounds check. The values are non-negative, so the comparison and the returned results are unchanged.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto p = profile;
+    if ((p == NULL) || ((unsigned)profileIndex >= (unsigned)p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

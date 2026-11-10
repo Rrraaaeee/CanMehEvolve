@@ -1,0 +1,13 @@
+The member-wise copy is already close to optimal, so expect at most a tiny gain. The only change is to skip the `devFields` copy when the source has none, which is the common case for most messages. The result is identical: the vector stays empty, just as copying an empty vector would leave it.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields)
+    , devFields()
+{
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

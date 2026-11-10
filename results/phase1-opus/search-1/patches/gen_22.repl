@@ -1,0 +1,57 @@
+The previous version used a 1024-entry `FIT_SINT16` table. This rewrite makes the lookup cheaper in two ways:
+
+- **Smaller table.** When `MESGS < 255`, each entry is a `FIT_UINT8` with `0xFF` meaning "no message". That shrinks the table from 2 KB to 1 KB, so it occupies fewer cache lines.
+- **No wasted scan for large numbers.** For `num >= 1024`, the linear search now runs only if some profile message actually has a number that high. This is precomputed once in a flag. Manufacturer-range numbers usually fall here, and they now return `NULL` immediately instead of scanning every entry.
+
+The table is still filled in reverse order, so when two entries share a number the first one wins, as before. If `MESGS >= 255`, `ok` is false and every lookup uses the original linear scan.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        FIT_UINT8 idx[LUT_SIZE];
+        bool ok;
+        bool hasHigh;
+        Lut() : ok(MESGS < 255), hasHigh(false)
+        {
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = 0xFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < LUT_SIZE)
+                {
+                    if (ok)
+                        idx[n] = (FIT_UINT8)i;
+                }
+                else
+                {
+                    hasHigh = true;
+                }
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        if (num < LUT_SIZE)
+        {
+            unsigned i = lut.idx[num];
+            return (i != 0xFF) ? &mesgs[i] : NULL;
+        }
+        if (!lut.hasHigh)
+            return NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

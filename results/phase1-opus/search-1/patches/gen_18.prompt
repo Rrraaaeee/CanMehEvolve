@@ -1,0 +1,17 @@
+File: src/fit_developer_field.cpp
+Function: DeveloperField::GetType
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.936544 of the original SDK's decode time; the best found so far is 0.936234.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT8 DeveloperField::GetType() const
+{
+    if (mDefinition->IsDefined())
+    {
+        return mDefinition->GetType();
+    }
+
+    return FIT_BASE_TYPE_UINT8;
+}
+```

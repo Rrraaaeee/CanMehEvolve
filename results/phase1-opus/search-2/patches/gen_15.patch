@@ -1,0 +1,100 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -131,9 +131,13 @@
+ 
+ FIT_UINT16 Field::GetNumComponents(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* const mesg = profile;
++    if (__builtin_expect(mesg == NULL, 0))
+         return 0;
+-    return profile->fields[profileIndex].numComponents;
++    const auto idx = profileIndex;
++    if (__builtin_expect(idx >= mesg->numFields, 0))
++        return 0;
++    return mesg->fields[idx].numComponents;
+ }
+ 
+ FIT_UINT16 Field::GetNumSubFields(void) const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -72,6 +72,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == 0xFFFF)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -11,6 +11,7 @@
+ 
+ 
+ #include "fit_profile.hpp"
++#include <type_traits>
+ 
+ namespace fit
+ {
+@@ -3057,12 +3058,39 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
++    enum { SMALL = 1024 };
++    struct Index
++    {
++        IdxT idx[SMALL];
++        Index()
++        {
++            const IdxT none = (IdxT)~(IdxT)0;
++            for (int k = 0; k < SMALL; k++)
++                idx[k] = none;
++            for (int i = MESGS - 1; i >= 0; i--)
++            {
++                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
++                if (n < SMALL)
++                    idx[n] = (IdxT)i;
++            }
++        }
++    };
++    static const Index table;
++
++    if (num < SMALL)
++    {
++        const IdxT i = table.idx[num];
++        if (i == (IdxT)~(IdxT)0)
++            return NULL;
++        return &mesgs[i];
++    }
++
+     for (int i = 0; i < MESGS; i++)
+     {
+-        if (mesgs[i].num == num)
++        if ((FIT_UINT16)mesgs[i].num == num)
+             return &mesgs[i];
+     }
+-
+     return NULL;
+ }
+ 

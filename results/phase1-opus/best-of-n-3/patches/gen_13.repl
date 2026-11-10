@@ -1,0 +1,156 @@
+The main per-byte work happens in `ReadByte`, which I can't change, so these are small savings around it:
+
+- **No exception on a missing developer ID.** A field description that has no matching developer data ID message no longer goes through `at()` and a thrown `std::out_of_range`. A `find()` lookup replaces it. Throwing and catching is costly, and this case can come up often in some files.
+- **Same catch behavior for listener errors.** An `std::out_of_range` thrown by `DeveloperFieldDescription` or the listener is still caught, as before. It is now caught by reference instead of by value.
+- **Fewer copies and allocations for developer data ID messages.** `devIdMesg` is moved into `developers` instead of copied. Its description map is cleared in place instead of being replaced by a newly built empty map.
+
+The loop structure and the `pause`, `bytesRead` and `currentByteIndex` semantics are unchanged.
+
+```cpp
+FIT_BOOL Decode::Resume(void)
+{
+    pause = FIT_FALSE;
+    RETURN decodeReturn = RETURN_CONTINUE;
+
+    do
+    {
+        if ( currentByteIndex == 0 )
+        {
+            file->read(buffer, BufferSize);
+            bytesRead = (FIT_UINT32)file->gcount();
+        }
+
+        for (; currentByteIndex < bytesRead; currentByteIndex++)
+        {
+            if (pause)
+                return FIT_FALSE;
+
+            decodeReturn = ReadByte((FIT_UINT8)buffer[currentByteIndex]);
+
+            switch (decodeReturn) {
+                case RETURN_CONTINUE:
+                    break;
+
+                case RETURN_MESG:
+                {
+                    const FIT_UINT16 num = mesg.GetNum();
+                    if (num == FIT_MESG_NUM_DEVELOPER_DATA_ID)
+                    {
+                        DeveloperDataIdMesg devIdMesg(mesg);
+
+                        if (!devIdMesg.IsDeveloperDataIndexValid()) {
+                            throw fit::RuntimeException("Invalid developer data index in DeveloperDataIdMesg");
+                        }
+
+                        FIT_UINT8 index = devIdMesg.GetDeveloperDataIndex();
+                        developers[index] = std::move(devIdMesg);
+                        descriptions[index].clear();
+                    }
+                    else if (num == FIT_MESG_NUM_FIELD_DESCRIPTION)
+                    {
+                        FieldDescriptionMesg descMesg(mesg);
+
+                        if (!descMesg.IsDeveloperDataIndexValid()) {
+                            throw fit::RuntimeException("Invalid developer data index in FieldDescriptionMesg");
+                        }
+
+                        if (!descMesg.IsFieldDefinitionNumberValid())
+                        {
+                            throw fit::RuntimeException("Invalid developer field definition number in FieldDescriptionMesg");
+                        }
+
+                        FIT_UINT8 index = descMesg.GetDeveloperDataIndex();
+                        FIT_UINT8 fldNum = descMesg.GetFieldDefinitionNumber();
+
+                        auto it = descriptions.find(index);
+                        if (it != descriptions.end())
+                        {
+                            it->second[fldNum] = descMesg;
+
+                            try
+                            {
+                                if (descriptionListener)
+                                {
+                                    descriptionListener->OnDeveloperFieldDescription(DeveloperFieldDescription(descMesg, developers[index]));
+                                }
+                            }
+                            catch (const std::out_of_range&)
+                            {
+                                // Preserve original behavior
+                            }
+                        }
+                        // else: Description without a Developer Data Id Message
+                    }
+
+                    if (mesgListener)
+                        mesgListener->OnMesg(mesg);
+                    break;
+                }
+
+                case RETURN_MESG_DEF:
+                    if (mesgDefinitionListener)
+                    {
+                        mesgDefinitionListener->OnMesgDefinition(localMesgDefs[localMesgIndex]);
+                    }
+                    break;
+
+                case RETURN_END_OF_FILE:
+                    // Increment so we do not read the same byte twice in the case of a chained file
+                    currentByteIndex++;
+                    currentByteOffset++;
+                    return FIT_TRUE;
+
+                default:
+                    currentByteOffset++;
+                    return FIT_TRUE;
+            }
+            currentByteOffset++;
+        }
+        currentByteIndex = 0;
+    } while ( file->good() );
+
+    if ((streamIsComplete == FIT_TRUE) && (skipHeader == FIT_FALSE))
+    {
+        std::ostringstream message;
+        message << "FIT decode error: Unexpected end of input stream at byte: " << currentByteOffset;
+        throw RuntimeException(message.str());
+    }
+    if (streamIsComplete == FIT_FALSE)
+    {
+        if ((decodeReturn == RETURN_MESG) || (decodeReturn == RETURN_MESG_DEF))
+        {
+            return FIT_TRUE;
+        }
+        else
+        {
+            return FIT_FALSE;
+        }
+    }
+    else
+    {
+        if ((decodeReturn == RETURN_MESG) || (decodeReturn == RETURN_MESG_DEF))
+        {
+            return FIT_TRUE;
+        }
+        else
+        {
+            if (invalidDataSize == FIT_FALSE)
+            {
+                std::ostringstream message;
+                message << "FIT decode error: Unexpected end of input stream at byte: " << currentByteOffset;
+                throw RuntimeException(message.str());
+            }
+            else
+            {
+                return FIT_TRUE;
+            }
+        }
+    }
+}
+```
+
+```includes
+#include <utility>
+#include <stdexcept>
+#include <sstream>
+```

@@ -1,0 +1,232 @@
+--- a/src/fit_course_point_mesg.hpp
++++ b/src/fit_course_point_mesg.hpp
+@@ -273,12 +273,7 @@
+     FIT_BOOL IsFavoriteValid() const
+     {
+         const Field* field = GetField(8);
+-        if( FIT_NULL == field )
+-        {
+-            return FIT_FALSE;
+-        }
+-
+-        return field->IsValueValid();
++        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_crc.cpp
++++ b/src/fit_crc.cpp
+@@ -17,24 +17,23 @@
+ 
+ FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+ {
+-   static const FIT_UINT16 crc_table[16] =
++   struct Table
+    {
+-      0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
+-      0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400
++      FIT_UINT16 v[256];
++      constexpr Table() : v()
++      {
++         for (unsigned i = 0; i < 256; ++i)
++         {
++            unsigned c = i;
++            for (int k = 0; k < 8; ++k)
++               c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
++            v[i] = static_cast<FIT_UINT16>(c);
++         }
++      }
+    };
+-   FIT_UINT16 tmp;
++   static constexpr Table table{};
+ 
+-   // compute checksum of lower four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[byte & 0xF];
+-
+-   // now compute checksum of upper four bits of byte
+-   tmp = crc_table[crc & 0xF];
+-   crc  = (crc >> 4) & 0x0FFF;
+-   crc  = crc ^ tmp ^ crc_table[(byte >> 4) & 0xF];
+-
+-   return crc;
++   return static_cast<FIT_UINT16>((crc >> 8) ^ table.v[(crc ^ byte) & 0xFF]);
+ }
+ 
+ FIT_UINT16 CRC::Calc16(const volatile void *data, FIT_UINT32 size)
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -138,9 +138,13 @@
+ 
+ FIT_UINT16 Field::GetNumSubFields(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto p = profile;
++    if (__builtin_expect(p == NULL, 0))
+         return 0;
+-    return profile->fields[profileIndex].numSubFields;
++    const auto idx = profileIndex;
++    if (__builtin_expect(idx >= p->numFields, 0))
++        return 0;
++    return p->fields[idx].numSubFields;
+ }
+ 
+ FIT_BOOL Field::GetIsExpanded(void) const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -25,9 +25,8 @@
+ }
+ 
+ FieldBase::FieldBase(const FieldBase &field)
++    : values(field.values), stringIndexes(field.stringIndexes)
+ {
+-    values = field.values;
+-    stringIndexes = field.stringIndexes;
+ }
+ 
+ FieldBase::~FieldBase()
+@@ -105,8 +104,21 @@
+     if (!IsValid())
+         return 0;
+ 
+-    if (GetType() != FIT_BASE_TYPE_STRING)
+-        return (FIT_UINT8)(values.size() / baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++    const FIT_UINT8 type = GetType();
++
++    if (type != FIT_BASE_TYPE_STRING)
++    {
++        const size_t n = values.size();
++        const FIT_UINT8 sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++        switch (sz)
++        {
++        case 1: return (FIT_UINT8)n;
++        case 2: return (FIT_UINT8)(n >> 1);
++        case 4: return (FIT_UINT8)(n >> 2);
++        case 8: return (FIT_UINT8)(n >> 3);
++        default: return (FIT_UINT8)(n / sz);
++        }
++    }
+ 
+     return (FIT_UINT8)stringIndexes.size();
+ }
+@@ -1007,73 +1019,70 @@
+ 
+ FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+ {
+-    FIT_UINT8 bytesLeft = size;
+-    FIT_UINT8 typeSize = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
+-    FIT_BYTE *byteData = (FIT_BYTE *) data;
++    const FIT_UINT8 type = GetType();
++    const FIT_UINT8 typeNum = type & FIT_BASE_TYPE_NUM_MASK;
++    const FIT_UINT8 typeSize = baseTypeSizes[typeNum];
++    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+ 
+     values.clear();
+ 
+-    switch (GetType())
++    if (type == FIT_BASE_TYPE_STRING)
+     {
+-        case FIT_BASE_TYPE_STRING:
+-        {
+-            FIT_BOOL hasData = FIT_FALSE;
+-            FIT_UINT8 stringPos = 0;
+-            FIT_UINT8 index = 0;
+-
+-            // Check if the string is empty
+-            while (index < bytesLeft)
+-            {
+-                if (byteData[index] != 0)
+-                {
+-                    hasData = FIT_TRUE;
+-                    break;
+-                }
+-                index++;
+-            }
++        FIT_UINT8 index = 0;
++        while (index < size && byteData[index] == 0)
++            index++;
+ 
+-            if (!hasData)
+-                break;
++        if (index >= size)
++            return FIT_TRUE;
+ 
+-            stringIndexes.push_back(stringPos);
++        stringIndexes.push_back(0);
+ 
+-            while (bytesLeft-- > 0)
+-            {
+-                FIT_BYTE byte = *byteData++;
+-                values.push_back(byte);
+-                stringPos++;
+-
+-                if ( ( byte == 0 ) && ( stringPos + 1 < size ) )
+-                {
+-                    stringIndexes.push_back(stringPos);
+-                }
+-            }
++        values.assign(byteData, byteData + size);
+ 
+-            // Null terminate if not already null terminated
+-            if ( values.back() != 0 )
++        const int sz = size;
++        for (int pos = 0; pos < sz; pos++)
++        {
++            if (byteData[pos] == 0 && (pos + 2) < sz)
+             {
+-                values.push_back(0);
++                stringIndexes.push_back((FIT_UINT8)(pos + 1));
+             }
+         }
+-            break;
+ 
+-        default:
++        if (values.back() != 0)
+         {
+-            int bytes = bytesLeft;
+-            FIT_BYTE *point = byteData;
++            values.push_back(0);
++        }
++        return FIT_TRUE;
++    }
+ 
+-            while (bytes > 0)
++    const FIT_BYTE *invalid = (const FIT_BYTE *) baseTypeInvalids[typeNum];
++
++    if (typeSize == 1)
++    {
++        const FIT_BYTE inv = invalid[0];
++        for (int i = 0; i < size; i++)
++        {
++            if (byteData[i] != inv)
+             {
+-                if (memcmp(point, baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK], typeSize) != 0)
+-                {
+-                    values.insert(values.end(), byteData, byteData + bytesLeft);
+-                    break;
+-                }
+-                point += typeSize;
+-                bytes -= typeSize;
++                values.assign(byteData, byteData + size);
++                break;
+             }
+         }
++        return FIT_TRUE;
++    }
++
++    int bytes = size;
++    const FIT_BYTE *point = byteData;
++
++    while (bytes > 0)
++    {
++        if (memcmp(point, invalid, typeSize) != 0)
++        {
++            values.assign(byteData, byteData + size);
+             break;
++        }
++        point += typeSize;
++        bytes -= typeSize;
+     }
+ 
+     return FIT_TRUE;

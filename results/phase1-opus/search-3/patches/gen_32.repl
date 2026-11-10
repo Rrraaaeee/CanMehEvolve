@@ -1,0 +1,15 @@
+The function is already minimal, so the only change is a branch hint. The common case, where the field already holds its type, is laid out as the fall-through path. Behavior is identical for every input.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    if ((profile == NULL) || (profileIndex >= profile->numFields))
+        return FIT_UINT8_INVALID;
+
+    return profile->fields[profileIndex].type;
+}
+```

@@ -1,0 +1,12 @@
+The function is already a single forwarding call to `Mesg::GetFieldUINT16Value`, so there is little safe room here. Inlining that method's logic would mean relying on its internals, which I can't see, and that could change behavior.
+
+This version is a minimal, behavior-preserving rewrite. It passes the arguments as compile-time constants of the exact parameter types, so the compiler can fold them and keep the forwarding call as cheap as possible. Any measurable speedup would have to come from optimizing the shared `GetFieldUINT16Value` / `GetField` path, not this wrapper.
+
+```cpp
+    FIT_UINT16 GetRepetitionNum(void) const
+    {
+        constexpr FIT_UINT8 kFieldNum = 61;
+        constexpr FIT_UINT8 kArrayIndex = 0;
+        return GetFieldUINT16Value(kFieldNum, kArrayIndex, (FIT_UINT16)FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

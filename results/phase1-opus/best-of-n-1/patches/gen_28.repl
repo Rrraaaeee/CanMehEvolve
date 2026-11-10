@@ -1,0 +1,15 @@
+The function is already about as cheap as it can be. This version keeps the same checks and the same result, but reads `profile` into a local once. That avoids reloading the member, and the branch hints favor the common case where a profile entry exists.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect(p != NULL, 1))
+    {
+        const FIT_UINT16 idx = profileIndex;
+        if (__builtin_expect(idx < p->numFields, 1))
+            return p->fields[idx].numComponents;
+    }
+    return 0;
+}
+```

@@ -1,0 +1,45 @@
+The current version indexes a 64 KB table directly by message number. This rewrite shrinks it to a 1024-entry direct table for the low message numbers that nearly all files use. That makes the table about 1 KB (2 KB if `MESGS >= 255`), so the hot lookups stay in L1 cache. I have not timed this change.
+
+- **Low numbers (below 1024):** they get the same answer as before. The table is built in reverse order, so it still returns the first matching entry, exactly as the full 64 KB table did.
+- **Numbers 1024 and above:** these (e.g. the manufacturer-specific 0xFF00+ range) fall back to a linear search that also returns the first match, so results are identical.
+- **Possible slowdown:** if the test corpus contains many manufacturer-specific messages, each one now pays for a linear scan. Unknown numbers in that range scan all entries. That case could be slower than the current version.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        IdxT idx[SMALL];
+        Index()
+        {
+            const IdxT none = (IdxT)~(IdxT)0;
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = none;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < SMALL)
+                    idx[n] = (IdxT)i;
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < SMALL)
+    {
+        const IdxT i = table.idx[num];
+        if (i == (IdxT)~(IdxT)0)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < (int)MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

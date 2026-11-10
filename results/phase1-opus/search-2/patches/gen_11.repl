@@ -1,0 +1,28 @@
+This version keeps the `GetMesg` lookup and changes only the field scan. The likely gain is small, since the larger cost is probably the message lookup inside `GetMesg`, which this does not touch.
+
+- **Fewer loads in the loop:** `fields` and `numFields` are read into locals once, so the loop does not reload them through `mesg`.
+- **Pointer walk:** the scan steps a pointer over the field entries instead of indexing.
+- **Behavior:** returned indices and the not-found result are unchanged.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *fields = mesg->fields;
+    const unsigned n = mesg->numFields;
+    const FIELD *f = fields;
+    const FIELD *end = fields + n;
+
+    for (; f != end; ++f)
+    {
+        if (f->num == fieldNum)
+            return (FIT_UINT16)(f - fields);
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

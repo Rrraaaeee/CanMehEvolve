@@ -1,0 +1,45 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -1131,17 +1131,38 @@
+ template <typename T>
+ T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    FIT_UINT8 size = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
++    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
+     if (fieldArrayIndex >= (FIT_UINT8)values.size())
+     {
+-        return *reinterpret_cast<const T*>(baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
+     }
+ 
++    const FIT_UINT8 size = baseTypeSizes[typeNum];
++    const auto* p = values.data() + (static_cast<int>(fieldArrayIndex) * size);
++
+     T rv = 0;
+ 
+-    for (int i = 0; i < size; i++)
++    switch (size)
+     {
+-        rv |= static_cast<T>(values[(fieldArrayIndex * size) + i]) << (i * 8);
++    case 1:
++        rv |= static_cast<T>(p[0]);
++        break;
++    case 2:
++        for (int i = 0; i < 2; i++)
++            rv |= static_cast<T>(p[i]) << (i * 8);
++        break;
++    case 4:
++        for (int i = 0; i < 4; i++)
++            rv |= static_cast<T>(p[i]) << (i * 8);
++        break;
++    case 8:
++        for (int i = 0; i < 8; i++)
++            rv |= static_cast<T>(p[i]) << (i * 8);
++        break;
++    default:
++        for (int i = 0; i < size; i++)
++            rv |= static_cast<T>(p[i]) << (i * 8);
++        break;
+     }
+ 
+     return rv;

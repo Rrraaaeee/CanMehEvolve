@@ -1,0 +1,34 @@
+The original does a linear scan over all message profiles on every call. This version builds a lookup table indexed by message number once, on first use, so each later call is a single array read.
+
+- **Thread safety:** the table is a function-local static, so C++ initializes it thread-safely.
+- **Not a mutable-state cache:** it is built only from the constant `mesgs` table and is never modified afterwards.
+- **Same result for duplicate numbers:** if a message number appears more than once, the table keeps its first index, which is the entry the linear search would have returned.
+- **Not-found case:** any number with no matching entry still returns `NULL`.
+- **Memory:** the table holds 65536 `FIT_UINT16` entries, about 128 KB.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct LookupTable
+    {
+        FIT_UINT16 idx[65536];
+        LookupTable()
+        {
+            for (int i = 0; i < 65536; i++)
+                idx[i] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const LookupTable table;
+
+    const FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

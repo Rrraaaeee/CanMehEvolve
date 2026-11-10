@@ -1,0 +1,27 @@
+The original does a linear scan over every profile message on each call. This version builds a 65536-entry index the first time the function is called, so each later lookup is one array read.
+
+- **First match preserved:** the table is filled in reverse order, so if two entries share a `num`, the lowest index wins, as in the original loop.
+- **Not found:** unknown numbers map to a sentinel (`0xFFFF`) and still return `NULL`.
+- **Thread safety:** the table is built inside a function-local static initializer, which C++ guarantees runs once even with concurrent callers.
+- **No mutable-state cache:** the table depends only on the constant profile data.
+- **Assumption:** the sentinel only works if `MESGS` is below `0xFFFF`, which the profile's message count is far below.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    static FIT_UINT16 index[65536];
+    static const bool initialized = []() {
+        for (int k = 0; k < 65536; k++)
+            index[k] = 0xFFFF;
+        for (int i = MESGS - 1; i >= 0; i--)
+            index[mesgs[i].num] = (FIT_UINT16)i;
+        return true;
+    }();
+    (void)initialized;
+
+    const FIT_UINT16 idx = index[num];
+    if (idx == 0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```

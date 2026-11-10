@@ -1,0 +1,12 @@
+File: src/fit_dive_summary_mesg.hpp
+Function: SetMaxDescentRate
+One decode of the test corpus takes about 358.833 ms.
+The code below currently runs at 0.936234 of the original SDK's decode time; the best found so far is 0.936234.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetMaxDescentRate(FIT_FLOAT32 maxDescentRate)
+    {
+        SetFieldFLOAT32Value(24, maxDescentRate, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

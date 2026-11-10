@@ -1,0 +1,11 @@
+--- a/src/fit_record_mesg.hpp
++++ b/src/fit_record_mesg.hpp
+@@ -1724,7 +1724,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     void SetRightPco(FIT_SINT8 rightPco)
+     {
+-        SetFieldSINT8Value(68, rightPco, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        SetFieldSINT8Value(static_cast<FIT_UINT8>(68), rightPco, static_cast<FIT_UINT8>(0), static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

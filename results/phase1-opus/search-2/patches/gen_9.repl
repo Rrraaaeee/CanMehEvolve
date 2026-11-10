@@ -1,0 +1,14 @@
+The duplicate check now runs inline, so `AddField` no longer calls `GetField`, and it no longer builds a `Field*` it only uses for a null test. It still walks every existing field comparing `GetNum()`. It only appends when no field with that number exists, so behavior is unchanged. The gain should be small, since the costly `Field` copy in `push_back` cannot be avoided.
+
+```cpp
+void Mesg::AddField(const Field& field)
+{
+    const FIT_UINT8 num = field.GetNum();
+    for (const Field& f : fields)
+    {
+        if (f.GetNum() == num)
+            return;
+    }
+    fields.push_back(field);
+}
+```

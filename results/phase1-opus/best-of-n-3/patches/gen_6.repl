@@ -1,0 +1,22 @@
+GetMesg is still called exactly as before. The change caches `mesg->fields` and `mesg->numFields` in locals and scans with a plain pointer. The compiler then doesn't have to reload them on every iteration, and the loop is tighter. The result is identical: the index of the first field whose `num` matches, or `FIT_UINT16_INVALID` if none does. I haven't measured the speedup.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const FIELD *fields = mesg->fields;
+    const unsigned int n = mesg->numFields;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

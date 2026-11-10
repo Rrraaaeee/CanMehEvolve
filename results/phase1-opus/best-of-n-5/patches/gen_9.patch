@@ -1,0 +1,22 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -48,7 +48,18 @@
+ Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+     : FieldBase()
+     , profile(Profile::GetMesg(mesgNum))
+-    , profileIndex(Profile::GetFieldIndex(mesgNum, fieldNum))
++    , profileIndex([this, fieldNum]() -> FIT_UINT16 {
++        const Profile::MESG* m = this->profile;
++        if (m == FIT_NULL)
++            return FIT_UINT16_INVALID;
++        const FIT_UINT16 n = m->numFields;
++        for (FIT_UINT16 i = 0; i < n; i++)
++        {
++            if (m->fields[i].num == fieldNum)
++                return i;
++        }
++        return FIT_UINT16_INVALID;
++    }())
+     , type(FIT_UINT8_INVALID)
+     , isFieldExpanded(FIT_FALSE)
+ {

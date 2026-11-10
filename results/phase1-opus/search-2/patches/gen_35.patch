@@ -1,0 +1,295 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -92,9 +92,13 @@
+ 
+ FIT_UINT8 Field::GetNum(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* const p = profile;
++    if (p == NULL)
++        return FIT_FIELD_NUM_INVALID;
++    const auto idx = profileIndex;
++    if (idx >= p->numFields)
+         return FIT_FIELD_NUM_INVALID;
+-    return profile->fields[profileIndex].num;
++    return p->fields[idx].num;
+ }
+ 
+ FIT_UINT8 Field::GetType() const
+@@ -131,9 +135,13 @@
+ 
+ FIT_UINT16 Field::GetNumComponents(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* const mesg = profile;
++    if (__builtin_expect(mesg == NULL, 0))
++        return 0;
++    const auto idx = profileIndex;
++    if (__builtin_expect(idx >= mesg->numFields, 0))
+         return 0;
+-    return profile->fields[profileIndex].numComponents;
++    return mesg->fields[idx].numComponents;
+ }
+ 
+ FIT_UINT16 Field::GetNumSubFields(void) const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -25,9 +26,9 @@
+ }
+ 
+ FieldBase::FieldBase(const FieldBase &field)
++    : values(field.values),
++      stringIndexes(field.stringIndexes)
+ {
+-    values = field.values;
+-    stringIndexes = field.stringIndexes;
+ }
+ 
+ FieldBase::~FieldBase()
+@@ -72,6 +73,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == 0xFFFF)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+@@ -1007,75 +1011,96 @@
+ 
+ FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+ {
+-    FIT_UINT8 bytesLeft = size;
+-    FIT_UINT8 typeSize = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
+-    FIT_BYTE *byteData = (FIT_BYTE *) data;
++    const FIT_UINT8 type = GetType();
++    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++    const FIT_BYTE *byteData = (const FIT_BYTE *) data;
+ 
+     values.clear();
+ 
+-    switch (GetType())
++    if (type == FIT_BASE_TYPE_STRING)
+     {
+-        case FIT_BASE_TYPE_STRING:
+-        {
+-            FIT_BOOL hasData = FIT_FALSE;
+-            FIT_UINT8 stringPos = 0;
+-            FIT_UINT8 index = 0;
++        FIT_UINT8 index = 0;
++        while (index < size && byteData[index] == 0)
++            index++;
++        if (index >= size)
++            return FIT_TRUE;
+ 
+-            // Check if the string is empty
+-            while (index < bytesLeft)
+-            {
+-                if (byteData[index] != 0)
+-                {
+-                    hasData = FIT_TRUE;
+-                    break;
+-                }
+-                index++;
+-            }
++        stringIndexes.push_back(0);
++        values.insert(values.end(), byteData, byteData + size);
++
++        for (int i = 0; i < (int)size; i++)
++        {
++            if (byteData[i] == 0 && (i + 2) < (int)size)
++                stringIndexes.push_back((FIT_UINT8)(i + 1));
++        }
+ 
+-            if (!hasData)
+-                break;
++        if (values.back() != 0)
++            values.push_back(0);
++        return FIT_TRUE;
++    }
+ 
+-            stringIndexes.push_back(stringPos);
++    int bytes = size;
++    const FIT_BYTE *point = byteData;
++    const FIT_BYTE *inv = (const FIT_BYTE *) baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
++    bool valid = false;
+ 
+-            while (bytesLeft-- > 0)
++    switch (typeSize)
++    {
++        case 1:
++        {
++            const FIT_BYTE iv = inv[0];
++            for (int i = 0; i < bytes; i++)
+             {
+-                FIT_BYTE byte = *byteData++;
+-                values.push_back(byte);
+-                stringPos++;
+-
+-                if ( ( byte == 0 ) && ( stringPos + 1 < size ) )
+-                {
+-                    stringIndexes.push_back(stringPos);
+-                }
++                if (point[i] != iv) { valid = true; break; }
+             }
+-
+-            // Null terminate if not already null terminated
+-            if ( values.back() != 0 )
++        }
++            break;
++        case 2:
++        {
++            FIT_UINT16 iv; memcpy(&iv, inv, 2);
++            while (bytes > 0)
+             {
+-                values.push_back(0);
++                FIT_UINT16 v; memcpy(&v, point, 2);
++                if (v != iv) { valid = true; break; }
++                point += 2; bytes -= 2;
+             }
+         }
+             break;
+-
+-        default:
++        case 4:
+         {
+-            int bytes = bytesLeft;
+-            FIT_BYTE *point = byteData;
+-
++            FIT_UINT32 iv; memcpy(&iv, inv, 4);
++            while (bytes > 0)
++            {
++                FIT_UINT32 v; memcpy(&v, point, 4);
++                if (v != iv) { valid = true; break; }
++                point += 4; bytes -= 4;
++            }
++        }
++            break;
++        case 8:
++        {
++            FIT_UINT64 iv; memcpy(&iv, inv, 8);
+             while (bytes > 0)
+             {
+-                if (memcmp(point, baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK], typeSize) != 0)
+-                {
+-                    values.insert(values.end(), byteData, byteData + bytesLeft);
+-                    break;
+-                }
++                FIT_UINT64 v; memcpy(&v, point, 8);
++                if (v != iv) { valid = true; break; }
++                point += 8; bytes -= 8;
++            }
++        }
++            break;
++        default:
++            while (bytes > 0)
++            {
++                if (memcmp(point, inv, typeSize) != 0) { valid = true; break; }
+                 point += typeSize;
+                 bytes -= typeSize;
+             }
+-        }
+             break;
+     }
+ 
++    if (valid)
++        values.insert(values.end(), byteData, byteData + size);
++
+     return FIT_TRUE;
+ }
+ 
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -11,6 +11,7 @@
+ 
+ 
+ #include "fit_profile.hpp"
++#include <type_traits>
+ 
+ namespace fit
+ {
+@@ -3057,12 +3058,53 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
+-    for (int i = 0; i < MESGS; i++)
++    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
++    enum { DIRECT = 1024 };
++    struct Index
+     {
+-        if (mesgs[i].num == num)
+-            return &mesgs[i];
+-    }
++        IdxT idx[DIRECT];
++        FIT_UINT16 hiNum[MESGS > 0 ? MESGS : 1];
++        IdxT hiIdx[MESGS > 0 ? MESGS : 1];
++        int hiCount;
++        Index()
++        {
++            const IdxT none = (IdxT)~(IdxT)0;
++            for (int k = 0; k < DIRECT; k++)
++                idx[k] = none;
++            hiCount = 0;
++            for (int i = MESGS - 1; i >= 0; i--)
++            {
++                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
++                if (n < DIRECT)
++                    idx[n] = (IdxT)i;
++            }
++            // Overflow list in ascending profile index order (first match wins).
++            for (int i = 0; i < (int)MESGS; i++)
++            {
++                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
++                if (n >= DIRECT)
++                {
++                    hiNum[hiCount] = n;
++                    hiIdx[hiCount] = (IdxT)i;
++                    hiCount++;
++                }
++            }
++        }
++    };
++    static const Index table;
+ 
++    if (num < DIRECT)
++    {
++        const IdxT i = table.idx[num];
++        if (i == (IdxT)~(IdxT)0)
++            return NULL;
++        return &mesgs[i];
++    }
++    for (int k = 0; k < table.hiCount; k++)
++    {
++        if (table.hiNum[k] == num)
++            return &mesgs[table.hiIdx[k]];
++    }
+     return NULL;
+ }
+ 

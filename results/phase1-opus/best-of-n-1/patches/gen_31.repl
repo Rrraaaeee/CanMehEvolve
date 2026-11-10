@@ -1,0 +1,41 @@
+The original `GetMesg` scans every entry on each call. This version builds a 64K-entry index table once and then answers each lookup with a single array access.
+
+- **Same results:** when several entries share a message number, the table keeps the first index, so the function returns the same entry the linear scan would.
+- **Safe initialization:** the table is a function-local static, so C++ initializes it once in a thread-safe way. It is built only from the constant `mesgs` profile data, not from any mutable global state.
+- **Fallback:** if `MESGS` were ever too large to fit a 16-bit index, the function falls back to the original linear scan. This branch is resolved at compile time.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    if (MESGS >= 0xFFFF)
+    {
+        for (int i = 0; i < MESGS; i++)
+        {
+            if (mesgs[i].num == num)
+                return &mesgs[i];
+        }
+        return NULL;
+    }
+
+    static const std::vector<FIT_UINT16> table = []()
+    {
+        std::vector<FIT_UINT16> t(65536, (FIT_UINT16)0xFFFF);
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            if (t[n] == (FIT_UINT16)0xFFFF)
+                t[n] = (FIT_UINT16)i;
+        }
+        return t;
+    }();
+
+    FIT_UINT16 idx = table[num];
+    if (idx == (FIT_UINT16)0xFFFF)
+        return NULL;
+    return &mesgs[idx];
+}
+```
+
+```includes
+#include <vector>
+```

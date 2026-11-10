@@ -1,0 +1,35 @@
+File: src/fit_mesg.cpp
+Function: Mesg::GetActiveSubFieldIndexByFieldIndex
+One decode of the test corpus takes about 358.729 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT16 Mesg::GetActiveSubFieldIndexByFieldIndex(const FIT_UINT16 fieldIndex) const
+{
+    if ((int) fieldIndex >= GetNumFields())
+        return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+
+    for (FIT_UINT16 i = 0; i < fields[fieldIndex].GetNumSubFields(); i++)
+    {
+        const Profile::SUBFIELD* subField = fields[fieldIndex].GetSubField(i);
+
+        if (subField != FIT_NULL)
+        {
+            for (int j = 0; j < (int) subField->numMaps; j++)
+            {
+                const Field* refField = GetField(subField->maps[j].refFieldNum);
+
+                if (refField != FIT_NULL)
+                {
+                    FIT_FLOAT64 refValue = refField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+                    refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+                    if ((FIT_SINT32)refValue == subField->maps[j].refFieldValue)
+                        return ((FIT_UINT16) i);
+                }
+            }
+        }
+    }
+
+    return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+}
+```

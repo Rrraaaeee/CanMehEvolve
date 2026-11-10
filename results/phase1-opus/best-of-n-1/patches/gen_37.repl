@@ -1,0 +1,23 @@
+`GetFieldIndex` calls `GetMesg` a second time and then scans the field list. This version looks up the message once and scans `mesg->fields` directly, which removes the duplicate message lookup.
+
+The result is unchanged, assuming `GetFieldIndex` is the standard SDK version. That version returns the first index whose `num` matches, or `FIT_UINT16_INVALID`, which the original code turns into `NULL` via the bounds check.
+
+```cpp
+const Profile::FIELD* Profile::GetField(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return NULL;
+
+    const FIELD *fields = mesg->fields;
+    const FIT_UINT16 n = mesg->numFields;
+    for (FIT_UINT16 i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return &fields[i];
+    }
+
+    return NULL;
+}
+```

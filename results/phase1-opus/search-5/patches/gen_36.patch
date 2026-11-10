@@ -1,0 +1,234 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -28,7 +28,7 @@
+ }
+ 
+ Field::Field(const Field &field)
+-    : FieldBase(field)
++    : FieldBase(static_cast<const FieldBase&>(field))
+     , profile(field.profile)
+     , profileIndex(field.profileIndex)
+     , type(field.type)
+@@ -99,13 +99,15 @@
+ 
+ FIT_UINT8 Field::GetType() const
+ {
+-    if ( type != FIT_UINT8_INVALID )
+-        return type;
++    const FIT_UINT8 t = type;
++    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
++        return t;
+ 
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* const p = profile;
++    if ((p == NULL) || (profileIndex >= p->numFields))
+         return FIT_UINT8_INVALID;
+ 
+-    return profile->fields[profileIndex].type;
++    return p->fields[profileIndex].type;
+ }
+ 
+ std::string Field::GetUnits() const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -72,6 +73,9 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
++    if (subFieldIndex == FIT_SUBFIELD_INDEX_MAIN_FIELD)
++        return GetOffset();
++
+     if (subFieldIndex >= GetNumSubFields())
+         return GetOffset();
+ 
+@@ -81,15 +85,10 @@
+ 
+ FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+ {
+-    switch (GetType(subFieldIndex)) {
+-        case FIT_BASE_TYPE_SINT8:
+-        case FIT_BASE_TYPE_SINT16:
+-        case FIT_BASE_TYPE_SINT32:
+-            return FIT_TRUE;
+-
+-        default:
+-            return FIT_FALSE;
+-    }
++    const FIT_UINT8 type = static_cast<FIT_UINT8>(GetType(subFieldIndex));
++    return ((type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT8)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT16)) |
++            (type == static_cast<FIT_UINT8>(FIT_BASE_TYPE_SINT32))) ? FIT_TRUE : FIT_FALSE;
+ }
+ 
+ FIT_UINT8 FieldBase::GetSize(void) const
+@@ -105,10 +104,16 @@
+     if (!IsValid())
+         return 0;
+ 
+-    if (GetType() != FIT_BASE_TYPE_STRING)
+-        return (FIT_UINT8)(values.size() / baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++    const FIT_UINT8 type = GetType();
++
++    if (type == FIT_BASE_TYPE_STRING)
++        return (FIT_UINT8)stringIndexes.size();
+ 
+-    return (FIT_UINT8)stringIndexes.size();
++    const size_t n = values.size();
++    const unsigned sz = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
++    if (sz == 1)
++        return (FIT_UINT8)n;
++    return (FIT_UINT8)(n >> __builtin_ctz(sz));
+ }
+ 
+ FIT_UINT32 FieldBase::GetBitsValue(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+@@ -1131,17 +1136,29 @@
+ template <typename T>
+ T FieldBase::GetValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    FIT_UINT8 size = baseTypeSizes[GetType() & FIT_BASE_TYPE_NUM_MASK];
++    const FIT_UINT8 typeNum = GetType() & FIT_BASE_TYPE_NUM_MASK;
++    const FIT_UINT8 size = baseTypeSizes[typeNum];
+     if (fieldArrayIndex >= (FIT_UINT8)values.size())
+     {
+-        return *reinterpret_cast<const T*>(baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK]);
++        return *reinterpret_cast<const T*>(baseTypeInvalids[typeNum]);
++    }
++
++    const FIT_UINT8* src = values.data() + (fieldArrayIndex * size);
++
++#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
++    if (size == sizeof(T))
++    {
++        T rv;
++        std::memcpy(&rv, src, sizeof(T));
++        return rv;
+     }
++#endif
+ 
+     T rv = 0;
+ 
+     for (int i = 0; i < size; i++)
+     {
+-        rv |= static_cast<T>(values[(fieldArrayIndex * size) + i]) << (i * 8);
++        rv |= static_cast<T>(src[i]) << (i * 8);
+     }
+ 
+     return rv;
+--- a/src/fit_hsa_body_battery_data_mesg.hpp
++++ b/src/fit_hsa_body_battery_data_mesg.hpp
+@@ -207,12 +207,7 @@
+     FIT_BOOL IsUnchargedValid(FIT_UINT8 index) const
+     {
+         const Field* field = GetField(3);
+-        if( FIT_NULL == field )
+-        {
+-            return FIT_FALSE;
+-        }
+-
+-        return field->IsValueValid(index);
++        return (FIT_NULL == field) ? FIT_FALSE : field->IsValueValid(index);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -11,6 +11,9 @@
+ 
+ 
+ #include "fit_profile.hpp"
++#include <vector>
++#include <array>
++#include <cstddef>
+ 
+ namespace fit
+ {
+@@ -3057,13 +3060,23 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
+-    for (int i = 0; i < MESGS; i++)
++    struct Index
+     {
+-        if (mesgs[i].num == num)
+-            return &mesgs[i];
+-    }
+-
+-    return NULL;
++        FIT_UINT16 idx[65536];
++        Index()
++        {
++            for (int k = 0; k < 65536; k++)
++                idx[k] = 0xFFFF;
++            for (int i = MESGS - 1; i >= 0; i--)
++                idx[mesgs[i].num] = (FIT_UINT16)i;
++        }
++    };
++    static const Index index;
++
++    const FIT_UINT16 i = index.idx[num];
++    if (i == 0xFFFF)
++        return NULL;
++    return &mesgs[i];
+ }
+ 
+ const Profile::MESG* Profile::GetMesg(const std::string& name)
+@@ -3079,18 +3092,42 @@
+ 
+ const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+ {
+-    const MESG *mesg = GetMesg(mesgNum);
++    struct Tables
++    {
++        FIT_UINT16 mesgIdx[65536];
++        std::vector<std::array<FIT_UINT16, 256>> fieldIdx;
+ 
+-    if (mesg == NULL)
+-        return FIT_UINT16_INVALID;
++        Tables()
++        {
++            const size_t numMesgs = sizeof(Profile::mesgs) / sizeof(Profile::mesgs[0]);
++            for (size_t i = 0; i < 65536; i++)
++                mesgIdx[i] = FIT_UINT16_INVALID;
++            fieldIdx.resize(numMesgs);
++            for (size_t m = 0; m < numMesgs; m++)
++            {
++                const MESG &mesg = Profile::mesgs[m];
++                if (mesgIdx[mesg.num] == FIT_UINT16_INVALID)
++                    mesgIdx[mesg.num] = (FIT_UINT16)m;
++
++                std::array<FIT_UINT16, 256> &tbl = fieldIdx[m];
++                tbl.fill(FIT_UINT16_INVALID);
++                for (FIT_UINT16 i = 0; i < mesg.numFields; i++)
++                {
++                    const FIT_UINT8 fnum = mesg.fields[i].num;
++                    if (tbl[fnum] == FIT_UINT16_INVALID)
++                        tbl[fnum] = i;
++                }
++            }
++        }
++    };
+ 
+-    for (FIT_UINT16 i = 0; i < mesg->numFields; i++)
+-    {
+-        if (mesg->fields[i].num == fieldNum)
+-            return i;
+-    }
++    static const Tables *tables = new Tables();
++
++    const FIT_UINT16 m = tables->mesgIdx[mesgNum];
++    if (m == FIT_UINT16_INVALID)
++        return FIT_UINT16_INVALID;
+ 
+-    return FIT_UINT16_INVALID;
++    return tables->fieldIdx[m][fieldNum];
+ }
+ 
+ const FIT_UINT16 Profile::GetFieldIndex(const std::string& mesgName, const std::string& fieldName)

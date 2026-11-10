@@ -1,0 +1,9 @@
+This accessor is unlikely to be a hot path, and its behavior has to stay identical, so I made only a minimal change. It is now a single expression that returns `FIT_FALSE` when field 8 is absent. Otherwise it calls `IsValueValid()` exactly as before. Any speedup is likely to be negligible; the gain is mainly one fewer branch in the generated code.
+
+```cpp
+    FIT_BOOL IsFavoriteValid() const
+    {
+        const Field* field = GetField(8);
+        return (field != FIT_NULL) ? field->IsValueValid() : FIT_FALSE;
+    }
+```

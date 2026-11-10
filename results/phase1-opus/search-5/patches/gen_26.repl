@@ -1,0 +1,40 @@
+The original code used a 65536-entry index (128 KB), so most lookups touched a cold cache line. This version shrinks the index to 1024 entries (2 KB), which covers the common message numbers and stays resident in L1 cache.
+
+Numbers of 1024 and above (manufacturer-specific and other rare ones) fall back to a linear scan in profile order. That returns the same first match the full table gave. The table is filled from the last entry backwards, so the lowest index wins on duplicates, exactly as before.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        FIT_UINT16 idx[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                if (mesgs[i].num < SMALL)
+                    idx[mesgs[i].num] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Index index;
+
+    if (num < SMALL)
+    {
+        const FIT_UINT16 i = index.idx[num];
+        if (i == 0xFFFF)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

@@ -1,0 +1,64 @@
+The main change is that `Round` now runs only in the cases that use its result. The FLOAT64 path also copies the 8 bytes with a single `memcpy` instead of a byte loop.
+
+- **Skipping `Round`:** the FLOAT64, SINT64 and UINT64 cases always used `rawValue`, so computing the rounded value there was wasted work. This assumes `FieldBase::Round` is pure (a static function with no side effects); I did not check its body.
+- **Unchanged behavior:** the `(FIT_UINT8)values.size()` truncation and the resize rule are kept exactly as they were. The integer and FLOAT32 conversions are also unchanged.
+
+```cpp
+void FieldBase::AddRawValue(const FIT_FLOAT64 rawValue, const FIT_UINT8 fieldArrayIndex)
+{
+    switch ( GetType() )
+    {
+        case FIT_BASE_TYPE_BYTE:
+        case FIT_BASE_TYPE_ENUM:
+        case FIT_BASE_TYPE_SINT8:
+        case FIT_BASE_TYPE_UINT8:
+        case FIT_BASE_TYPE_UINT8Z:
+            SetUINT8Value((FIT_UINT8)FieldBase::Round(rawValue), fieldArrayIndex);
+            break;
+
+        case FIT_BASE_TYPE_SINT16:
+        case FIT_BASE_TYPE_UINT16:
+        case FIT_BASE_TYPE_UINT16Z:
+            SetUINT16Value((FIT_UINT16)FieldBase::Round(rawValue), fieldArrayIndex);
+            break;
+
+        case FIT_BASE_TYPE_SINT32:
+        case FIT_BASE_TYPE_UINT32:
+        case FIT_BASE_TYPE_UINT32Z:
+            SetUINT32Value((FIT_UINT32)FieldBase::Round(rawValue), fieldArrayIndex);
+            break;
+
+        case FIT_BASE_TYPE_FLOAT32:
+        {
+            FIT_FLOAT32 float32Value = (FIT_FLOAT32)FieldBase::Round(rawValue);
+            FIT_UINT32 uint32Value;
+            memcpy(&uint32Value, &float32Value, sizeof(FIT_FLOAT32));
+            SetUINT32Value(uint32Value, fieldArrayIndex);
+            break;
+        }
+
+        case FIT_BASE_TYPE_FLOAT64:
+        {
+            const size_t needed = ((size_t)fieldArrayIndex + 1) * sizeof(FIT_FLOAT64);
+            if ((size_t)(FIT_UINT8)values.size() < needed)
+            {
+                values.resize(needed);
+            }
+            memcpy(&values[(size_t)fieldArrayIndex * sizeof(FIT_FLOAT64)], &rawValue, sizeof(FIT_FLOAT64));
+            break;
+        }
+
+        case FIT_BASE_TYPE_SINT64:
+            SetSINT64Value((FIT_SINT64)rawValue, fieldArrayIndex);
+            break;
+
+        case FIT_BASE_TYPE_UINT64:
+        case FIT_BASE_TYPE_UINT64Z:
+            SetUINT64Value((FIT_UINT64)rawValue, fieldArrayIndex);
+            break;
+
+        default:
+            break;
+    }
+}
+```

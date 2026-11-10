@@ -1,0 +1,11 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -70,7 +70,7 @@
+ 
+ FIT_BOOL Field::IsValid(void) const
+ {
+-    return profileIndex != FIT_UINT16_INVALID;
++    return static_cast<FIT_BOOL>(profileIndex != static_cast<FIT_UINT16>(FIT_UINT16_INVALID));
+ }
+ 
+ FIT_BOOL Field::GetIsAccumulated() const

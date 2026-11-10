@@ -1,0 +1,16 @@
+The rewrite caches the member reads in locals and adds a branch hint. The usual case, where `type` is already set, becomes a single predicted branch. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const auto* const p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

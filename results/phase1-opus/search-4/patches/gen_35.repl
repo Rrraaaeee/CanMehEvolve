@@ -1,0 +1,61 @@
+The function is already close to optimal: typical FIT files are little-endian, so the early return is the hot path. The only change is a branch hint on that early return so the compiler lays it out as the fall-through path.
+
+- The condition and its short-circuit order are unchanged.
+- The byte-swap loops are unchanged.
+- Decoded results are therefore identical for every input.
+- Any speedup will be small.
+
+```cpp
+void Decode::UpdateEndianness(FIT_UINT8 type, FIT_UINT8 size)
+{
+    if (__builtin_expect(((type & FIT_BASE_TYPE_ENDIAN_FLAG) == 0) ||
+        ((archs[localMesgIndex] & FIT_ARCH_ENDIAN_MASK) == FIT_ARCH_ENDIAN_LITTLE), 1))
+        return;
+
+    const FIT_UINT8 typeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+    const int numElements = (FIT_UINT8)(size / typeSize);
+    FIT_UINT8* p = fieldData;
+
+    switch (typeSize)
+    {
+    case 2:
+        for (int e = 0; e < numElements; e++, p += 2)
+        {
+            uint16_t v;
+            std::memcpy(&v, p, 2);
+            v = __builtin_bswap16(v);
+            std::memcpy(p, &v, 2);
+        }
+        break;
+    case 4:
+        for (int e = 0; e < numElements; e++, p += 4)
+        {
+            uint32_t v;
+            std::memcpy(&v, p, 4);
+            v = __builtin_bswap32(v);
+            std::memcpy(p, &v, 4);
+        }
+        break;
+    case 8:
+        for (int e = 0; e < numElements; e++, p += 8)
+        {
+            uint64_t v;
+            std::memcpy(&v, p, 8);
+            v = __builtin_bswap64(v);
+            std::memcpy(p, &v, 8);
+        }
+        break;
+    default:
+        for (int e = 0; e < numElements; e++, p += typeSize)
+        {
+            for (int i = 0; i < (typeSize / 2); i++)
+            {
+                FIT_UINT8 t = p[i];
+                p[i] = p[typeSize - i - 1];
+                p[typeSize - i - 1] = t;
+            }
+        }
+        break;
+    }
+}
+```

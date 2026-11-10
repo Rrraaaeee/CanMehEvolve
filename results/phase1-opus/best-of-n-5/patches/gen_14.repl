@@ -1,0 +1,29 @@
+Replaced the nibble-wise update with a byte-wise 256-entry table lookup, so each byte costs one lookup instead of two.
+
+Why the result is the same: the original computes `crc' = (crc>>4) ^ T[crc&0xF] ^ T[byte&0xF]` for each nibble. Because the table is linear (XOR-compatible), `T[a] ^ T[b] == T[a^b]`. So each nibble step is exactly the standard reflected CRC-16 update for polynomial 0xA001. Running the two nibble steps together is therefore identical to the standard byte-wise update `crc = (crc >> 8) ^ T256[(crc ^ byte) & 0xFF]`.
+
+The 256-entry table is generated at compile time from that polynomial, so there are no hand-typed constants to get wrong.
+
+```cpp
+FIT_UINT16 CRC::Get16(FIT_UINT16 crc, FIT_UINT8 byte)
+{
+   static constexpr std::array<FIT_UINT16, 256> crc_table = []() constexpr
+   {
+      std::array<FIT_UINT16, 256> t{};
+      for (unsigned i = 0; i < 256; ++i)
+      {
+         unsigned c = i;
+         for (int k = 0; k < 8; ++k)
+            c = (c & 1u) ? ((c >> 1) ^ 0xA001u) : (c >> 1);
+         t[i] = static_cast<FIT_UINT16>(c);
+      }
+      return t;
+   }();
+
+   return static_cast<FIT_UINT16>((crc >> 8) ^ crc_table[(crc ^ byte) & 0xFF]);
+}
+```
+
+```includes
+#include <array>
+```

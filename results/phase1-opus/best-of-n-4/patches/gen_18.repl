@@ -1,0 +1,13 @@
+Message copies are dominated by copying `fields`, and that is already a single exact-size allocation plus element copies, so little can be gained here. The one change is to skip the `devFields` copy when it is empty, which is the common case. The resulting state is identical: an empty vector either way. When `devFields` is not empty, copy-assigning into an empty vector still allocates an exact-size buffer and copy-constructs each element.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields)
+    , devFields()
+{
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

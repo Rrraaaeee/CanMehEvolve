@@ -1,0 +1,17 @@
+Most calls pass `FIT_SUBFIELD_INDEX_MAIN_FIELD` (0xFFFF). The fast path returns `GetOffset()` for that value without calling `GetNumSubFields()`.
+
+This cannot change results: the subfield count is at most 255 (a `FIT_UINT8`), so 0xFFFF always took the `GetOffset()` branch anyway.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex == 0xFFFF)
+        return GetOffset();
+
+    if (subFieldIndex >= GetNumSubFields())
+        return GetOffset();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->offset : 0.0;
+}
+```

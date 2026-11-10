@@ -1,0 +1,11 @@
+This is equivalent to the original, so expect only noise-level gains at best. The copy constructor already does the minimum: it allocates and copies both vectors.
+
+The rewrite builds the two members from iterator ranges instead of calling their copy constructors. With random-access iterators, the library computes the size once and makes one allocation per vector. The element-wise copy of `values` stays the same, so every value, size and side effect matches the original.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values.begin(), field.values.end()),
+      stringIndexes(field.stringIndexes.begin(), field.stringIndexes.end())
+{
+}
+```

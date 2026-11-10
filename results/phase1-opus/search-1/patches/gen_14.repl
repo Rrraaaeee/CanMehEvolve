@@ -1,0 +1,45 @@
+The lookup table now covers the full 16-bit message-number range (65536 entries, about 128 KB, built once).
+
+- **Why it helps:** in the old code, any number of 1024 or more fell through to a linear scan of every profile message. That includes manufacturer-specific numbers like 0xFF00 and up, which can appear in real files. Each such call now costs one table read, as numbers below 1024 already did.
+- **Behavior is unchanged:**
+  - The table is filled in reverse order, so when a number appears more than once, the first matching message still wins.
+  - The linear scan is kept for the case where `MESGS >= 32767` and the 16-bit indices can't be used.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 65536 };
+    struct Lut
+    {
+        FIT_SINT16 idx[LUT_SIZE];
+        bool ok;
+        Lut() : ok(MESGS < 32767)
+        {
+            for (int k = 0; k < LUT_SIZE; k++)
+                idx[k] = -1;
+            if (!ok)
+                return;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                idx[n] = (FIT_SINT16)i;
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (lut.ok)
+    {
+        int i = lut.idx[num];
+        return (i >= 0) ? &mesgs[i] : NULL;
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

@@ -1,0 +1,14 @@
+This version loads `profile` and `profileIndex` into locals once, so the compiler doesn't re-read the members after the bounds check. Each early exit still returns 0, and the in-range case returns the same `numSubFields` value as before. Any speedup is likely to be small, since the original was already very simple.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto* const p = profile;
+    if (p == NULL)
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numSubFields;
+}
+```

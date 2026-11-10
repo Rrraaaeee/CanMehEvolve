@@ -1,0 +1,93 @@
+The function's logic is unchanged. The edits are small and only touch the invalid-value check:
+
+- **Integer compare instead of `memcmp`:** the decoded double and the FLOAT64 invalid pattern from `baseTypeInvalids` are each copied into a 64-bit integer and compared directly.
+- **No extra round-trip for FLOAT64 fields:** the raw value is already a 64-bit integer, so it is compared as is before being turned into a double.
+- **Same result in every case:** the type dispatch, the FLOAT32 path, and the scale/offset step are untouched. A bitwise comparison gives exactly the same answer as `memcmp`.
+
+I expect only a small gain, because I couldn't see the helper functions where most of the time may be spent. Comparing raw bits is the change I was confident is safe.
+
+```cpp
+FIT_FLOAT64 FieldBase::GetFLOAT64Value(const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    FIT_FLOAT64 float64Value;
+    FIT_UINT64 bits;
+
+    if (!IsValid())
+        return FIT_FLOAT64_INVALID;
+
+    switch (GetType()) { // Note: This checks the type of the MAIN field since data is aligned according to that type
+        case FIT_BASE_TYPE_BYTE:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_BYTE>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_ENUM:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_ENUM>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_SINT8:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_UINT8:
+        case FIT_BASE_TYPE_UINT8Z:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT8>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_SINT16:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_UINT16Z:
+        case FIT_BASE_TYPE_UINT16:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT16>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_SINT32:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_SINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_UINT32:
+        case FIT_BASE_TYPE_UINT32Z:
+            float64Value = ConvertBaseType<FIT_FLOAT64, FIT_UINT32>(fieldArrayIndex, FIT_BASE_TYPE_FLOAT64);
+            memcpy(&bits, &float64Value, sizeof(bits));
+            break;
+
+        case FIT_BASE_TYPE_FLOAT32:
+        {
+            FIT_FLOAT32 val = GetFLOAT32Value(fieldArrayIndex, subFieldIndex);
+
+            if (FIT_FLOAT32_INVALID == val)
+            {
+                return FIT_FLOAT64_INVALID;
+            }
+
+            return static_cast<FIT_FLOAT64>(val);
+        }
+
+        case FIT_BASE_TYPE_FLOAT64:
+            bits = GetValue<FIT_UINT64>(fieldArrayIndex);
+            memcpy(&float64Value, &bits, sizeof(FIT_FLOAT64));
+            break;
+
+        default:
+            return FIT_FLOAT64_INVALID;
+    }
+
+    FIT_UINT64 invalidBits;
+    memcpy(&invalidBits, baseTypeInvalids[FIT_BASE_TYPE_FLOAT64 & FIT_BASE_TYPE_NUM_MASK], sizeof(invalidBits));
+
+    if (bits == invalidBits)
+    {
+        return float64Value;
+    }
+
+    return float64Value / GetScale(subFieldIndex) - GetOffset(subFieldIndex);
+}
+```

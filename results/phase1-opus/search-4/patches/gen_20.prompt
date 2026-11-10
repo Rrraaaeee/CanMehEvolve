@@ -1,0 +1,22 @@
+File: src/fit_developer_field_definition.cpp
+Function: DeveloperFieldDefinition::~DeveloperFieldDefinition
+One decode of the test corpus takes about 358.717 ms.
+The code below currently runs at 0.913386 of the original SDK's decode time; the best found so far is 0.912114.
+
+Rewrite this function to make decoding faster:
+```cpp
+DeveloperFieldDefinition::~DeveloperFieldDefinition()
+{
+    if ( nullptr != mesg )
+    {
+        delete mesg;
+        mesg = nullptr;
+    }
+
+    if ( nullptr != developer )
+    {
+        delete developer;
+        developer = nullptr;
+    }
+}
+```

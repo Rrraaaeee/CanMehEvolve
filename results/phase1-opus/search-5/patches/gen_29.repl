@@ -1,0 +1,14 @@
+The change loads `profile` and `profileIndex` into locals once. The compiler can then skip reloading the members after each check, and every result is unchanged.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const auto* p = profile;
+    if (p == NULL)
+        return 0;
+    const auto idx = profileIndex;
+    if (idx >= p->numFields)
+        return 0;
+    return p->fields[idx].numComponents;
+}
+```

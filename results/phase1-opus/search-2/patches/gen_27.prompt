@@ -1,0 +1,38 @@
+File: src/fit_profile.cpp
+Function: Profile::GetMesg
+One decode of the test corpus takes about 358.373 ms.
+The code below currently runs at 0.91646 of the original SDK's decode time; the best found so far is 0.887675.
+
+Rewrite this function to make decoding faster:
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        const Profile::MESG* ptr[SMALL];
+        Index()
+        {
+            for (int k = 0; k < SMALL; k++)
+                ptr[k] = NULL;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < SMALL)
+                    ptr[n] = &mesgs[i];
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < SMALL)
+        return table.ptr[num];
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

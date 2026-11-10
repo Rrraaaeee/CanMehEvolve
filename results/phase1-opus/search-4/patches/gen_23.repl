@@ -1,0 +1,12 @@
+The member initializers already copy each field directly, and `FieldBase`'s internals aren't visible here, so there is no safe change that would be measurably faster. The rewrite only makes the base-class copy explicit with a `static_cast`. Behavior and generated code should be identical, so don't expect a speedup from this change.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase &>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

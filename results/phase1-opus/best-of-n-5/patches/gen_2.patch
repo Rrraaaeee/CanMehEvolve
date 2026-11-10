@@ -1,0 +1,11 @@
+--- a/src/fit_record_mesg.hpp
++++ b/src/fit_record_mesg.hpp
+@@ -1679,7 +1679,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_SINT8 GetLeftPco(void) const
+     {
+-        return GetFieldSINT8Value(67, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return GetFieldSINT8Value(67, 0, (FIT_UINT16)FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

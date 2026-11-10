@@ -1,0 +1,11 @@
+File: src/fit_course_point_mesg.hpp
+Function: SetPositionLong
+One decode of the test corpus takes about 358.548 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetPositionLong(FIT_SINT32 positionLong)
+    {
+        SetFieldSINT32Value(3, positionLong, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

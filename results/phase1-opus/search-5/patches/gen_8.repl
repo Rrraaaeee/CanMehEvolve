@@ -1,0 +1,25 @@
+This version still calls `GetMesg` and returns the same values. The only change is to the field scan:
+
+- The field count and the `fields` pointer are read once into locals, so the loop does not reload them through `mesg` on each iteration.
+- The loop counter is a native `unsigned int`, which avoids the 16-bit truncation the `FIT_UINT16` counter needed.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    const MESG *mesg = GetMesg(mesgNum);
+
+    if (mesg == NULL)
+        return FIT_UINT16_INVALID;
+
+    const unsigned int n = mesg->numFields;
+    const auto *fields = mesg->fields;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        if (fields[i].num == fieldNum)
+            return (FIT_UINT16)i;
+    }
+
+    return FIT_UINT16_INVALID;
+}
+```

@@ -1,0 +1,14 @@
+This copy constructor is already minimal. Almost all of its cost is the base-class copy (`FieldBase(field)`, which presumably copies the value storage), and that cost can't be removed here without changing behavior.
+
+The rules require a change, so this version only makes the upcast to `FieldBase` explicit. I don't expect a measurable speedup from it. Everything is copied exactly as before, and the member initializers keep their original order.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase&>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

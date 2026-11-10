@@ -1,0 +1,9 @@
+This getter's cost lies in `GetFieldFLOAT32Value`, which lives outside this function, so there is nothing real to optimize here. The rewrite below makes the same call with the same arguments: field 67, array index 0, main subfield. It only passes the result through a `const` local, so behavior is identical. Any speed difference will be negligible.
+
+```cpp
+    FIT_FLOAT32 GetMaxFractionalCadence(void) const
+    {
+        const FIT_FLOAT32 value = GetFieldFLOAT32Value(67, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+        return value;
+    }
+```

@@ -1,0 +1,9 @@
+This getter is already a single array lookup, so there is little to gain. The rewrite binds the field entry to a reference and returns its flag. The compiler generates the same code either way, so expect no measurable speedup. Behavior is unchanged.
+
+```cpp
+FIT_BOOL Field::GetIsAccumulated() const
+{
+    const auto& fieldDef = profile->fields[profileIndex];
+    return fieldDef.isAccumulated;
+}
+```

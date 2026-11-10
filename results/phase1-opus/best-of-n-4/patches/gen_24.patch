@@ -1,0 +1,11 @@
+--- a/src/fit_mesg_definition.cpp
++++ b/src/fit_mesg_definition.cpp
+@@ -86,7 +86,7 @@
+ 
+ std::vector<FieldDefinition>& MesgDefinition::GetFields()
+ {
+-    return fields;
++    return this->fields;
+ }
+ 
+ std::vector<DeveloperFieldDefinition>& MesgDefinition::GetDevFields()

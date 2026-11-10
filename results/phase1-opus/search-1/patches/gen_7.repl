@@ -1,0 +1,8 @@
+This setter isn't on the decode hot path, so a speedup is unlikely. The rewrite is behavior-identical: the only change is that the literal arguments are written as explicitly typed constants, which avoids implicit integer conversions at the call site.
+
+```cpp
+    void SetAwakeningsCount(FIT_UINT8 awakeningsCount)
+    {
+        SetFieldUINT8Value(static_cast<FIT_UINT8>(11), awakeningsCount, static_cast<FIT_UINT8>(0), static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

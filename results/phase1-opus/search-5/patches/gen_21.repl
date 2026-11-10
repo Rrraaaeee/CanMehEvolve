@@ -1,0 +1,11 @@
+Small change: copy `profile` into a local and use the `||` short-circuit, so `profile` is loaded once and the profile's field array is indexed once. The checks and return values are the same, so behavior does not change.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (p != NULL && profileIndex < p->numFields)
+        return p->fields[profileIndex].num;
+    return FIT_FIELD_NUM_INVALID;
+}
+```

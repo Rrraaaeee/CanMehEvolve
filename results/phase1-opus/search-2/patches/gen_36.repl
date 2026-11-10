@@ -1,0 +1,45 @@
+A 1024-entry index (about 1 KB) replaces the 64 KB one, so the hot lookup stays in L1 cache and pollutes the cache much less.
+
+- **Small numbers:** every standard FIT message number is below 1024 and is answered by a direct table lookup.
+- **Larger numbers:** any `num >= 1024` falls back to a forward linear scan. It returns the first match, just as before, so results are unchanged for every input.
+- **Duplicates:** the table is filled in reverse order, so for a repeated `num` the lowest index wins, which also matches the old behavior.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    enum { TABLE_SIZE = 1024 };
+    struct Index
+    {
+        IdxT idx[TABLE_SIZE];
+        Index()
+        {
+            const IdxT none = (IdxT)~(IdxT)0;
+            for (int k = 0; k < TABLE_SIZE; k++)
+                idx[k] = none;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < TABLE_SIZE)
+                    idx[n] = (IdxT)i;
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < TABLE_SIZE)
+    {
+        const IdxT i = table.idx[num];
+        if (i == (IdxT)~(IdxT)0)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

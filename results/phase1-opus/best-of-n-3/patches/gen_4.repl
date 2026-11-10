@@ -1,0 +1,5 @@
+The destructor body is empty, so there is no real work here to speed up. The member destructors run either way. I've written it as an out-of-line defaulted destructor. Behavior is identical, and it lets the compiler treat the destructor as compiler-generated. Any speedup will be negligible at best.
+
+```cpp
+FieldBase::~FieldBase() = default;
+```

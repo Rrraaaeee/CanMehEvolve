@@ -1,0 +1,35 @@
+The original used a 128 KB lookup table. This version uses a 1024-entry table of message pointers (8 KB), which stays in cache much better.
+
+- **Common case:** profile message numbers are normally below 1024, so they are answered with one indexed load.
+- **Larger numbers:** these fall back to a linear scan that returns the first match. That is the same result the original table gave, and a missing number still returns NULL.
+- **Not measured:** I have not timed this against the 0.918 baseline or the 0.912 best.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { TABLE_SIZE = 1024 };
+    static const Profile::MESG* table[TABLE_SIZE];
+    static const bool initialized = []() {
+        for (int k = 0; k < TABLE_SIZE; k++)
+            table[k] = NULL;
+        for (int i = 0; i < MESGS; i++)
+        {
+            FIT_UINT16 n = mesgs[i].num;
+            if (n < TABLE_SIZE && table[n] == NULL)
+                table[n] = &mesgs[i];
+        }
+        return true;
+    }();
+    (void)initialized;
+
+    if (num < TABLE_SIZE)
+        return table[num];
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

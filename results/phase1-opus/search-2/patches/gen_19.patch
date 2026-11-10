@@ -1,0 +1,92 @@
+--- a/src/fit_field.cpp
++++ b/src/fit_field.cpp
+@@ -131,9 +131,13 @@
+ 
+ FIT_UINT16 Field::GetNumComponents(void) const
+ {
+-    if ((profile == NULL) || (profileIndex >= profile->numFields))
++    const auto* const mesg = profile;
++    if (__builtin_expect(mesg == NULL, 0))
+         return 0;
+-    return profile->fields[profileIndex].numComponents;
++    const auto idx = profileIndex;
++    if (__builtin_expect(idx >= mesg->numFields, 0))
++        return 0;
++    return mesg->fields[idx].numComponents;
+ }
+ 
+ FIT_UINT16 Field::GetNumSubFields(void) const
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -72,11 +72,13 @@
+ 
+ FIT_FLOAT64 FieldBase::GetOffset(const FIT_UINT16 subFieldIndex) const
+ {
+-    if (subFieldIndex >= GetNumSubFields())
++    if ((subFieldIndex == 0xFFFF) || (subFieldIndex >= GetNumSubFields()))
+         return GetOffset();
+ 
+-    auto subfield = GetSubField(subFieldIndex);
+-    return NULL != subfield ? subfield->offset : 0.0;
++    const auto subfield = GetSubField(subFieldIndex);
++    if (__builtin_expect(subfield != NULL, 1))
++        return subfield->offset;
++    return 0.0;
+ }
+ 
+ FIT_BOOL FieldBase::IsSignedInteger(const FIT_UINT16 subFieldIndex) const
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -250,10 +250,12 @@
+ 
+ Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    Field* p = fields.data();
++    Field* const end = p + fields.size();
++    for (; p != end; ++p)
+     {
+-        if (fields[i].GetNum() == fieldNum)
+-            return &fields[i];
++        if (p->GetNum() == fieldNum)
++            return p;
+     }
+ 
+     return FIT_NULL;
+--- a/src/fit_profile.cpp
++++ b/src/fit_profile.cpp
+@@ -3057,12 +3057,32 @@
+ 
+ const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+ {
++    enum { SMALL = 1024 };
++    struct Index
++    {
++        const Profile::MESG* ptr[SMALL];
++        Index()
++        {
++            for (int k = 0; k < SMALL; k++)
++                ptr[k] = NULL;
++            for (int i = MESGS - 1; i >= 0; i--)
++            {
++                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
++                if (n < SMALL)
++                    ptr[n] = &mesgs[i];
++            }
++        }
++    };
++    static const Index table;
++
++    if (num < SMALL)
++        return table.ptr[num];
++
+     for (int i = 0; i < MESGS; i++)
+     {
+-        if (mesgs[i].num == num)
++        if ((FIT_UINT16)mesgs[i].num == num)
+             return &mesgs[i];
+     }
+-
+     return NULL;
+ }
+ 

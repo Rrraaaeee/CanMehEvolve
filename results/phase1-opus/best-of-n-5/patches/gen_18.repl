@@ -1,0 +1,12 @@
+The member copies here (a pointer, an index, a type and a flag) are trivial and already in the initializer list. Any real cost is in copying `FieldBase`, which this function can't change without altering behavior. So the rewrite keeps the same semantics and stays in the initializer-list form, which is already optimal. Don't expect a measurable speedup from this change alone.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(field),
+      profile(field.profile),
+      profileIndex(field.profileIndex),
+      type(field.type),
+      isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

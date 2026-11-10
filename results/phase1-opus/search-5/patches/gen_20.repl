@@ -1,0 +1,12 @@
+The function only copies its members, and I don't see a meaningful safe speedup here. The real cost is in `FieldBase`'s copy constructor, which this function can't change. The rewrite below is behavior-identical: it makes the base-class copy explicit and keeps the members in their declared order. I don't expect it to measurably change decode time.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase&>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

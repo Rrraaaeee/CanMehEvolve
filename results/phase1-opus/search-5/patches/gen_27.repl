@@ -1,0 +1,55 @@
+The original does two linear scans on every call: one through all messages in `GetMesg`, then one through that message's fields. This version replaces both with lookups in tables built once from the constant profile data, so each call becomes two array reads.
+
+- **Same results:** duplicates keep the first match, as the original scans do, so every return value is unchanged.
+- **Thread-safe setup:** a function-local static builds the tables, and C++ makes that initialization thread-safe.
+- **No mutable-state cache:** the tables are built only from the `const` `mesgs` array, never from global mutable state.
+- **Memory:** about 128 KB for the message-number table, plus 512 bytes per message for the field tables.
+- **Assumptions:** I couldn't check the header here. The code relies on `Profile::mesgs` being an array whose declared size is visible in this file. It also assumes each message has fewer than 65535 fields, which is true of the profile data.
+
+```cpp
+const FIT_UINT16 Profile::GetFieldIndex(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+{
+    struct Tables
+    {
+        FIT_UINT16 mesgIdx[65536];
+        std::vector<std::array<FIT_UINT16, 256>> fieldIdx;
+
+        Tables()
+        {
+            const size_t numMesgs = sizeof(Profile::mesgs) / sizeof(Profile::mesgs[0]);
+            for (size_t i = 0; i < 65536; i++)
+                mesgIdx[i] = FIT_UINT16_INVALID;
+            fieldIdx.resize(numMesgs);
+            for (size_t m = 0; m < numMesgs; m++)
+            {
+                const MESG &mesg = Profile::mesgs[m];
+                if (mesgIdx[mesg.num] == FIT_UINT16_INVALID)
+                    mesgIdx[mesg.num] = (FIT_UINT16)m;
+
+                std::array<FIT_UINT16, 256> &tbl = fieldIdx[m];
+                tbl.fill(FIT_UINT16_INVALID);
+                for (FIT_UINT16 i = 0; i < mesg.numFields; i++)
+                {
+                    const FIT_UINT8 fnum = mesg.fields[i].num;
+                    if (tbl[fnum] == FIT_UINT16_INVALID)
+                        tbl[fnum] = i;
+                }
+            }
+        }
+    };
+
+    static const Tables *tables = new Tables();
+
+    const FIT_UINT16 m = tables->mesgIdx[mesgNum];
+    if (m == FIT_UINT16_INVALID)
+        return FIT_UINT16_INVALID;
+
+    return tables->fieldIdx[m][fieldNum];
+}
+```
+
+```includes
+#include <vector>
+#include <array>
+#include <cstddef>
+```

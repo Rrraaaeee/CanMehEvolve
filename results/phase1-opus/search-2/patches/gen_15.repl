@@ -1,0 +1,45 @@
+The current version uses a 64 KB lookup table, which adds cache pressure on every lookup. This rewrite shrinks the table to 1024 one-byte entries for message numbers below 1024, so it stays in L1 cache. Any number at or above 1024 (e.g. the 0xFF00 manufacturer range) falls back to a linear scan.
+
+Behavior is unchanged:
+- **First match wins.** The table is filled from the last entry backwards, and the fallback scan runs from index 0, so both return the first match.
+- **Missing numbers.** Anything not found still returns `NULL`.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    typedef typename std::conditional<((int)MESGS < 255), FIT_UINT8, FIT_UINT16>::type IdxT;
+    enum { SMALL = 1024 };
+    struct Index
+    {
+        IdxT idx[SMALL];
+        Index()
+        {
+            const IdxT none = (IdxT)~(IdxT)0;
+            for (int k = 0; k < SMALL; k++)
+                idx[k] = none;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                const FIT_UINT16 n = (FIT_UINT16)mesgs[i].num;
+                if (n < SMALL)
+                    idx[n] = (IdxT)i;
+            }
+        }
+    };
+    static const Index table;
+
+    if (num < SMALL)
+    {
+        const IdxT i = table.idx[num];
+        if (i == (IdxT)~(IdxT)0)
+            return NULL;
+        return &mesgs[i];
+    }
+
+    for (int i = 0; i < MESGS; i++)
+    {
+        if ((FIT_UINT16)mesgs[i].num == num)
+            return &mesgs[i];
+    }
+    return NULL;
+}
+```

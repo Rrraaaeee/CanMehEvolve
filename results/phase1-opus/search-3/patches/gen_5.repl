@@ -1,0 +1,8 @@
+Copy-constructing the two members in the initializer list avoids building empty containers in the constructor body and then copy-assigning into them. Any other members are still default-initialized, as before, so behavior is unchanged.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values), stringIndexes(field.stringIndexes)
+{
+}
+```

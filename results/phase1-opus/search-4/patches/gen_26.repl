@@ -1,0 +1,13 @@
+The original function already does the minimum work: two `delete` calls. Rewriting it cannot change behavior, but it is unlikely to give a measurable speedup either.
+
+The only change is explicit null checks before each `delete`. This puts the common "pointer is null" case on a branch that skips the destructor call path entirely. Behavior is identical, because `delete` on a null pointer is already a no-op. Any gain will be marginal at best, since the compiler normally emits an equivalent check on its own.
+
+```cpp
+DeveloperFieldDefinition::~DeveloperFieldDefinition()
+{
+    if (mesg != nullptr)
+        delete mesg;
+    if (developer != nullptr)
+        delete developer;
+}
+```

@@ -1,0 +1,15 @@
+The function already does very little, so the realistic gain is small. The rewrite reads the `profile` member once into a local, so the compiler doesn't reload it for the bounds check and the field access. It also checks the common valid case first, so that path has a single branch. The returned value is the same for every input.
+
+```cpp
+FIT_UINT16 Field::GetNumSubFields(void) const
+{
+    const auto* const p = profile;
+    if (p != NULL)
+    {
+        const auto idx = profileIndex;
+        if (idx < p->numFields)
+            return p->fields[idx].numSubFields;
+    }
+    return 0;
+}
+```

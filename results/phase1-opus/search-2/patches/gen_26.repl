@@ -1,0 +1,9 @@
+The copy constructor now uses a member initializer list. Each vector is built directly from the source instead of being default-constructed and then copy-assigned. This skips the extra initialization and capacity checks, and the copied contents are the same as before. Any other members are still default-initialized, exactly as in the original.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

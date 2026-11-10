@@ -1,0 +1,56 @@
+The lookup table now stores `MESG` pointers directly instead of signed indices. A hit becomes a single load with no sign test and no index-to-address multiply.
+
+- **Memory:** the table grows to 8 KB, but decoding only touches the few entries for message types it actually sees, so cache use stays small.
+- **Behaviour:** unchanged. For duplicate numbers the first match still wins, because the table is filled in reverse order.
+- **Numbers of 1024 and above:** they still go through the range check and then a linear scan of the remaining messages.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    enum { LUT_SIZE = 1024 };
+    struct Lut
+    {
+        const Profile::MESG* ptr[LUT_SIZE];
+        FIT_UINT32 hiMin;
+        FIT_UINT32 hiMax;
+        int hiFirst;
+        Lut()
+        {
+            for (int k = 0; k < LUT_SIZE; k++)
+                ptr[k] = NULL;
+            hiMin = 0xFFFFFFFFu;
+            hiMax = 0;
+            hiFirst = MESGS;
+            for (int i = MESGS - 1; i >= 0; i--)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (n < LUT_SIZE)
+                {
+                    ptr[n] = &mesgs[i];
+                }
+                else
+                {
+                    if (n < hiMin) hiMin = n;
+                    if (n > hiMax) hiMax = n;
+                    hiFirst = i;
+                }
+            }
+        }
+    };
+    static const Lut lut;
+
+    if (num < LUT_SIZE)
+        return lut.ptr[num];
+
+    if ((FIT_UINT32)num < lut.hiMin || (FIT_UINT32)num > lut.hiMax)
+        return NULL;
+
+    for (int i = lut.hiFirst; i < MESGS; i++)
+    {
+        if (mesgs[i].num == num)
+            return &mesgs[i];
+    }
+
+    return NULL;
+}
+```

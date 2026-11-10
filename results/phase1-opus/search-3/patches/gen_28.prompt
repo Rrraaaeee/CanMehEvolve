@@ -1,0 +1,16 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::GetScale
+One decode of the test corpus takes about 358.509 ms.
+The code below currently runs at 0.897206 of the original SDK's decode time; the best found so far is 0.867271.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex >= GetNumSubFields())
+        return GetScale();
+
+    auto subfield = GetSubField(subFieldIndex);
+    return NULL != subfield ? subfield->scale : 1.0;
+}
+```

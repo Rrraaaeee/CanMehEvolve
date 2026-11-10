@@ -1,0 +1,12 @@
+The function was already minimal, so this rewrite changes little. It indexes through `fields.data()` instead of `operator[]`, and keeps the same bounds check and the same `FIT_NULL` return. The speed difference will be negligible at best.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const size_t count = fields.size();
+    if (static_cast<size_t>(index) < count)
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```

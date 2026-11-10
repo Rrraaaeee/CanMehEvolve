@@ -1,0 +1,52 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -377,21 +377,41 @@
+     if ((int) fieldIndex >= GetNumFields())
+         return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+ 
+-    for (FIT_UINT16 i = 0; i < fields[fieldIndex].GetNumSubFields(); i++)
++    const Field& field = fields[fieldIndex];
++    const FIT_UINT16 numSubFields = field.GetNumSubFields();
++
++    bool haveCache = false;
++    int cachedNum = -1;
++    const Field* cachedField = FIT_NULL;
++    FIT_SINT32 cachedValue = 0;
++
++    for (FIT_UINT16 i = 0; i < numSubFields; i++)
+     {
+-        const Profile::SUBFIELD* subField = fields[fieldIndex].GetSubField(i);
++        const Profile::SUBFIELD* subField = field.GetSubField(i);
+ 
+         if (subField != FIT_NULL)
+         {
+-            for (int j = 0; j < (int) subField->numMaps; j++)
++            const int numMaps = (int) subField->numMaps;
++            for (int j = 0; j < numMaps; j++)
+             {
+-                const Field* refField = GetField(subField->maps[j].refFieldNum);
++                const int refNum = (int) subField->maps[j].refFieldNum;
++
++                if (!haveCache || refNum != cachedNum)
++                {
++                    cachedNum = refNum;
++                    haveCache = true;
++                    cachedField = GetField(subField->maps[j].refFieldNum);
++                    if (cachedField != FIT_NULL)
++                    {
++                        FIT_FLOAT64 refValue = cachedField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++                        refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
++                        cachedValue = (FIT_SINT32)refValue;
++                    }
++                }
+ 
+-                if (refField != FIT_NULL)
++                if (cachedField != FIT_NULL)
+                 {
+-                    FIT_FLOAT64 refValue = refField->GetFLOAT64Value(0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+-                    refValue += ((refValue >= 0.0) ? (0.5) : (-0.5));
+-                    if ((FIT_SINT32)refValue == subField->maps[j].refFieldValue)
++                    if (cachedValue == subField->maps[j].refFieldValue)
+                         return ((FIT_UINT16) i);
+                 }
+             }

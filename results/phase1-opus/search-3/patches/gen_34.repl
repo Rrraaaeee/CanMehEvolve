@@ -1,0 +1,15 @@
+The rewrite calls `GetType()` once and reuses the result. The original made the call up to three times, and these calls are probably virtual and dispatched through `Field`/`DeveloperField`. Validity is still checked first, and every return value is unchanged. This assumes `GetType()` has no side effects and returns the same value on each call, which holds for a plain getter.
+
+```cpp
+FIT_UINT8 FieldBase::GetNumValues(void) const
+{
+    if (!IsValid())
+        return 0;
+
+    const FIT_UINT8 type = GetType();
+    if (type != FIT_BASE_TYPE_STRING)
+        return (FIT_UINT8)(values.size() / baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK]);
+
+    return (FIT_UINT8)stringIndexes.size();
+}
+```

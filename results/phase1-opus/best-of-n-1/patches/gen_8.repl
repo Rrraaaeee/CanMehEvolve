@@ -1,0 +1,8 @@
+This getter is a single forwarding call, so there is no real speedup available inside it. Any meaningful gain would have to come from `GetFieldFLOAT32Value` or the field lookup it performs. Because a reply identical to the input is rejected, the version below only adds explicit integer types for the field number and index. The call, and therefore its behavior, is unchanged.
+
+```cpp
+    FIT_FLOAT32 GetAvgRightPedalSmoothness(void) const
+    {
+        return GetFieldFLOAT32Value(static_cast<FIT_UINT8>(62), static_cast<FIT_UINT8>(0), FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

@@ -1,0 +1,9 @@
+The null checks are unnecessary because `delete` on a null pointer is already a no-op. Resetting the members to `nullptr` is also unnecessary: the object's lifetime ends with this destructor, so nothing can legally read them afterwards. Removing both saves a couple of branches and stores. This is a micro-change; little measurable speedup is expected.
+
+```cpp
+DeveloperFieldDefinition::~DeveloperFieldDefinition()
+{
+    delete mesg;
+    delete developer;
+}
+```

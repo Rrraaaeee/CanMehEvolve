@@ -1,0 +1,14 @@
+File: src/fit_mesg.cpp
+Function: Mesg::GetNum
+One decode of the test corpus takes about 358.548 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FIT_UINT16 Mesg::GetNum() const
+{
+    if (profile == FIT_NULL)
+        return FIT_MESG_NUM_INVALID;
+
+    return profile->num;
+}
+```

@@ -1,0 +1,22 @@
+The new version computes the required byte count once, keeps the original `(FIT_UINT8)` truncating check so resize behaves exactly as before, then writes the four little-endian bytes through one pointer instead of four bounds-computed `operator[]` calls.
+
+After the check, the buffer is always at least `need` bytes long, so the pointer writes stay in bounds:
+- **Resize taken:** the size becomes exactly `need`.
+- **Resize skipped:** `values.size() >= (FIT_UINT8)values.size() >= need`.
+
+```cpp
+void FieldBase::SetUINT32Value(const FIT_UINT32 value, const FIT_UINT8 fieldArrayIndex)
+{
+    const size_t need = ((size_t)fieldArrayIndex + 1) * sizeof(FIT_UINT32);
+    if ((FIT_UINT8)values.size() < need)
+    {
+        values.resize(need);
+    }
+
+    FIT_BYTE* p = &values[(size_t)fieldArrayIndex * sizeof(FIT_UINT32)];
+    p[0] = (FIT_BYTE)(value);
+    p[1] = (FIT_BYTE)(value >> 8);
+    p[2] = (FIT_BYTE)(value >> 16);
+    p[3] = (FIT_BYTE)(value >> 24);
+}
+```

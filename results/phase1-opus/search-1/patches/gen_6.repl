@@ -1,0 +1,8 @@
+This getter is a single forwarding call, so there is no real work to remove without relying on internals of `Mesg` that I can't see and check. I made only a cosmetic change: the call now goes through an explicit `this->` and passes typed constants for the field number and array index. Behavior is identical, and any speed difference will be negligible.
+
+```cpp
+    FIT_FLOAT32 GetAvgRightPedalSmoothness(void) const
+    {
+        return this->GetFieldFLOAT32Value(static_cast<FIT_UINT8>(62), static_cast<FIT_UINT8>(0), FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

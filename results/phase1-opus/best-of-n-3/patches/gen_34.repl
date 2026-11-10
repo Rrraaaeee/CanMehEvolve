@@ -1,0 +1,19 @@
+This function is already minimal, so the gain will be small at best. The rewrite makes two changes that do not affect behavior:
+
+- **Branch hint:** `__builtin_expect` marks the common case, where `type` is already set, as the likely path.
+- **Single loads:** `type` and `profile` are each read once into locals, so the compiler does not reload member fields.
+
+```cpp
+FIT_UINT8 Field::GetType() const
+{
+    const FIT_UINT8 t = type;
+    if (__builtin_expect(t != FIT_UINT8_INVALID, 1))
+        return t;
+
+    const Profile::MESG* const p = profile;
+    if ((p == NULL) || (profileIndex >= p->numFields))
+        return FIT_UINT8_INVALID;
+
+    return p->fields[profileIndex].type;
+}
+```

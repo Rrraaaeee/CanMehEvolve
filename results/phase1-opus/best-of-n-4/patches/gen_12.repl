@@ -1,0 +1,11 @@
+The function is already minimal, so the gain here is small at best. This version reads `profile` once into a local, so the null check, bounds check and array access all use the same pointer. It also marks the invalid path as unlikely, which keeps the common lookup path straight-line. Behavior is unchanged.
+
+```cpp
+FIT_UINT8 Field::GetNum(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+        return FIT_FIELD_NUM_INVALID;
+    return p->fields[profileIndex].num;
+}
+```

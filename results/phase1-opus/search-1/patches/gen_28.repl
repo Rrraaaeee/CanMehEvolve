@@ -1,0 +1,8 @@
+This setter isn't on the decode path, so no rewrite of it will measurably change decode time. The call is already minimal, and anything more invasive would only add risk. I've kept the behavior identical and made only the required change: the field number and array index are now passed as explicitly typed constants. The call target and arguments are exactly the same as before.
+
+```cpp
+    void SetFunctionalThresholdPower(FIT_UINT16 functionalThresholdPower)
+    {
+        SetFieldUINT16Value(static_cast<FIT_UINT8>(15), functionalThresholdPower, static_cast<FIT_UINT8>(0), FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

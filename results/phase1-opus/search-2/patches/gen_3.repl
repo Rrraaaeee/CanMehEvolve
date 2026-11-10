@@ -1,0 +1,16 @@
+The rewrite caches the vector's base pointer and size once, then scans with a plain pointer. This removes the repeated `size()` reload and the `int` cast in the loop condition. It still calls `GetNum()` and returns the first match, so behavior is unchanged. Expect only a small speedup, since the original loop was already simple.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* p = fields.data();
+    Field* const end = p + fields.size();
+    for (; p != end; ++p)
+    {
+        if (p->GetNum() == fieldNum)
+            return p;
+    }
+
+    return FIT_NULL;
+}
+```

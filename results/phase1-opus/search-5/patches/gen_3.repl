@@ -1,0 +1,29 @@
+The original does a linear scan over every message definition on each call. This version builds a 64K-entry index table once and then answers each lookup with a single array access.
+
+- **Same result as the scan:** the table is filled from the last definition to the first. So when a number appears more than once, the first match wins, as in the original.
+- **Missing numbers:** they map to a sentinel value, so the function still returns `NULL` for them.
+- **No dependence on mutable state:** the table is built only from the constant `mesgs` array.
+- **Thread-safe setup:** it is built once through a function-local static, whose initialization C++11 and later guarantee to be thread-safe.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Index
+    {
+        FIT_UINT16 idx[65536];
+        Index()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = MESGS - 1; i >= 0; i--)
+                idx[mesgs[i].num] = (FIT_UINT16)i;
+        }
+    };
+    static const Index index;
+
+    const FIT_UINT16 i = index.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

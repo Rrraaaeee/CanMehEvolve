@@ -1,0 +1,5 @@
+---------------------------------------------------------------------------
+Benchmark                 Time             CPU   Iterations UserCounters...
+---------------------------------------------------------------------------
+decode/real_time  361636147 ns    361624627 ns          128 bytes_per_second=2.39188Mi/s
+{"bytes":907007,"checksum":"92bebfd7f8978fc8","files":4,"library":"/home/q/qingxuan/CanMehSolve/build/phase1-work-best-of-n-4-1107587/libfit_sampling.so","ok":true}

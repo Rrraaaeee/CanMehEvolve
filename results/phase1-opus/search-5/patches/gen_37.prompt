@@ -1,0 +1,18 @@
+File: src/fit_session_mesg.hpp
+Function: IsTotalFractionalAscentValid
+One decode of the test corpus takes about 359.528 ms.
+The code below currently runs at 0.873172 of the original SDK's decode time; the best found so far is 0.873172.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_BOOL IsTotalFractionalAscentValid() const
+    {
+        const Field* field = GetField(199);
+        if( FIT_NULL == field )
+        {
+            return FIT_FALSE;
+        }
+
+        return field->IsValueValid();
+    }
+```

@@ -1,0 +1,8 @@
+This function is a single comparison, so there is nothing meaningful to speed up. The rewrite makes the conversion to `FIT_BOOL` explicit and compiles to the same code. It returns the same value for every input, so behavior is unchanged.
+
+```cpp
+FIT_BOOL Field::IsValid(void) const
+{
+    return static_cast<FIT_BOOL>(profileIndex != static_cast<FIT_UINT16>(FIT_UINT16_INVALID));
+}
+```

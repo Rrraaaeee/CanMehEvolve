@@ -1,0 +1,9 @@
+This function is a single field lookup and a validity check, with no real work to cut. The rewrite keeps the same calls and logic, written as a null check plus a short-circuit return. Any speedup would be marginal, but behavior is identical.
+
+```cpp
+    FIT_BOOL IsUserProfilePrimaryKeyValid() const
+    {
+        const Field* const field = GetField(4);
+        return (field != FIT_NULL) && field->IsValueValid() ? FIT_TRUE : FIT_FALSE;
+    }
+```

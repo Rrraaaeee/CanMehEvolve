@@ -1,0 +1,30 @@
+`Profile::GetFieldIndex` calls `Profile::GetMesg` again internally, so the message table was searched twice per `Field`. This version looks up the message once and scans its fields directly to find the index.
+
+The loop assumes `GetFieldIndex` is a plain linear scan that returns the first index whose field number matches, or `FIT_UINT16_INVALID`. That matches the SDK source as I remember it, but I haven't checked it against this copy.
+
+`profileIndex` is set in the constructor body rather than the initializer list. That way it doesn't matter which of `profile` and `profileIndex` is declared first.
+
+```cpp
+Field::Field(const FIT_UINT16 mesgNum, const FIT_UINT8 fieldNum)
+    : FieldBase()
+    , profile(Profile::GetMesg(mesgNum))
+    , profileIndex(FIT_UINT16_INVALID)
+    , type(FIT_UINT8_INVALID)
+    , isFieldExpanded(FIT_FALSE)
+{
+    const Profile::MESG* const mesg = profile;
+    if (mesg != FIT_NULL)
+    {
+        const FIT_UINT16 n = mesg->numFields;
+        const Profile::FIELD* const fields = mesg->fields;
+        for (FIT_UINT16 i = 0; i < n; i++)
+        {
+            if (fields[i].num == fieldNum)
+            {
+                profileIndex = i;
+                break;
+            }
+        }
+    }
+}
+```

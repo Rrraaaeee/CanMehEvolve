@@ -1,0 +1,16 @@
+The original is already minimal, so any speedup here will be marginal at best. This version computes the size once and returns `fields.data() + index` directly. That avoids going through `operator[]`, which can carry an assertion check under some standard-library debug modes. Behavior is unchanged: the same bounds check, and the same pointer or null result for every index.
+
+```cpp
+FieldDefinition* MesgDefinition::GetFieldByIndex(const FIT_UINT16 index)
+{
+    const std::size_t count = fields.size();
+    if (static_cast<std::size_t>(index) < count)
+        return fields.data() + index;
+
+    return FIT_NULL;
+}
+```
+
+```includes
+#include <cstddef>
+```

@@ -1,0 +1,8 @@
+This setter only forwards to `SetFieldSINT8Value`, and the call itself has to stay to preserve behavior. There is nothing measurable to gain here, so the change is cosmetic: the literal arguments are cast explicitly to the parameter types. The call, and so the behavior, is unchanged.
+
+```cpp
+    void SetRightPco(FIT_SINT8 rightPco)
+    {
+        SetFieldSINT8Value(static_cast<FIT_UINT8>(68), rightPco, static_cast<FIT_UINT8>(0), static_cast<FIT_UINT16>(FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

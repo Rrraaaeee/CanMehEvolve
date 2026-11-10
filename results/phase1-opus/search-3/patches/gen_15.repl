@@ -1,0 +1,5 @@
+The destructor is already empty, so the members are destroyed implicitly either way. Defaulting it out-of-line keeps the same member-destruction semantics. It also lets the compiler treat it as a defaulted special member, which can enable slightly better codegen (for example, skipping an empty user-provided body). Any speedup is likely small.
+
+```cpp
+FieldBase::~FieldBase() = default;
+```

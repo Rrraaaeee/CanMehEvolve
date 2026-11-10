@@ -1,0 +1,32 @@
+The previous version fell back to a linear scan of every profile message for any `num >= 1024`, which includes the manufacturer-specific range (0xFF00 and up). This rewrite covers the whole 16-bit message-number range with one lookup table built once.
+
+- **Lookup cost:** every lookup is now one bounds-free table read plus one compare. Unknown and high-numbered messages no longer pay for the scan.
+- **Memory:** the table is 128 KB of `uint16` indices, built once on first call. Only the entries actually looked up get touched, so cache pressure stays low.
+- **Behaviour:** results are identical to before. The first match wins for duplicate numbers, and `NULL` is still returned when there is no match.
+
+```cpp
+const Profile::MESG* Profile::GetMesg(const FIT_UINT16 num)
+{
+    struct Table
+    {
+        FIT_UINT16 idx[65536];
+        Table()
+        {
+            for (int k = 0; k < 65536; k++)
+                idx[k] = 0xFFFF;
+            for (int i = 0; i < MESGS; i++)
+            {
+                FIT_UINT16 n = mesgs[i].num;
+                if (idx[n] == 0xFFFF)
+                    idx[n] = (FIT_UINT16)i;
+            }
+        }
+    };
+    static const Table table;
+
+    FIT_UINT16 i = table.idx[num];
+    if (i == 0xFFFF)
+        return NULL;
+    return &mesgs[i];
+}
+```

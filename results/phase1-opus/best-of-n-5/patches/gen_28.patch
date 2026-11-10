@@ -1,0 +1,13 @@
+--- a/src/fit_accelerometer_data_mesg.hpp
++++ b/src/fit_accelerometer_data_mesg.hpp
+@@ -43,9 +43,7 @@
+     {
+     }
+ 
+-    AccelerometerDataMesg(const Mesg &mesg) : Mesg(mesg)
+-    {
+-    }
++    AccelerometerDataMesg(const Mesg &mesg) : Mesg(mesg) {}
+ 
+     ///////////////////////////////////////////////////////////////////////
+     // Checks the validity of timestamp field

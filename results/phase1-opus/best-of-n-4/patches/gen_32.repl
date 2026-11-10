@@ -1,0 +1,11 @@
+This function is already minimal, so the speedup will be small at best. The rewrite reads `profile` once into a local `const` pointer and marks the null and out-of-range branches as unlikely, which lets the compiler lay out the common path straight through. The checks, their order and the return values are unchanged, so behavior is identical.
+
+```cpp
+FIT_UINT16 Field::GetNumComponents(void) const
+{
+    const Profile::MESG* const p = profile;
+    if (__builtin_expect((p == NULL) || (profileIndex >= p->numFields), 0))
+        return 0;
+    return p->fields[profileIndex].numComponents;
+}
+```

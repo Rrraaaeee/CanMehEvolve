@@ -1,0 +1,11 @@
+File: src/fit_session_mesg.hpp
+Function: GetEnhancedAvgAltitude
+One decode of the test corpus takes about 358.66 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_FLOAT32 GetEnhancedAvgAltitude(void) const
+    {
+        return GetFieldFLOAT32Value(126, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```
