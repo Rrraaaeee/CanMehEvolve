@@ -1,0 +1,9 @@
+baselines (milliseconds describe this node only)
+  O2            358.714 ms   null clean   null ratio 0.9996
+  O3-native     323.317 ms   null clean   null ratio 1.0007
+
+kind   name         trials faster unstable    ratio  speedup   lowest  highest
+pair   flag-only         3      3        0   0.9053   10.46%   10.37%   10.53%
+patch  patch-at-O2       3      3        0   0.5983   67.13%   66.76%   67.35%
+patch  patch-on-flag      3      3        0   0.5959   67.83%   67.79%   67.90%
+pair   MAX               3      3        0   0.5389   85.55%   85.33%   85.77%

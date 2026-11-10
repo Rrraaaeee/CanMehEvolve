@@ -1,0 +1,12 @@
+host: xcnc3
+slurm job: 1109538
+Model name:                              Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+logical cpus: 24
+c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+commit: 8a0331406d8d2261f6583a23b0a6146d2e6265a7
+patch sha256: 4deeb63746f849e3684baaa23d9a21a521cb320f073b4c59468afc0e6f3dc147
+repeat: 10, repetitions: 9, trials: 3
+started: 2026-11-10T15:48:57Z
+O2 null run: clean
+O3-native null run: clean
+finished: 2026-11-10T16:14:33Z
