@@ -1,0 +1,14 @@
+The constructor below is functionally the same as the original. Each member is still initialized in its initializer list. I left out a separate FieldBase sub-object copy because it can't be skipped without changing behavior.
+
+The rewrite only changes how the members are referenced, so expect little or no speedup. A copy constructor that only copies members leaves little to optimize. Bigger gains would need changes outside this function, such as avoiding the copies at call sites or giving FieldBase cheaper copy semantics.
+
+```cpp
+Field::Field(const Field &field)
+    : FieldBase(static_cast<const FieldBase&>(field))
+    , profile(field.profile)
+    , profileIndex(field.profileIndex)
+    , type(field.type)
+    , isFieldExpanded(field.isFieldExpanded)
+{
+}
+```

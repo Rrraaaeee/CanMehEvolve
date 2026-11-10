@@ -1,0 +1,12 @@
+File: src/fit_field_base.cpp
+Function: FieldBase::FieldBase
+One decode of the test corpus takes about 358.828 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+{
+    values = field.values;
+    stringIndexes = field.stringIndexes;
+}
+```

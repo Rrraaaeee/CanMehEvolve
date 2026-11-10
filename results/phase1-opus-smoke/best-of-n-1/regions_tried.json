@@ -1,0 +1,20 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field.cpp",
+    "label": "Field::Field",
+    "region": 113,
+    "samples": 383
+  },
+  {
+    "accepted": 1,
+    "attempts": 1,
+    "best_gain": 0.05425216474092187,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 459
+  }
+]

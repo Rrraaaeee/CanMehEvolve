@@ -1,0 +1,11 @@
+The original constructor default-constructs both members and then copy-assigns into them. Initializing `values` and `stringIndexes` directly in the member initializer list copy-constructs them in one step. That skips the empty default construction and the assignment logic, which saves work on every field copy during decoding.
+
+The resulting member values and any other side effects are the same as before. If the header declares the two members in the other order, the compiler may warn, but the behavior is unchanged.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```
