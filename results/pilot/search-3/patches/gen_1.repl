@@ -1,0 +1,8 @@
+The body only forwards to `GetValue<FIT_UINT32Z>`, and I don't have that template's definition. A rewrite that bypasses it could change results for invalid or absent values, so I kept the call. The change below only adds an inlining hint, which should not alter any decoded value. The gain is likely small, and the real cost is probably inside `GetValue`, so profiling that would be more useful.
+
+```cpp
+[[gnu::always_inline]] FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
+{
+    return GetValue<FIT_UINT32Z>(fieldArrayIndex);
+}
+```

@@ -1,0 +1,11 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -862,7 +862,7 @@
+ 
+ void FieldBase::SetUINT32ZValue(const FIT_UINT32Z value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT32Value(value, fieldArrayIndex);
++    SetUINT32Value(static_cast<FIT_UINT32>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetSINT64Value(const FIT_SINT64 value, const FIT_UINT8 fieldArrayIndex)

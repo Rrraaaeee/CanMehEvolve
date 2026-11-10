@@ -1,0 +1,15 @@
+The wrapper's cost is almost entirely in `GetField` and `CanSupportSubField`, which aren't shown, so this change is a small one. It keeps the same checks in the same order and short-circuit behavior, and only restructures the early returns. Any real speedup would need changes to `GetField` or `Field::GetSINT8Value`.
+
+```cpp
+FIT_SINT8 Mesg::GetFieldSINT8Value(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+    if (field == FIT_NULL)
+        return FIT_SINT8_INVALID;
+
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return FIT_SINT8_INVALID;
+
+    return field->GetSINT8Value(fieldArrayIndex);
+}
+```

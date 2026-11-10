@@ -1,0 +1,11 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -821,7 +821,7 @@
+ 
+ void FieldBase::SetSINT16Value(const FIT_SINT16 value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT16Value(value, fieldArrayIndex);
++    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetUINT16Value(const FIT_UINT16 value, const FIT_UINT8 fieldArrayIndex)

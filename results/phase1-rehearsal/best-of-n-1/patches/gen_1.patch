@@ -1,0 +1,14 @@
+--- a/src/fit_session_mesg.hpp
++++ b/src/fit_session_mesg.hpp
+@@ -256,7 +256,10 @@
+     ///////////////////////////////////////////////////////////////////////
+     void SetTimestamp(FIT_DATE_TIME timestamp)
+     {
+-        SetFieldUINT32Value(253, timestamp, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        SetFieldUINT32Value(static_cast<FIT_UINT32>(253),
++                            static_cast<FIT_UINT32>(timestamp),
++                            static_cast<FIT_UINT32>(0),
++                            FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

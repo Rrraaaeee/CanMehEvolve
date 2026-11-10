@@ -1,0 +1,15 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -637,11 +637,10 @@
+         return;
+ 
+     Field *field = AddField(fieldNum);
+-
+     if (field == FIT_NULL)
+         return;
+ 
+-    return field->SetBYTEValue(value, fieldArrayIndex);
++    field->SetBYTEValue(value, fieldArrayIndex);
+ }
+ 
+ void Mesg::SetFieldSINT8Value(const FIT_UINT8 fieldNum, const FIT_SINT8 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)

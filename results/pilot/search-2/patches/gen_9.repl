@@ -1,0 +1,19 @@
+This keeps the original `(FIT_UINT8)values.size()` comparison and resize, since that truncation can shrink the vector for large sizes and that behavior has to be preserved. The byte loop is replaced by two direct stores with a single computed base pointer. Both writes stay in bounds because the resize guarantees the vector holds at least `required` bytes.
+
+```cpp
+void FieldBase::SetUINT16Value(const FIT_UINT16 value, const FIT_UINT8 fieldArrayIndex)
+{
+    const size_t required = (fieldArrayIndex + 1) * sizeof(FIT_UINT16);
+    if ((FIT_UINT8)values.size() < required)
+    {
+        values.resize(required);
+    }
+
+    FIT_BYTE* p = values.data() + (fieldArrayIndex * sizeof(FIT_UINT16));
+    p[0] = (FIT_BYTE)(value);
+    p[1] = (FIT_BYTE)(value >> 8);
+}
+```
+
+```includes
+```

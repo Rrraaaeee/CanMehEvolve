@@ -1,0 +1,14 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -160,7 +160,11 @@
+ void Decode::IncompleteStream()
+ {
+     // Do not allow changing the settings after Read has started.
++#if defined(__GNUC__) || defined(__clang__)
++    if (__builtin_expect(file != NULL, 0))
++#else
+     if (file != NULL)
++#endif
+     {
+         throw RuntimeException("Can't set incompleteStream option after Decode started!");
+     }

@@ -1,0 +1,12 @@
+The original is already a bounds check plus an address computation, so the gain here is small. This version uses `data() + i` in place of `&fields[index]`, which skips the `operator[]` call path in unoptimized builds and gives the same result for every input.
+
+```cpp
+const Field* Mesg::GetFieldByIndex(const FIT_UINT16 index) const
+{
+    const std::size_t i = static_cast<std::size_t>(index);
+    if (i < fields.size())
+        return fields.data() + i;
+
+    return FIT_NULL;
+}
+```

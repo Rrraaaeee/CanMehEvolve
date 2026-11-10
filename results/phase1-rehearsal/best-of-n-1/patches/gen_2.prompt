@@ -1,0 +1,10 @@
+File: src/fit_ant_rx_mesg.hpp
+Function: AntRxMesg
+One decode of the test corpus takes about 270.234 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    AntRxMesg(const Mesg &mesg) : Mesg(mesg)
+    {
+    }
+```

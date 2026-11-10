@@ -1,0 +1,14 @@
+The main cost here is the `std::string` copy on return. The original ternary builds an extra temporary from `""` and then copies `units` into it, so the version below returns `units` directly through the return slot. The observable behavior is unchanged, but the gain is modest because the copy itself remains.
+
+```cpp
+std::string FieldBase::GetUnits(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex >= GetNumSubFields())
+        return GetUnits();
+
+    const auto subfield = GetSubField(subFieldIndex);
+    if (NULL != subfield)
+        return subfield->units;
+    return std::string();
+}
+```

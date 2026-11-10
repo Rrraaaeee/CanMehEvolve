@@ -1,0 +1,26 @@
+The original calls `GetName()` and `GetNumSubFields()` repeatedly inside nested loops. The version below hoists the per-field reference and subfield count out of the inner loop, so the field lookup and count run once per field instead of once per subfield iteration. Matching order, short-circuit behavior, the 16-bit index type, and return values are unchanged. The gain is modest, since the per-call string copies in the getters (which I can't see here) remain.
+
+```cpp
+const Field* Mesg::GetField(const std::string& name) const
+{
+    const FIT_UINT16 count = (FIT_UINT16)fields.size();
+    for (FIT_UINT16 i = 0; i < count; i++)
+    {
+        const Field& f = fields[i];
+        if (f.GetName() == name)
+            return &fields[i];
+
+        const FIT_UINT16 numSub = f.GetNumSubFields();
+        for (FIT_UINT16 j = 0; j < numSub; j++)
+        {
+            if ((f.GetName(j) == name) && CanSupportSubField(&fields[i], j))
+                return &fields[i];
+        }
+    }
+
+    return FIT_NULL;
+}
+```
+
+```includes
+```

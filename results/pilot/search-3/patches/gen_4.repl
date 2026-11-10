@@ -1,0 +1,16 @@
+The original loop re-evaluates `fields.size()` and converts to `int` on every iteration, and indexes through `operator[]`. The rewrite walks a raw pointer range over the vector's storage instead, which keeps the same first-match semantics and return values. It adds no members or state.
+
+```cpp
+Field* Mesg::GetField(const FIT_UINT8 fieldNum)
+{
+    Field* const begin = fields.data();
+    Field* const end = begin + fields.size();
+    for (Field* f = begin; f != end; ++f)
+    {
+        if (f->GetNum() == fieldNum)
+            return f;
+    }
+
+    return FIT_NULL;
+}
+```

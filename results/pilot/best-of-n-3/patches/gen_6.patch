@@ -1,0 +1,22 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -18,6 +18,7 @@
+ #include "fit_mesg_listener.hpp"
+ #include "fit_developer_data_id_mesg.hpp"
+ #include "fit_developer_field.hpp"
++#include <ios>
+ 
+ 
+ namespace fit
+@@ -399,9 +400,9 @@
+     lastTimeOffset = 0;
+ 
+     // Reset to the beginning of the file
+-    if ( startOfFile == FIT_TRUE)
++    if (startOfFile == FIT_TRUE)
+     {
+-        file.seekg(0, file.beg);
++        file.seekg(0, std::ios::beg);
+     }
+ 
+     file.clear(); // workaround libc++ issue

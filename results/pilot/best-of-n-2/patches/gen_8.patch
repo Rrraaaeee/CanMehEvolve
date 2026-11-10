@@ -1,0 +1,20 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -14,6 +14,7 @@
+ #include <algorithm>
+ #include "fit_mesg.hpp"
+ #include "fit_mesg_definition.hpp"
++#include <cstddef>
+ 
+ namespace fit
+ {
+@@ -237,7 +238,8 @@
+ 
+ int Mesg::GetNumDevFields() const
+ {
+-    return (int)devFields.size();
++    const std::size_t n = devFields.size();
++    return static_cast<int>(n);
+ }
+ 
+ Field* Mesg::GetFieldByIndex(const FIT_UINT16 index)

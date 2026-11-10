@@ -1,0 +1,8 @@
+The wrapper itself does almost no work. Nearly all of its cost is in `GetFieldENUMValue`, which isn't shown, so I can't safely bypass it without risking behavior changes. The change below is semantically identical and only makes the return conversion explicit. Expect little or no measurable speedup. A real gain would require optimizing `GetFieldENUMValue` (or the field lookup it performs), which is outside this function.
+
+```cpp
+    FIT_SIDE GetMountingSide(void) const
+    {
+        return static_cast<FIT_SIDE>(GetFieldENUMValue(56, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD));
+    }
+```

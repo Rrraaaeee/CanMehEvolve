@@ -1,0 +1,11 @@
+--- a/src/fit_device_settings_mesg.hpp
++++ b/src/fit_device_settings_mesg.hpp
+@@ -509,7 +509,7 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_SIDE GetMountingSide(void) const
+     {
+-        return GetFieldENUMValue(56, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        return static_cast<FIT_SIDE>(GetFieldENUMValue(56, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD));
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

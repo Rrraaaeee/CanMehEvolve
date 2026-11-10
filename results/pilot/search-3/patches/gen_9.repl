@@ -1,0 +1,8 @@
+The original passes `value` to `SetUINT32Value` through an implicit signed-to-unsigned conversion. I make that conversion explicit. The behavior is identical (two's-complement wrap, same as the implicit conversion), and the call stays the same, so the compiler sees the same work. I can't confirm a speedup without the body of `SetUINT32Value`, so the gain is expected to be negligible.
+
+```cpp
+void FieldBase::SetSINT32Value(const FIT_SINT32 value, const FIT_UINT8 fieldArrayIndex)
+{
+    SetUINT32Value(static_cast<FIT_UINT32>(value), fieldArrayIndex);
+}
+```

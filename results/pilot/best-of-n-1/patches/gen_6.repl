@@ -1,0 +1,13 @@
+The function is a thin wrapper, and its cost is almost entirely in `CanSupportSubField`, `AddField`, and `SetUINT32ZValue`, which aren't shown. I kept the call order and side effects identical. The only change is replacing the null-check early return with a single guarded call, which removes a branch and a return path. Expect a small gain at most; the real speedups would have to come from those helpers.
+
+```cpp
+void Mesg::SetFieldUINT32ZValue(const FIT_UINT8 fieldNum, const FIT_UINT32Z value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+{
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return;
+
+    Field *field = AddField(fieldNum);
+    if (field != FIT_NULL)
+        field->SetUINT32ZValue(value, fieldArrayIndex);
+}
+```

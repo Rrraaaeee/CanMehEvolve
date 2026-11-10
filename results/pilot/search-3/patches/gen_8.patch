@@ -1,0 +1,42 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -209,7 +209,7 @@
+     return GetValue<FIT_SINT32>(fieldArrayIndex);
+ }
+ 
+-FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
++[[gnu::always_inline]] FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
+ {
+     return GetValue<FIT_UINT32Z>(fieldArrayIndex);
+ }
+@@ -839,7 +839,7 @@
+ 
+ void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT16Value(value, fieldArrayIndex);
++    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetSINT32Value(const FIT_SINT32 value, const FIT_UINT8 fieldArrayIndex)
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -21,8 +21,6 @@
+ Mesg::Mesg()
+     : profile(FIT_NULL)
+     , localNum(0)
+-    , fields()
+-    , devFields()
+ {
+ }
+ 
+@@ -186,8 +184,8 @@
+ 
+     if (field == FIT_NULL)
+     {
+-        fields.push_back(Field(profile->num, fieldNum));
+-        field = &fields[fields.size() - 1];
++        fields.emplace_back(profile->num, fieldNum);
++        field = &fields.back();
+     }
+ 
+     return field;

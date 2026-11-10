@@ -1,0 +1,12 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -160,7 +160,8 @@
+ void Decode::IncompleteStream()
+ {
+     // Do not allow changing the settings after Read has started.
+-    if (file != NULL)
++    // The throw is the cold path, so hint the compiler accordingly.
++    if (__builtin_expect(file != NULL, 0))
+     {
+         throw RuntimeException("Can't set incompleteStream option after Decode started!");
+     }

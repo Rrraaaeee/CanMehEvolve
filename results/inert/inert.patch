@@ -1,0 +1,18 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -27,6 +27,7 @@
+ const FIT_UINT8 Decode::DevFieldSizeOffset = 1;
+ const FIT_UINT8 Decode::DevFieldIndexOffset = 2;
+ 
++// inert: a comment changes no instruction
+ Decode::Decode()
+     : mesgListener(NULL)
+     , mesgDefinitionListener(NULL)
+@@ -48,6 +49,7 @@
+     suppressComponentExpansion = FIT_FALSE;
+ }
+ 
++
+ FIT_BOOL Decode::IsFIT(std::istream &file)
+ {
+     FIT_BOOL returnValue = FIT_FALSE;

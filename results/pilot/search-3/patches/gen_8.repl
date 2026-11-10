@@ -1,0 +1,9 @@
+The constructor only default-constructs the two vectors, which the compiler already does. The cleanest safe change is to drop those no-op initializers and keep the two real ones. The signature and member set are unchanged, and the observable state is identical. The gain will be marginal.
+
+```cpp
+Mesg::Mesg()
+    : profile(FIT_NULL)
+    , localNum(0)
+{
+}
+```

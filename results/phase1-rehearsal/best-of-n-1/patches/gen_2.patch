@@ -1,0 +1,11 @@
+--- a/src/fit_ant_rx_mesg.hpp
++++ b/src/fit_ant_rx_mesg.hpp
+@@ -37,7 +37,7 @@
+     {
+     }
+ 
+-    AntRxMesg(const Mesg &mesg) : Mesg(mesg)
++    AntRxMesg(const Mesg &mesg) : Mesg(static_cast<const Mesg &>(mesg))
+     {
+     }
+ 

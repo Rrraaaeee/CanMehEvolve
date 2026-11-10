@@ -1,0 +1,15 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -57,8 +57,10 @@
+     if (subFieldIndex >= GetNumSubFields())
+         return GetUnits();
+ 
+-    auto subfield = GetSubField(subFieldIndex);
+-    return NULL != subfield ? subfield->units : "";
++    const auto subfield = GetSubField(subFieldIndex);
++    if (NULL != subfield)
++        return subfield->units;
++    return std::string();
+ }
+ 
+ FIT_FLOAT64 FieldBase::GetScale(const FIT_UINT16 subFieldIndex) const

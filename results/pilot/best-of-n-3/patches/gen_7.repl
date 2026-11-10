@@ -1,0 +1,16 @@
+The function runs once per decode and does a single pointer check, so no real speedup is available. The change below only adds a branch-prediction hint on the throw path. It is GCC/Clang-specific, and the observable behavior is unchanged.
+
+```cpp
+void Decode::IncompleteStream()
+{
+    // Do not allow changing the settings after Read has started.
+    // The throw is the cold path, so hint the compiler accordingly.
+    if (__builtin_expect(file != NULL, 0))
+    {
+        throw RuntimeException("Can't set incompleteStream option after Decode started!");
+    }
+    // Don't raise an error if eof is encountered during decode,
+    // caller may try to resume if more bytes arrive.
+    streamIsComplete = FIT_FALSE;
+}
+```

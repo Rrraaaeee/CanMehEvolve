@@ -1,0 +1,19 @@
+The function does a single pointer check and a store, so it can't account for any meaningful share of the 269.94 ms. The change below only adds a branch-prediction hint on the cold error path. Expect no measurable speedup; the time is spent elsewhere in the decoder.
+
+```cpp
+void Decode::IncompleteStream()
+{
+    // Do not allow changing the settings after Read has started.
+#if defined(__GNUC__) || defined(__clang__)
+    if (__builtin_expect(file != NULL, 0))
+#else
+    if (file != NULL)
+#endif
+    {
+        throw RuntimeException("Can't set incompleteStream option after Decode started!");
+    }
+    // Don't raise an error if eof is encountered during decode,
+    // caller may try to resume if more bytes arrive.
+    streamIsComplete = FIT_FALSE;
+}
+```

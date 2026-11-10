@@ -1,0 +1,12 @@
+CanMehBench is folding every Profile::GetMesg, GetFieldIndex and GetField answer; a candidate with undersized tables dies here
+the reference library read 907007 bytes and decoded 34251 messages, 428714 fields, checksum 92bebfd7f8978fc8
+2026-11-10T01:06:39+00:00
+Running /home/qingxuan/proj_cs6219/CanMehEvolve/build/CanMehBench
+Run on (80 X 4100 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x40)
+  L1 Instruction 32 KiB (x40)
+  L2 Unified 1024 KiB (x40)
+  L3 Unified 36608 KiB (x2)
+Load Average: 35.32, 35.52, 36.30
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.

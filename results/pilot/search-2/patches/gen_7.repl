@@ -1,0 +1,47 @@
+The main cost in the original is the per-byte `values.insert` loop, which shifts the tail on every insert. The replacement does one bulk insert or resize for the zero block, then copies the bytes directly. The index arithmetic and the `uint8` truncations are kept as they were, so the observable results match, including the odd edge cases for strings longer than 255 bytes.
+
+```cpp
+void FieldBase::SetSTRINGValue(const FIT_WSTRING& value, const FIT_UINT8 fieldArrayIndex)
+{
+    if (!IsValid())
+        return;
+
+    Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+    const FIT_UINT8 stringLength = (FIT_UINT8)stringValue.length();
+    const FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+    FIT_UINT8 idx = 0;
+
+    if (fieldArrayIndex < numStrings)
+    {
+        idx = stringIndexes[fieldArrayIndex];
+        if (fieldArrayIndex + 1 < numStrings)
+        {
+            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+            values.erase(values.begin() + idx, values.begin() + nextIdx);
+        }
+        else
+        {
+            values.erase(values.begin() + idx, values.end());
+        }
+        values.insert(values.begin() + idx, (size_t)stringLength + 1, (FIT_BYTE)0);
+    }
+    else
+    {
+        idx = (FIT_UINT8)values.size();
+        stringIndexes.push_back(idx);
+        values.resize(values.size() + (size_t)stringLength + 1, (FIT_BYTE)0);
+    }
+
+    const size_t len = stringValue.length();
+    FIT_BYTE* dst = values.data() + idx;
+    for (size_t i = 0; i < len; i++)
+    {
+        dst[i] = static_cast<FIT_BYTE>(stringValue[i]);
+    }
+
+    values[idx + len] = 0; // null terminate
+}
+```
+
+```includes
+```

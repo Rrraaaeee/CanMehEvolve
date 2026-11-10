@@ -1,0 +1,14 @@
+null run: ratio 0.999611, p 0.548828, baseline 270.023 ms
+155 of 5514 regions are drawable
+gen 1: ratio 0.999218 p 0.246094
+gen 2: ratio 0.992518 p 0.0234375
+gen 3: ratio 1.00572 p 0.136719
+gen 4: ratio 1.00091 p 0.628906
+gen 5: ratio 0.998142 p 0.337891
+gen 6: ratio 1.00638 p 0.341797
+gen 7: ratio 1.00224 p 0.46875
+gen 8: ratio 0.992422 p 0.00585938
+gen 9: ratio 1.00188 p 0.304688
+gen 10: ratio 1.00909 p 0.861328
+best confirmed speedup 1 after 10 calls and 15378 tokens (nothing confirmed; best.patch is empty)
+exit status: 0

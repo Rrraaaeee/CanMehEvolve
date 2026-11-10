@@ -1,0 +1,22 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -45,11 +45,14 @@
+ 
+ FIT_UINT8 FieldBase::GetType(const FIT_UINT16 subFieldIndex) const
+ {
+-    if (subFieldIndex >= GetNumSubFields())
+-        return GetType();
+-
+-    auto subfield = GetSubField(subFieldIndex);
+-    return NULL != subfield ? subfield->type : FIT_UINT8_INVALID;
++    if (subFieldIndex < GetNumSubFields())
++    {
++        const auto subfield = GetSubField(subFieldIndex);
++        if (NULL != subfield)
++            return subfield->type;
++        return FIT_UINT8_INVALID;
++    }
++    return GetType();
+ }
+ 
+ std::string FieldBase::GetUnits(const FIT_UINT16 subFieldIndex) const

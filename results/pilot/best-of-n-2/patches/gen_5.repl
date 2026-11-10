@@ -1,0 +1,8 @@
+This function is already minimal: one pointer test and one load. The rewrite below uses a conditional expression, which has the same semantics. Any speedup will be negligible, since the cost is dominated by the surrounding decode work, not this accessor.
+
+```cpp
+FIT_UINT16 Mesg::GetNum() const
+{
+    return (profile != FIT_NULL) ? profile->num : FIT_MESG_NUM_INVALID;
+}
+```

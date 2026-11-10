@@ -1,0 +1,13 @@
+The copy is already close to minimal: each `std::vector` copy constructor allocates exactly once and copy-constructs its elements. I can't remove those allocations without changing the object's layout, which the rules forbid. The change below only skips the copy call for an empty `devFields`, which is common. The gain is small, and it is the only change I'm confident is safe without knowing the element types.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields(mesg.fields)
+    , devFields()
+{
+    if (!mesg.devFields.empty())
+        devFields = mesg.devFields;
+}
+```

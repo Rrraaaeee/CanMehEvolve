@@ -1,0 +1,28 @@
+The function does a few field assignments and at most one stream seek per call, so it is unlikely to be a meaningful part of the 270 ms. The change below is a small cleanup with identical behavior. The seek and `clear()` order is kept, because swapping them would change behavior on a failed stream.
+
+```cpp
+void Decode::InitRead(std::istream &file, FIT_BOOL startOfFile)
+{
+    fileBytesLeft = 3; // Header byte + CRC.
+    fileHdrOffset = 0;
+    crc = 0;
+    headerException = "";
+    // Only reset to header state if we do not want
+    // to skip the header.
+    if (skipHeader == FIT_FALSE)
+        state = STATE_FILE_HDR;
+    lastTimeOffset = 0;
+
+    // Reset to the beginning of the file
+    if (startOfFile == FIT_TRUE)
+    {
+        file.seekg(0, std::ios::beg);
+    }
+
+    file.clear(); // workaround libc++ issue
+}
+```
+
+```includes
+#include <ios>
+```

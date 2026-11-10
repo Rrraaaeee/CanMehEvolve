@@ -1,0 +1,16 @@
+The helper functions aren't visible, so I can't safely inline or reorder their logic. `CanSupportSubField` must run before `AddField`, since `AddField` has side effects. The only change that is clearly safe is a branch hint on the common path, and I'd expect only a small gain. The real cost is most likely inside `AddField` and `Field::SetSINT64Value`, which would need changes in their own files.
+
+```cpp
+void Mesg::SetFieldSINT64Value(const FIT_UINT8 fieldNum, const FIT_SINT64 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+{
+    if (__builtin_expect(!CanSupportSubField(fieldNum, subFieldIndex), 0))
+        return;
+
+    Field *field = AddField(fieldNum);
+
+    if (__builtin_expect(field == FIT_NULL, 0))
+        return;
+
+    field->SetSINT64Value(value, fieldArrayIndex);
+}
+```

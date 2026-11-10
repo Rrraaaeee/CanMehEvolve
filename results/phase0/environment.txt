@@ -1,0 +1,6 @@
+host: leffe2
+Model name:                              Intel(R) Xeon(R) Gold 6242R CPU @ 3.10GHz
+c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+repeat: 10, repetitions: 9, rounds: 30
+started: 2026-11-09T05:57:42Z
+finished: 2026-11-09T06:16:20Z

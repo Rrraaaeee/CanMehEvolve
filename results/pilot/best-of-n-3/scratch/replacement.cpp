@@ -1,0 +1,36 @@
+void FieldBase::SetSTRINGValue(const FIT_WSTRING& value, const FIT_UINT8 fieldArrayIndex)
+{
+    if (!IsValid())
+        return;
+
+    Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+    const int stringLength = (int)(FIT_UINT8)stringValue.length();
+    FIT_UINT8 idx = 0;
+    FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+
+    if (fieldArrayIndex < numStrings)
+    {
+        idx = stringIndexes[fieldArrayIndex];
+        if (fieldArrayIndex + 1 < numStrings)
+        {
+            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+            values.erase(values.begin() + idx, values.begin() + nextIdx);
+        }
+        else
+        {
+            values.erase(values.begin() + idx, values.end());
+        }
+
+        values.insert(values.begin() + idx, (size_t)(stringLength + 1), (FIT_BYTE)0);
+    }
+    else
+    {
+        idx = (FIT_UINT8)values.size();
+        stringIndexes.push_back(idx);
+        values.resize(values.size() + (size_t)(stringLength + 1), (FIT_BYTE)0);
+    }
+
+    const size_t len = stringValue.length();
+    std::copy(stringValue.begin(), stringValue.end(), values.begin() + idx);
+    values[idx + len] = 0; // null terminate
+}

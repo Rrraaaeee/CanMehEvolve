@@ -1,0 +1,21 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -659,15 +659,15 @@
+ 
+ void Mesg::SetFieldUINT8Value(const FIT_UINT8 fieldNum, const FIT_UINT8 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+ {
+-    if (!CanSupportSubField(fieldNum, subFieldIndex))
++    if (!CanSupportSubField(fieldNum, subFieldIndex)) [[unlikely]]
+         return;
+ 
+     Field *field = AddField(fieldNum);
+ 
+-    if (field == FIT_NULL)
++    if (field == FIT_NULL) [[unlikely]]
+         return;
+ 
+-    return field->SetUINT8Value(value, fieldArrayIndex);
++    field->SetUINT8Value(value, fieldArrayIndex);
+ }
+ 
+ void Mesg::SetFieldUINT8ZValue(const FIT_UINT8 fieldNum, const FIT_UINT8 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)

@@ -1,0 +1,15 @@
+This version checks for a missing field before calling `CanSupportSubField`, so the null-field path skips that call. Both calls are `const` and the observable result is unchanged. I couldn't see `GetField` or `CanSupportSubField`, so the gain is probably small.
+
+```cpp
+FIT_UINT64Z Mesg::GetFieldUINT64ZValue(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+    if (field == FIT_NULL)
+        return FIT_UINT64Z_INVALID;
+
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return FIT_UINT64Z_INVALID;
+
+    return field->GetUINT64ZValue(fieldArrayIndex);
+}
+```

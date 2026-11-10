@@ -1,0 +1,8 @@
+The wrapper only forwards to `SetUINT16Value`, and that callee's body isn't visible here, so there's little to gain in this function alone. The change below is behavior-neutral: it makes the `FIT_UINT16Z` to `FIT_UINT16` conversion explicit, which is the same type in the SDK. Any real speedup would have to come from `SetUINT16Value` itself.
+
+```cpp
+void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)
+{
+    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+}
+```

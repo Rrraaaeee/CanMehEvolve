@@ -1,0 +1,12 @@
+host: leffe2
+slurm job: rehearsal
+Model name:                              Intel(R) Xeon(R) Gold 6242R CPU @ 3.10GHz
+logical cpus: 80
+c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+commit: 0bce2476eee226fd5dc28cf093a57c8ae0d94c1b (src modified)
+src/Search.cpp sha256: 3496c9ab4cba47c7cff7a6a9499f0e5cde611602d0633dfa7cdc24318dc1945d
+repeat: 10, repetitions: 9, rounds: 3
+started: 2026-11-10T00:30:13Z
+the reference library read 907007 bytes and decoded 34251 messages, 428714 fields, checksum 92bebfd7f8978fc8
+null run: clean
+finished: 2026-11-10T00:39:37Z

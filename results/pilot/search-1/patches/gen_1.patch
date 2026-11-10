@@ -1,0 +1,34 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -30,22 +30,22 @@
+ Decode::Decode()
+     : mesgListener(NULL)
+     , mesgDefinitionListener(NULL)
++    , streamIsComplete(FIT_TRUE)
++    , skipHeader(FIT_FALSE)
++    , invalidDataSize(FIT_FALSE)
++    , file(NULL)
++    , currentByteOffset(0)
++    , bytesRead(0)
++    , currentByteIndex(0)
++    , suppressComponentExpansion(FIT_FALSE)
+ {
++    // Elements are already default-constructed; just set their local numbers.
+     for (int i=0; i<FIT_MAX_LOCAL_MESGS; i++)
+     {
+-        localMesgDefs[i] = MesgDefinition();
+         localMesgDefs[i].SetLocalNum((FIT_UINT8) i);
+     }
+ 
+     headerException = "";
+-    streamIsComplete = FIT_TRUE;
+-    skipHeader = FIT_FALSE;
+-    invalidDataSize = FIT_FALSE;
+-    file = NULL;
+-    currentByteOffset = 0;
+-    bytesRead = 0;
+-    currentByteIndex = 0;
+-    suppressComponentExpansion = FIT_FALSE;
+ }
+ 
+ FIT_BOOL Decode::IsFIT(std::istream &file)

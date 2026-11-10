@@ -1,0 +1,92 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::CheckIntegrity",
+    "region": 42,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::IncompleteStream",
+    "region": 44,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::InitRead",
+    "region": 54,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 133,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetBitsSignedValue64",
+    "region": 147,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetUINT16ZValue",
+    "region": 158,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetUINT32ZValue",
+    "region": 185,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetSTRINGValue",
+    "region": 191,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetFieldByIndex",
+    "region": 236,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::SetFieldUINT8Value",
+    "region": 265,
+    "samples": 0
+  }
+]

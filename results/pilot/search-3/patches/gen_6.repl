@@ -1,0 +1,45 @@
+The main cost is the element-by-element `insert` and `push_back` loops, which shift the tail of `values` once per byte. Replacing them with a single bulk `insert` of `stringLength + 1` zero bytes keeps the same final contents. The unused `dif` computation is dropped, and the `stringIndexes` bookkeeping is left unchanged. I have not compiled or benchmarked this.
+
+```cpp
+void FieldBase::SetSTRINGValue(const FIT_WSTRING& value, const FIT_UINT8 fieldArrayIndex)
+{
+    if (!IsValid())
+        return;
+
+    Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+    const FIT_UINT8 stringLength = (FIT_UINT8)stringValue.length();
+    const size_t zeroCount = (size_t)stringLength + 1;
+    FIT_UINT8 idx = 0;
+    const FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+
+    if (fieldArrayIndex < numStrings)
+    {
+        idx = stringIndexes[fieldArrayIndex];
+        if (fieldArrayIndex + 1 < numStrings)
+        {
+            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+            values.erase(values.begin() + idx, values.begin() + nextIdx);
+        }
+        else
+        {
+            values.erase(values.begin() + idx, values.end());
+        }
+
+        values.insert(values.begin() + idx, zeroCount, static_cast<FIT_BYTE>(0));
+    }
+    else
+    {
+        idx = (FIT_UINT8)values.size();
+        stringIndexes.push_back(idx);
+        values.insert(values.end(), zeroCount, static_cast<FIT_BYTE>(0));
+    }
+
+    const size_t len = stringValue.length();
+    for (size_t i = 0; i < len; i++)
+    {
+        values[idx + i] = static_cast<FIT_BYTE>(stringValue[i]);
+    }
+
+    values[idx + len] = 0; // null terminate
+}
+```

@@ -1,0 +1,13 @@
+The function body `GetBitsValueT` isn't shown, so I can't safely reimplement the bit extraction. The change below is a small, low-risk fast path for `bits == 0`. It assumes the template yields 0 for zero-width reads, which is the natural result of a mask-based extraction. Verify that against `GetBitsValueT` before relying on it.
+
+```cpp
+FIT_UINT64 FieldBase::GetBitsValue64(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+{
+    if (bits == 0)
+        return 0;
+    return GetBitsValueT<FIT_UINT64>(offset, bits);
+}
+```
+
+```includes
+```

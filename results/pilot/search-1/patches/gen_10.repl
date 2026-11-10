@@ -1,0 +1,18 @@
+The original calls `GetField` and `CanSupportSubField` first, then branches on the active-subfield sentinel and calls `field->GetSTRINGValue` from two places. This version resolves the effective subfield index once, before the single `GetSTRINGValue` call. The call order and every return path are unchanged, so behavior is preserved. The speedup is likely small, since the gain depends on the cost of the calls I can't see.
+
+```cpp
+FIT_WSTRING Mesg::GetFieldSTRINGValue(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+    if (field == FIT_NULL)
+        return FIT_WSTRING_INVALID;
+
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return FIT_WSTRING_INVALID;
+
+    const FIT_UINT16 effectiveSubField = (subFieldIndex == FIT_SUBFIELD_INDEX_ACTIVE_SUBFIELD)
+                                         ? GetActiveSubFieldIndex(fieldNum)
+                                         : subFieldIndex;
+    return field->GetSTRINGValue(fieldArrayIndex, effectiveSubField);
+}
+```

@@ -1,0 +1,12 @@
+The constructor only default-initializes two empty vectors and two scalars, so it has almost no cost. The change below pre-reserves capacity in `fields` to avoid early reallocations while a message's fields are appended. This is a guess about typical message sizes, and it trades a small allocation for messages that end up with no fields. Expect little gain overall. The real hot spots are likely in the field-decoding path, not here.
+
+```cpp
+Mesg::Mesg()
+    : profile(FIT_NULL)
+    , localNum(0)
+    , fields()
+    , devFields()
+{
+    fields.reserve(8);
+}
+```

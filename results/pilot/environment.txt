@@ -1,0 +1,6 @@
+host: leffe2
+Model name:                              Intel(R) Xeon(R) Gold 6242R CPU @ 3.10GHz
+c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+model: claude-haiku-5-5, generations: 10, seeds: 1 2 3, regions: fit_decode.cpp,fit_mesg.cpp,fit_field_base.cpp
+started: 2026-11-09T06:46:15Z
+finished: 2026-11-09T07:27:22Z

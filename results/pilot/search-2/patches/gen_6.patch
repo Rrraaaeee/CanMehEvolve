@@ -1,0 +1,55 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -144,8 +144,13 @@
+ 
+ FIT_UINT16 Mesg::GetNum() const
+ {
++#if defined(__GNUC__) || defined(__clang__)
++    if (__builtin_expect(profile == FIT_NULL, 0))
++        return FIT_MESG_NUM_INVALID;
++#else
+     if (profile == FIT_NULL)
+         return FIT_MESG_NUM_INVALID;
++#endif
+ 
+     return profile->num;
+ }
+@@ -163,9 +168,11 @@
+ 
+ FIT_BOOL Mesg::HasField(const int fieldNum) const
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    const Field* data = fields.data();
++    const size_t n = fields.size();
++    for (size_t i = 0; i < n; ++i)
+     {
+-        if (fields[i].GetNum() == fieldNum)
++        if (data[i].GetNum() == fieldNum)
+             return FIT_TRUE;
+     }
+ 
+@@ -297,15 +304,18 @@
+ 
+ const Field* Mesg::GetField(const std::string& name) const
+ {
+-    for (FIT_UINT16 i = 0; i < (FIT_UINT16)fields.size(); i++)
++    const FIT_UINT16 count = (FIT_UINT16)fields.size();
++    for (FIT_UINT16 i = 0; i < count; i++)
+     {
+-        if (fields[i].GetName().compare(name) == 0)
+-            return &fields[i];
++        const Field& field = fields[i];
++        if (field.GetName().compare(name) == 0)
++            return &field;
+ 
+-        for (FIT_UINT16 j = 0; j < fields[i].GetNumSubFields(); j++)
++        const FIT_UINT16 subCount = field.GetNumSubFields();
++        for (FIT_UINT16 j = 0; j < subCount; j++)
+         {
+-            if ((fields[i].GetName(j).compare(name) == 0) && CanSupportSubField(&(fields[i]),j))
+-                return &fields[i];
++            if ((field.GetName(j).compare(name) == 0) && CanSupportSubField(&field, j))
++                return &field;
+         }
+     }
+ 

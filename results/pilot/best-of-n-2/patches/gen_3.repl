@@ -1,0 +1,8 @@
+The wrapper's cost is one call, which `-O2` will usually turn into a tail call already. The real work is in `SetUINT16Value`, which I can't see, so I can't safely inline it. This version makes the signed-to-unsigned conversion explicit. It has the same behavior as the implicit conversion, and it avoids relying on the compiler to infer it.
+
+```cpp
+void FieldBase::SetSINT16Value(const FIT_SINT16 value, const FIT_UINT8 fieldArrayIndex)
+{
+    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+}
+```

@@ -1,0 +1,27 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -297,15 +297,18 @@
+ 
+ const Field* Mesg::GetField(const std::string& name) const
+ {
+-    for (FIT_UINT16 i = 0; i < (FIT_UINT16)fields.size(); i++)
++    const size_t count = fields.size();
++    for (size_t i = 0; i < count; i++)
+     {
+-        if (fields[i].GetName().compare(name) == 0)
+-            return &fields[i];
++        const Field& f = fields[i];
++        if (f.GetName() == name)
++            return &f;
+ 
+-        for (FIT_UINT16 j = 0; j < fields[i].GetNumSubFields(); j++)
++        const FIT_UINT16 numSub = f.GetNumSubFields();
++        for (FIT_UINT16 j = 0; j < numSub; j++)
+         {
+-            if ((fields[i].GetName(j).compare(name) == 0) && CanSupportSubField(&(fields[i]),j))
+-                return &fields[i];
++            if ((f.GetName(j) == name) && CanSupportSubField(&f, j))
++                return &f;
+         }
+     }
+ 

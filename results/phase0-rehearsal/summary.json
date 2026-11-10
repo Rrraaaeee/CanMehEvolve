@@ -1,0 +1,176 @@
+[
+  {
+    "pair": "null",
+    "true_ratio": 1.0,
+    "trials": 3,
+    "measured": 3,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.707598226178713
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": -0.0055773095976509035,
+    "median_ratio": 0.9913488734266557,
+    "mean_bias": -0.0055773095976509035,
+    "median_bias": -0.008651126573344325,
+    "largest_absolute_error": 0.014305704935809738,
+    "median_spread": 0.10267118532251363,
+    "unstable_trials": 0,
+    "load_range": [
+      35.93,
+      36.44
+    ],
+    "lag1_median_of_trial_medians": -0.0036901461498523302,
+    "lag1_process_range": [
+      -0.6830035034075076,
+      0.7082426365767654
+    ]
+  },
+  {
+    "pair": "faster-1-percent",
+    "true_ratio": 0.99005,
+    "trials": 1,
+    "measured": 1,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.9749999999999999
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": -0.010608336241696548,
+    "median_ratio": 0.9794416637583034,
+    "mean_bias": -0.010608336241696548,
+    "median_bias": -0.010608336241696548,
+    "largest_absolute_error": 0.010608336241696548,
+    "median_spread": 0.07497955693698011,
+    "unstable_trials": 0,
+    "load_range": [
+      35.86,
+      35.86
+    ],
+    "lag1_median_of_trial_medians": -0.016461683315516867,
+    "lag1_process_range": [
+      -0.4438136516321527,
+      0.5519958237789213
+    ]
+  },
+  {
+    "pair": "faster-2-percent",
+    "true_ratio": 0.98035,
+    "trials": 1,
+    "measured": 1,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.9749999999999999
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": 0.0005507529505048847,
+    "median_ratio": 0.9809007529505049,
+    "mean_bias": 0.0005507529505048847,
+    "median_bias": 0.0005507529505048847,
+    "largest_absolute_error": 0.0005507529505048847,
+    "median_spread": 0.09754895525271945,
+    "unstable_trials": 0,
+    "load_range": [
+      35.89,
+      35.89
+    ],
+    "lag1_median_of_trial_medians": 0.10485309406999696,
+    "lag1_process_range": [
+      -0.5552411530912684,
+      0.611277094735652
+    ]
+  },
+  {
+    "pair": "faster-5-percent",
+    "true_ratio": 0.95235,
+    "trials": 1,
+    "measured": 1,
+    "called_faster": 1,
+    "rate": 1.0,
+    "rate_ci95": [
+      0.025000000000000022,
+      1.0
+    ],
+    "called_faster_single_measurement": 1,
+    "mean_bias_first_measurement": 0.008585118765300881,
+    "median_ratio": 0.9681082476191536,
+    "mean_bias": 0.015758247619153565,
+    "median_bias": 0.015758247619153565,
+    "largest_absolute_error": 0.015758247619153565,
+    "median_spread": 0.0960757152829006,
+    "unstable_trials": 0,
+    "load_range": [
+      35.73,
+      35.73
+    ],
+    "lag1_median_of_trial_medians": -0.0518424088206426,
+    "lag1_process_range": [
+      -0.5354644046325406,
+      0.5088157184619435
+    ]
+  },
+  {
+    "pair": "faster-10-percent",
+    "true_ratio": 0.90905,
+    "trials": 1,
+    "measured": 1,
+    "called_faster": 1,
+    "rate": 1.0,
+    "rate_ci95": [
+      0.025000000000000022,
+      1.0
+    ],
+    "called_faster_single_measurement": 1,
+    "mean_bias_first_measurement": 0.002417293163265888,
+    "median_ratio": 0.9114672931632659,
+    "mean_bias": 0.002417293163265888,
+    "median_bias": 0.002417293163265888,
+    "largest_absolute_error": 0.002417293163265888,
+    "median_spread": 0.10443278168954517,
+    "unstable_trials": 0,
+    "load_range": [
+      35.52,
+      35.52
+    ],
+    "lag1_median_of_trial_medians": 0.004109214468680407,
+    "lag1_process_range": [
+      -0.6170874854256952,
+      0.4885004652285297
+    ]
+  },
+  {
+    "pair": "slower-10-percent",
+    "true_ratio": 1.1,
+    "trials": 1,
+    "measured": 1,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.9749999999999999
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": 0.0032397482457111604,
+    "median_ratio": 1.1032397482457112,
+    "mean_bias": 0.0032397482457111604,
+    "median_bias": 0.0032397482457111604,
+    "largest_absolute_error": 0.0032397482457111604,
+    "median_spread": 0.11859979548653721,
+    "unstable_trials": 0,
+    "load_range": [
+      35.71,
+      35.71
+    ],
+    "lag1_median_of_trial_medians": -0.06080070519567414,
+    "lag1_process_range": [
+      -0.5179043798636654,
+      0.08176130952961169
+    ]
+  }
+]

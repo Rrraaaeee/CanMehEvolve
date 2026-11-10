@@ -1,0 +1,23 @@
+The main cost is in `Field::GetName()` and `GetName(j)`, which return `std::string` by value and allocate on every call. I can't avoid those copies without knowing whether `Field` exposes a `const std::string&` accessor, and I can't add friends or members. So this version keeps the same calls and only trims the loop overhead: it hoists the per-field sub-field count and uses `size_t` indices. The gain is likely small. A bigger win would need a by-reference name accessor on `Field`, which would be a change outside this function.
+
+```cpp
+const Field* Mesg::GetField(const std::string& name) const
+{
+    const size_t count = fields.size();
+    for (size_t i = 0; i < count; i++)
+    {
+        const Field& f = fields[i];
+        if (f.GetName() == name)
+            return &f;
+
+        const FIT_UINT16 numSub = f.GetNumSubFields();
+        for (FIT_UINT16 j = 0; j < numSub; j++)
+        {
+            if ((f.GetName(j) == name) && CanSupportSubField(&f, j))
+                return &f;
+        }
+    }
+
+    return FIT_NULL;
+}
+```

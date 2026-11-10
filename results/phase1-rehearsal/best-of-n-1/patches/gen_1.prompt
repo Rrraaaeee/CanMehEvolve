@@ -1,0 +1,11 @@
+File: src/fit_session_mesg.hpp
+Function: SetTimestamp
+One decode of the test corpus takes about 270.234 ms.
+
+Rewrite this function to make decoding faster:
+```cpp
+    void SetTimestamp(FIT_DATE_TIME timestamp)
+    {
+        SetFieldUINT32Value(253, timestamp, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

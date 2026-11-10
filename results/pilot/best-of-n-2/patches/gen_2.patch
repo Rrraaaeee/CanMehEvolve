@@ -1,0 +1,21 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -763,15 +763,15 @@
+ 
+ void Mesg::SetFieldSINT64Value(const FIT_UINT8 fieldNum, const FIT_SINT64 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+ {
+-    if (!CanSupportSubField(fieldNum, subFieldIndex))
++    if (__builtin_expect(!CanSupportSubField(fieldNum, subFieldIndex), 0))
+         return;
+ 
+     Field *field = AddField(fieldNum);
+ 
+-    if (field == FIT_NULL)
++    if (__builtin_expect(field == FIT_NULL, 0))
+         return;
+ 
+-    return field->SetSINT64Value(value, fieldArrayIndex);
++    field->SetSINT64Value(value, fieldArrayIndex);
+ }
+ 
+ void Mesg::SetFieldUINT64Value(const FIT_UINT8 fieldNum, const FIT_UINT64 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)

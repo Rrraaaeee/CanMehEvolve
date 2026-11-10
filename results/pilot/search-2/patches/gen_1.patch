@@ -1,0 +1,10 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -24,6 +24,7 @@
+     , fields()
+     , devFields()
+ {
++    fields.reserve(8);
+ }
+ 
+ Mesg::Mesg(const Mesg &mesg)

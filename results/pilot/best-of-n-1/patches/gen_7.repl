@@ -1,0 +1,11 @@
+The function already just forwards to `SetUINT8Value`, and the body of that callee isn't in the provided code. Inlining or specializing the store without seeing that body could change behavior for some input, which the rules forbid. The compiler at -O2 can already inline a same-TU forwarder like this, so I don't expect a measurable gain from rewriting it. The 269 ms is more likely spent in the callee or the decode loop, so the speedup should be sought there, where the actual work happens.
+
+```cpp
+void FieldBase::SetUINT8ZValue(const FIT_UINT8 value, const FIT_UINT8 fieldArrayIndex)
+{
+    this->SetUINT8Value(value, fieldArrayIndex);
+}
+```
+
+```includes
+```

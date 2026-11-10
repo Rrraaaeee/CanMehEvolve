@@ -1,0 +1,8 @@
+The function is a one-line forwarder, and `SetUINT8Value` isn't in the provided code. Without its body I can't safely inline or specialize the logic, so this version only makes the forwarding explicit. The real speedup would have to come from `SetUINT8Value` itself.
+
+```cpp
+void FieldBase::SetBYTEValue(const FIT_BYTE value, const FIT_UINT8 fieldArrayIndex)
+{
+    this->SetUINT8Value(static_cast<FIT_UINT8>(value), fieldArrayIndex);
+}
+```

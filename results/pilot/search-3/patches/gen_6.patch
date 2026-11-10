@@ -1,0 +1,91 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -209,7 +209,7 @@
+     return GetValue<FIT_SINT32>(fieldArrayIndex);
+ }
+ 
+-FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
++[[gnu::always_inline]] FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
+ {
+     return GetValue<FIT_UINT32Z>(fieldArrayIndex);
+ }
+@@ -839,7 +839,7 @@
+ 
+ void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT16Value(value, fieldArrayIndex);
++    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetSINT32Value(const FIT_SINT32 value, const FIT_UINT8 fieldArrayIndex)
+@@ -962,19 +962,17 @@
+         return;
+ 
+     Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+-    FIT_UINT8 stringLength = (FIT_UINT8)stringValue.length();
++    const FIT_UINT8 stringLength = (FIT_UINT8)stringValue.length();
++    const size_t zeroCount = (size_t)stringLength + 1;
+     FIT_UINT8 idx = 0;
+-    FIT_UINT8 nextIdx = 0;
+-    FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+-    FIT_UINT8 dif = 0;
++    const FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+ 
+-    if ( fieldArrayIndex < numStrings )
++    if (fieldArrayIndex < numStrings)
+     {
+         idx = stringIndexes[fieldArrayIndex];
+         if (fieldArrayIndex + 1 < numStrings)
+         {
+-            nextIdx = stringIndexes[fieldArrayIndex + 1];
+-            dif = (FIT_UINT8)( (value.length() + 1) - (nextIdx - idx) );
++            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+             values.erase(values.begin() + idx, values.begin() + nextIdx);
+         }
+         else
+@@ -982,27 +980,22 @@
+             values.erase(values.begin() + idx, values.end());
+         }
+ 
+-        for (auto i = 0; i < stringLength + 1; i++)
+-            values.insert(values.begin() + idx + i, 0);
++        values.insert(values.begin() + idx, zeroCount, static_cast<FIT_BYTE>(0));
+     }
+     else
+     {
+         idx = (FIT_UINT8)values.size();
+-        numStrings++;
+         stringIndexes.push_back(idx);
+-        for (auto j = 0; j < stringLength + 1; j++)
+-        {
+-            values.push_back(0);
+-        }
++        values.insert(values.end(), zeroCount, static_cast<FIT_BYTE>(0));
+     }
+ 
+-    int i;
+-    for (i = 0; i < (int)stringValue.length(); i++)
++    const size_t len = stringValue.length();
++    for (size_t i = 0; i < len; i++)
+     {
+         values[idx + i] = static_cast<FIT_BYTE>(stringValue[i]);
+     }
+ 
+-    values[idx + i] = 0; // null terminate
++    values[idx + len] = 0; // null terminate
+ }
+ 
+ FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -186,8 +186,8 @@
+ 
+     if (field == FIT_NULL)
+     {
+-        fields.push_back(Field(profile->num, fieldNum));
+-        field = &fields[fields.size() - 1];
++        fields.emplace_back(profile->num, fieldNum);
++        field = &fields.back();
+     }
+ 
+     return field;

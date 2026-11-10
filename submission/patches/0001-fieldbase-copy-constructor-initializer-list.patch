@@ -1,0 +1,25 @@
+Initialize FieldBase's vectors in the copy constructor's initializer list
+
+The copy constructor default-constructed `values` and `stringIndexes`, then
+assigned to them in its body. This patch copy-constructs them directly.
+Hypothesis for why it is faster: it avoids the default construction followed
+by assignment on every field copied during decoding. That was not profiled.
+
+Pilot evidence on a loaded machine, not a reference node: ratios of 0.9627,
+then 0.9668, 0.9695 and 0.9682 against the unmodified build. Selected after
+the fact and not confirmed by the search run's own rule. See the report.
+
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -25,9 +25,9 @@
+ }
+ 
+ FieldBase::FieldBase(const FieldBase &field)
++    : values(field.values),
++      stringIndexes(field.stringIndexes)
+ {
+-    values = field.values;
+-    stringIndexes = field.stringIndexes;
+ }
+ 
+ FieldBase::~FieldBase()

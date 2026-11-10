@@ -1,0 +1,15 @@
+The copy constructor's cost is dominated by the vector copies, and those can't be restructured without changing the class. This version skips the `devFields` copy when the source is empty, which is common, and leaves the copied values and their order unchanged. Expect only a small gain.
+
+```cpp
+Mesg::Mesg(const Mesg &mesg)
+    : profile(mesg.profile)
+    , localNum(mesg.localNum)
+    , fields()
+    , devFields()
+{
+    if (!mesg.fields.empty())
+        fields.assign(mesg.fields.begin(), mesg.fields.end());
+    if (!mesg.devFields.empty())
+        devFields.assign(mesg.devFields.begin(), mesg.devFields.end());
+}
+```

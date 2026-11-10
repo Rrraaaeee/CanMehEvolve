@@ -1,0 +1,9 @@
+The constructor body is already minimal. Its cost is the `Mesg` copy constructor, which deep-copies the field and developer-field containers. Changing this function alone can't remove that copy without changing behavior or the public interface. The larger gain would come from avoiding the copy at call sites (e.g., constructing `AntRxMesg` from an rvalue `Mesg`) or from making `Mesg`'s copy cheaper, both outside this function.
+
+The replacement below is behaviorally identical:
+
+```cpp
+    AntRxMesg(const Mesg &mesg) : Mesg(static_cast<const Mesg &>(mesg))
+    {
+    }
+```

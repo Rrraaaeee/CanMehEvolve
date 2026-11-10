@@ -1,0 +1,20 @@
+The main change is to resolve the active subfield index once into a local, so the function has a single call to `SetFLOAT64Value` instead of two. Call order and conditions match the original, so behavior is unchanged. The gain is small, since the function is a thin wrapper.
+
+```cpp
+void Mesg::SetFieldFLOAT64Value(const FIT_UINT8 fieldNum, const FIT_FLOAT64 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+{
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return;
+
+    Field *field = AddField(fieldNum);
+
+    if (field == FIT_NULL)
+        return;
+
+    FIT_UINT16 resolvedSubFieldIndex = subFieldIndex;
+    if (subFieldIndex == FIT_SUBFIELD_INDEX_ACTIVE_SUBFIELD)
+        resolvedSubFieldIndex = GetActiveSubFieldIndex(fieldNum);
+
+    field->SetFLOAT64Value(value, fieldArrayIndex, resolvedSubFieldIndex);
+}
+```

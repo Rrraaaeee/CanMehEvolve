@@ -1,0 +1,9 @@
+```cpp
+FIT_UINT64 FieldBase::GetUINT64Value(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_SINT64 v = GetValue<FIT_SINT64>(fieldArrayIndex);
+    return static_cast<FIT_UINT64>(v);
+}
+```
+
+This keeps the same call and the same bit-for-bit result, so observable behavior is unchanged. The speedup is likely small, since the compiler probably already generates equivalent code. I couldn't see `GetValue`'s definition, so I did not switch to `GetValue<FIT_UINT64>`, which could change results for negative stored values.

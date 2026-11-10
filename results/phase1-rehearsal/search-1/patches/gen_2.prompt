@@ -1,0 +1,12 @@
+File: src/fit_device_settings_mesg.hpp
+Function: GetMountingSide
+One decode of the test corpus takes about 273.787 ms.
+The code below currently runs at 1 of the original SDK's decode time; the best found so far is 1.
+
+Rewrite this function to make decoding faster:
+```cpp
+    FIT_SIDE GetMountingSide(void) const
+    {
+        return GetFieldENUMValue(56, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```

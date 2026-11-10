@@ -1,0 +1,92 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetBitsSignedValue64",
+    "region": 147,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetUINT32Value",
+    "region": 160,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetUINT16ZValue",
+    "region": 182,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetSINT32Value",
+    "region": 183,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetSTRINGValue",
+    "region": 191,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::Mesg",
+    "region": 212,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::Mesg",
+    "region": 213,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::AddField",
+    "region": 227,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 234,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetFieldNumValues",
+    "region": 244,
+    "samples": 0
+  }
+]

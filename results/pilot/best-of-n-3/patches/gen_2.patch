@@ -1,0 +1,10 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -22,6 +22,7 @@
+ 
+ FieldBase::FieldBase(void)
+ {
++    static_cast<void>(0);
+ }
+ 
+ FieldBase::FieldBase(const FieldBase &field)

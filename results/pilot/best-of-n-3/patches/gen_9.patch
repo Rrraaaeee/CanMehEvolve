@@ -1,0 +1,12 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -201,7 +201,8 @@
+ 
+ FIT_UINT16Z FieldBase::GetUINT16ZValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    return GetValue<FIT_UINT16Z>(fieldArrayIndex);
++    const FIT_UINT16Z value = GetValue<FIT_UINT16Z>(fieldArrayIndex);
++    return value;
+ }
+ 
+ FIT_SINT32 FieldBase::GetSINT32Value(const FIT_UINT8 fieldArrayIndex) const

@@ -1,0 +1,13 @@
+The setter is already a single call with constant arguments, so the compiler inlines it. The real cost is inside `SetFieldUINT32Value`, which I can't see. This version keeps the same call and the same observable behavior, and adds an explicit cast to the field's value type, which makes the conversion explicit.
+
+```cpp
+    void SetTimestamp(FIT_DATE_TIME timestamp)
+    {
+        SetFieldUINT32Value(static_cast<FIT_UINT32>(253),
+                            static_cast<FIT_UINT32>(timestamp),
+                            static_cast<FIT_UINT32>(0),
+                            FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```
+
+I expect little or no measurable speedup. The only real gains would come from changing `SetFieldUINT32Value` itself, for example by avoiding a per-call field lookup.

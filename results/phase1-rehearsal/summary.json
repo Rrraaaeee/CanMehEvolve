@@ -1,0 +1,72 @@
+{
+  "runs": [
+    {
+      "run": "best-of-n-1",
+      "calls": 2,
+      "tokens": 2777,
+      "elapsed_s": 167.349,
+      "best_confirmed_speedup": 1.0,
+      "best_retained_speedup": 1.0,
+      "records": 2,
+      "measured": 2,
+      "unstable": 0,
+      "improved_on_parent": 0,
+      "rejected_stages": [],
+      "models_answered": [
+        "claude-haiku-5-5"
+      ],
+      "null_clean": true,
+      "profiled": false
+    },
+    {
+      "run": "search-1",
+      "calls": 2,
+      "tokens": 2756,
+      "elapsed_s": 156.552,
+      "best_confirmed_speedup": 1.0,
+      "best_retained_speedup": 1.0,
+      "records": 2,
+      "measured": 2,
+      "unstable": 0,
+      "improved_on_parent": 0,
+      "rejected_stages": [],
+      "models_answered": [
+        "claude-haiku-5-5"
+      ],
+      "null_clean": true,
+      "profiled": false
+    }
+  ],
+  "arms": {
+    "best-of-n": {
+      "seeds": 1,
+      "calls": 2,
+      "tokens": 2777,
+      "best_confirmed_speedup": {
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "best_retained_speedup": {
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    },
+    "search": {
+      "seeds": 1,
+      "calls": 2,
+      "tokens": 2756,
+      "best_confirmed_speedup": {
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "best_retained_speedup": {
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      }
+    }
+  }
+}

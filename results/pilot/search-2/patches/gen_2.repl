@@ -1,0 +1,9 @@
+The wrapper's only real cost is the call into `GetValue`, whose body I can't see. Switching the template argument to `FIT_UINT64Z` could change conversion behavior for values outside the signed range, so I kept the same call and made the conversion explicit. This is a small, behavior-preserving change; a larger speedup would need the `GetValue` implementation.
+
+```cpp
+FIT_UINT64Z FieldBase::GetUINT64ZValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_SINT64 v = GetValue<FIT_SINT64>(fieldArrayIndex);
+    return static_cast<FIT_UINT64Z>(v);
+}
+```

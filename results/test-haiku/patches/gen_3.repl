@@ -1,0 +1,15 @@
+The main change is hoisting the `GetNumSubFields()` call out of the loop and using `operator==`, which checks the length before comparing characters. Nothing I can see depends on the count changing mid-loop, but I can't confirm that from this function alone, so the hoist is the one assumption here.
+
+```cpp
+FIT_UINT16 FieldBase::GetSubField(const std::string& subFieldName) const
+{
+    const FIT_UINT16 numSubFields = this->GetNumSubFields();
+    for (FIT_UINT16 i = 0; i < numSubFields; i++) {
+        const auto sf = this->GetSubField(i);
+        if (sf->name == subFieldName)
+            return i;
+    }
+
+    return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+}
+```

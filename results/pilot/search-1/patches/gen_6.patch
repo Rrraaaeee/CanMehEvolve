@@ -1,0 +1,32 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -123,6 +124,8 @@
+ 
+ FIT_UINT64 FieldBase::GetBitsValue64(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+ {
++    if (bits == 0)
++        return 0;
+     return GetBitsValueT<FIT_UINT64>(offset, bits);
+ }
+ 
+@@ -1151,10 +1154,10 @@
+ template <typename TTo, typename TFrom>
+ TTo FieldBase::ConvertBaseType(const FIT_UINT8 fieldArrayIndex, const FIT_UINT8 toBaseType) const
+ {
++    const TFrom value = GetValue<TFrom>(fieldArrayIndex);
+     FIT_CONST_UINT8_PTR invalid = baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK];
+-    TFrom value = GetValue<TFrom>(fieldArrayIndex);
+ 
+-    if (memcmp(&value, invalid, sizeof(TFrom)) == 0)
++    if (__builtin_expect(memcmp(&value, invalid, sizeof(TFrom)) == 0, 0))
+         return *reinterpret_cast<const TTo*>(baseTypeInvalids[toBaseType & FIT_BASE_TYPE_NUM_MASK]);
+ 
+     return static_cast<TTo>(value);

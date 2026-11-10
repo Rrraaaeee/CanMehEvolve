@@ -1,0 +1,10 @@
+The body of `SetUINT32Value` isn't visible, so I can't safely inline or reimplement its logic. The wrapper already forwards directly, so the only change I can make without altering behavior is an explicit conversion to the target type. Any real speedup would have to come from `SetUINT32Value` itself.
+
+```cpp
+void FieldBase::SetUINT32ZValue(const FIT_UINT32Z value, const FIT_UINT8 fieldArrayIndex)
+{
+    SetUINT32Value(static_cast<FIT_UINT32>(value), fieldArrayIndex);
+}
+```
+
+Note: this is a no-op at the machine level, since `FIT_UINT32Z` and `FIT_UINT32` are both 32-bit unsigned integers. The change is purely cosmetic, and I'm not claiming a measurable gain. To get a real improvement, share the `SetUINT32Value` body so I can optimize that.

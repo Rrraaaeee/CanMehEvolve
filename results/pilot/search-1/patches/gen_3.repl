@@ -1,0 +1,15 @@
+This keeps the same loop and calls, but checks string length before the full comparison. Mismatched names are rejected without a byte comparison, and `==` on equal-length strings matches `compare() == 0`. I did not hoist `GetNumSubFields()` out of the loop, since that could change observable behavior if it has side effects.
+
+```cpp
+FIT_UINT16 FieldBase::GetSubField(const std::string& subFieldName) const
+{
+    const std::size_t wantedSize = subFieldName.size();
+    for (FIT_UINT16 i = 0; i < this->GetNumSubFields(); i++) {
+        const std::string& name = this->GetSubField(i)->name;
+        if (name.size() == wantedSize && name == subFieldName)
+            return i;
+    }
+
+    return FIT_SUBFIELD_INDEX_MAIN_FIELD;
+}
+```

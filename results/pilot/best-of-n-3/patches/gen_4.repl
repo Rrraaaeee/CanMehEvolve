@@ -1,0 +1,67 @@
+The function's cost is almost entirely the per-byte `ReadByte` call. Its state machine is opaque from here, so I can only reduce the loop overhead around it. The rewrite below keeps the loop index and byte count in locals and writes them back to the members before each `ReadByte` call. It reloads them only after the end-of-file path, since `InitRead` can reset them. This assumes `ReadByte` does not modify `currentByteIndex` or `bytesRead`. The gain is probably modest because `ReadByte` dominates.
+
+```cpp
+FIT_BOOL Decode::CheckIntegrity(std::istream &file)
+{
+    FIT_BOOL status = FIT_TRUE;
+
+    InitRead(file);
+
+    try
+    {
+        do
+        {
+            if ( currentByteIndex == 0 )
+            {
+                file.read(buffer, BufferSize);
+                bytesRead = (FIT_UINT32)file.gcount();
+            }
+
+            FIT_UINT32 idx = currentByteIndex;
+            const FIT_UINT32 n = bytesRead;
+            const char *buf = buffer;
+
+            while ( idx < n )
+            {
+                currentByteIndex = idx;
+                FIT_CONVERT_RETURN ret = ReadByte((FIT_UINT8)buf[idx]);
+                idx++;
+
+                switch (ret) {
+                    case RETURN_CONTINUE:
+                    case RETURN_MESG:
+                    case RETURN_MESG_DEF:
+                        break;
+
+                    case RETURN_END_OF_FILE:
+                        status = FIT_TRUE;
+                        InitRead(file, FIT_FALSE);
+                        // InitRead may reset the buffer state; resync.
+                        idx = currentByteIndex;
+                        break;
+
+                    default:
+                        status = FIT_FALSE;
+                        break;
+                }
+            }
+            currentByteIndex = 0;
+        } while ( file.good() && (status == FIT_TRUE) );
+    }
+    catch (RuntimeException e)
+    {
+        // Fall through and return failure.
+        status = FIT_FALSE;
+         // Reset buffer state.
+        bytesRead = 0;
+        currentByteIndex = 0;
+    }
+
+    InitRead(file);
+
+    return status;
+}
+```
+
+```includes
+```

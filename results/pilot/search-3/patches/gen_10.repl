@@ -1,0 +1,13 @@
+The original logic is already minimal: one field lookup, one subfield check, one accessor. Without the definitions of `GetField`, `CanSupportSubField`, and `Field::GetNumValues`, I can't safely skip either check. The version below keeps the same calls in the same order and short-circuit behavior, and marks the common early-return path as unlikely to help branch layout. The gain is likely marginal.
+
+```cpp
+FIT_UINT8 Mesg::GetFieldNumValues(const FIT_UINT8 fieldNum, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+    if (__builtin_expect(field == FIT_NULL, 0))
+        return 0;
+    if (__builtin_expect(!CanSupportSubField(fieldNum, subFieldIndex), 0))
+        return 0;
+    return field->GetNumValues();
+}
+```

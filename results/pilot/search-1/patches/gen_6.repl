@@ -1,0 +1,19 @@
+The change below is a small, behavior-preserving tweak. It keeps the byte-wise `memcmp` against the invalid sentinel, so NaN, -0.0 and padding-bit cases still match the original. It also moves the target-invalid lookup into the invalid branch so the common valid path does less work. I could not see `GetValue` or the surrounding class, so the gain is likely modest.
+
+```cpp
+template <typename TTo, typename TFrom>
+TTo FieldBase::ConvertBaseType(const FIT_UINT8 fieldArrayIndex, const FIT_UINT8 toBaseType) const
+{
+    const TFrom value = GetValue<TFrom>(fieldArrayIndex);
+    FIT_CONST_UINT8_PTR invalid = baseTypeInvalids[GetType() & FIT_BASE_TYPE_NUM_MASK];
+
+    if (__builtin_expect(memcmp(&value, invalid, sizeof(TFrom)) == 0, 0))
+        return *reinterpret_cast<const TTo*>(baseTypeInvalids[toBaseType & FIT_BASE_TYPE_NUM_MASK]);
+
+    return static_cast<TTo>(value);
+}
+```
+
+```includes
+#include <cstring>
+```

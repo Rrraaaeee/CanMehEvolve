@@ -1,0 +1,8 @@
+The constructor's only work is one assignment, so the most I can change safely is moving it into a member initializer. The expression and its implicit conversion to the member type stay the same, so values are unchanged. The gain is small, and the compiler probably produces the same code at -O2 either way.
+
+```cpp
+DetailedProtocolVersion::DetailedProtocolVersion(FIT_UINT8 major, FIT_UINT8 minor)
+    : version(( major << FIT_PROTOCOL_VERSION_MAJOR_SHIFT ) | minor)
+{
+}
+```

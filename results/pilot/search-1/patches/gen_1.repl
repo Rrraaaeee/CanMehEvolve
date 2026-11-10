@@ -1,0 +1,27 @@
+The constructor runs once per `Decode` object, not per message, so it isn't on the decode hot path. The change below only removes a per-element temporary and copy-assignment from the setup loop, and keeps all observable state identical.
+
+```cpp
+Decode::Decode()
+    : mesgListener(NULL)
+    , mesgDefinitionListener(NULL)
+    , streamIsComplete(FIT_TRUE)
+    , skipHeader(FIT_FALSE)
+    , invalidDataSize(FIT_FALSE)
+    , file(NULL)
+    , currentByteOffset(0)
+    , bytesRead(0)
+    , currentByteIndex(0)
+    , suppressComponentExpansion(FIT_FALSE)
+{
+    // Elements are already default-constructed; just set their local numbers.
+    for (int i=0; i<FIT_MAX_LOCAL_MESGS; i++)
+    {
+        localMesgDefs[i].SetLocalNum((FIT_UINT8) i);
+    }
+
+    headerException = "";
+}
+```
+
+```includes
+```

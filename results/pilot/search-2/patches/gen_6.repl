@@ -1,0 +1,23 @@
+The main cost is in the per-field and per-subfield name lookups. The rewrite below keeps the same loop bounds and call order, binds a reference to each field once, and hoists the subfield count out of the inner loop. Since I can't see the `Field` declarations, I haven't changed how names are fetched, so the gain is likely modest.
+
+```cpp
+const Field* Mesg::GetField(const std::string& name) const
+{
+    const FIT_UINT16 count = (FIT_UINT16)fields.size();
+    for (FIT_UINT16 i = 0; i < count; i++)
+    {
+        const Field& field = fields[i];
+        if (field.GetName().compare(name) == 0)
+            return &field;
+
+        const FIT_UINT16 subCount = field.GetNumSubFields();
+        for (FIT_UINT16 j = 0; j < subCount; j++)
+        {
+            if ((field.GetName(j).compare(name) == 0) && CanSupportSubField(&field, j))
+                return &field;
+        }
+    }
+
+    return FIT_NULL;
+}
+```

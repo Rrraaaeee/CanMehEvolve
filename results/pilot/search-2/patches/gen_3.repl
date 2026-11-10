@@ -1,0 +1,16 @@
+The original is already a single null check and a load, so there is little to gain. This version adds a branch-prediction hint that the null case is rare. Behavior is unchanged for every input.
+
+```cpp
+FIT_UINT16 Mesg::GetNum() const
+{
+#if defined(__GNUC__) || defined(__clang__)
+    if (__builtin_expect(profile == FIT_NULL, 0))
+        return FIT_MESG_NUM_INVALID;
+#else
+    if (profile == FIT_NULL)
+        return FIT_MESG_NUM_INVALID;
+#endif
+
+    return profile->num;
+}
+```

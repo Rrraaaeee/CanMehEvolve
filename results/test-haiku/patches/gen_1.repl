@@ -1,0 +1,24 @@
+The constructor runs once per `Decode` object, not per decoded message, so it isn't on the decoding hot path. Rewriting it would not measurably change the ~270 ms decode time, and any change carries risk to the initialization behavior. I'm returning it unchanged.
+
+```cpp
+Decode::Decode()
+    : mesgListener(NULL)
+    , mesgDefinitionListener(NULL)
+{
+    for (int i=0; i<FIT_MAX_LOCAL_MESGS; i++)
+    {
+        localMesgDefs[i] = MesgDefinition();
+        localMesgDefs[i].SetLocalNum((FIT_UINT8) i);
+    }
+
+    headerException = "";
+    streamIsComplete = FIT_TRUE;
+    skipHeader = FIT_FALSE;
+    invalidDataSize = FIT_FALSE;
+    file = NULL;
+    currentByteOffset = 0;
+    bytesRead = 0;
+    currentByteIndex = 0;
+    suppressComponentExpansion = FIT_FALSE;
+}
+```

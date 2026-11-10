@@ -1,0 +1,31 @@
+--- a/src/fit_decode.cpp
++++ b/src/fit_decode.cpp
+@@ -107,10 +107,17 @@
+                 bytesRead = (FIT_UINT32)file.gcount();
+             }
+ 
+-            for ( ; currentByteIndex < bytesRead; currentByteIndex++ )
++            FIT_UINT32 idx = currentByteIndex;
++            const FIT_UINT32 n = bytesRead;
++            const char *buf = buffer;
++
++            while ( idx < n )
+             {
++                currentByteIndex = idx;
++                FIT_CONVERT_RETURN ret = ReadByte((FIT_UINT8)buf[idx]);
++                idx++;
+ 
+-                switch (ReadByte((FIT_UINT8)buffer[currentByteIndex])) {
++                switch (ret) {
+                     case RETURN_CONTINUE:
+                     case RETURN_MESG:
+                     case RETURN_MESG_DEF:
+@@ -119,6 +126,8 @@
+                     case RETURN_END_OF_FILE:
+                         status = FIT_TRUE;
+                         InitRead(file, FIT_FALSE);
++                        // InitRead may reset the buffer state; resync.
++                        idx = currentByteIndex;
+                         break;
+ 
+                     default:

@@ -1,0 +1,20 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit.cpp",
+    "label": "DetailedProtocolVersion::DetailedProtocolVersion",
+    "region": 0,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_device_settings_mesg.hpp",
+    "label": "GetMountingSide",
+    "region": 1301,
+    "samples": 0
+  }
+]

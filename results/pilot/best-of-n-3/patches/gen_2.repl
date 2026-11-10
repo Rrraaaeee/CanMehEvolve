@@ -1,0 +1,8 @@
+The constructor is already empty, so there is nothing to speed up here. Any real gain would have to come from the code that creates `FieldBase` objects or from the decode loop, and neither is visible in this function. The block below is a no-op that keeps the signature and behavior unchanged.
+
+```cpp
+FieldBase::FieldBase(void)
+{
+    static_cast<void>(0);
+}
+```

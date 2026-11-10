@@ -1,0 +1,16 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -754,11 +754,8 @@
+         return;
+ 
+     Field *field = AddField(fieldNum);
+-
+-    if (field == FIT_NULL)
+-        return;
+-
+-    return field->SetUINT32ZValue(value, fieldArrayIndex);
++    if (field != FIT_NULL)
++        field->SetUINT32ZValue(value, fieldArrayIndex);
+ }
+ 
+ void Mesg::SetFieldSINT64Value(const FIT_UINT8 fieldNum, const FIT_SINT64 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)

@@ -1,0 +1,37 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -128,7 +128,15 @@
+ 
+ FIT_SINT64 FieldBase::GetBitsSignedValue64(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+ {
+-    return GetBitsSignedValueT<FIT_SINT64>(offset, bits);
++    if (bits == 0 || bits >= 64)
++    {
++        return GetBitsSignedValueT<FIT_SINT64>(offset, bits);
++    }
++    const FIT_UINT64 raw = static_cast<FIT_UINT64>(GetBitsValue64(offset, bits));
++    const FIT_UINT64 signBit = static_cast<FIT_UINT64>(1) << (bits - 1);
++    const FIT_UINT64 mask = (static_cast<FIT_UINT64>(1) << bits) - 1;
++    const FIT_UINT64 v = raw & mask;
++    return static_cast<FIT_SINT64>((v ^ signBit) - signBit);
+ }
+ 
+ FIT_BYTE FieldBase::GetValuesBYTE(FIT_UINT8 index) const
+@@ -209,7 +217,7 @@
+     return GetValue<FIT_SINT32>(fieldArrayIndex);
+ }
+ 
+-FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
++[[gnu::always_inline]] FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
+ {
+     return GetValue<FIT_UINT32Z>(fieldArrayIndex);
+ }
+@@ -839,7 +847,7 @@
+ 
+ void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT16Value(value, fieldArrayIndex);
++    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetSINT32Value(const FIT_SINT32 value, const FIT_UINT8 fieldArrayIndex)

@@ -1,0 +1,5 @@
+The destructor has no logic to speed up. The closest safe change is to default it out of line. This leaves behavior identical, but the gain is negligible, and the real cost is likely elsewhere in the decode path.
+
+```cpp
+FieldBase::~FieldBase() = default;
+```

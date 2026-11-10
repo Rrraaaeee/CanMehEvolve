@@ -1,0 +1,16 @@
+The body is a thin wrapper around `CanSupportSubField`, `AddField`, and `Field::SetUINT8Value`. Their implementations aren't shown, so I kept the call order and side-effect sequence exactly as written. The only change is a `[[likely]]` hint on the common non-null path, which lets the compiler lay out the hot path as fall-through. Expect a small gain at most. Larger wins would require changing `AddField` or `CanSupportSubField`, which are outside this function.
+
+```cpp
+void Mesg::SetFieldUINT8Value(const FIT_UINT8 fieldNum, const FIT_UINT8 value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+{
+    if (!CanSupportSubField(fieldNum, subFieldIndex)) [[unlikely]]
+        return;
+
+    Field *field = AddField(fieldNum);
+
+    if (field == FIT_NULL) [[unlikely]]
+        return;
+
+    field->SetUINT8Value(value, fieldArrayIndex);
+}
+```

@@ -1,0 +1,8 @@
+The wrapper just forwards to `GetValue<FIT_ENUM>`, and that template isn't in the provided code. Any change would have to guess at its semantics (bounds checks, array-index handling, type conversion), which risks changing behavior. At -O2 the compiler can already inline this forwarding call, so I'm leaving the function as is.
+
+```cpp
+FIT_ENUM FieldBase::GetENUMValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    return GetValue<FIT_ENUM>(fieldArrayIndex);
+}
+```

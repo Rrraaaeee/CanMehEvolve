@@ -1,0 +1,9 @@
+The function is a plain getter, so there is little to gain inside its body. The change below is behavior-identical. The real cost is the out-of-line call, and moving the definition into the header as `inline` would fix that, but the rules keep this to one function body.
+
+```cpp
+FIT_UINT8 Mesg::GetLocalNum() const
+{
+    const FIT_UINT8 n = localNum;
+    return n;
+}
+```

@@ -1,0 +1,8 @@
+I can't see `GetBitsValueT` or the field storage layout, so I can't verify a faster version preserves behavior for every input. The function is a single forwarding call, so I'm returning it unchanged.
+
+```cpp
+FIT_UINT64 FieldBase::GetBitsValue64(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+{
+    return GetBitsValueT<FIT_UINT64>(offset, bits);
+}
+```

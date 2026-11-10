@@ -1,0 +1,26 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -209,7 +209,7 @@
+     return GetValue<FIT_SINT32>(fieldArrayIndex);
+ }
+ 
+-FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
++[[gnu::always_inline]] FIT_UINT32 FieldBase::GetUINT32Value(const FIT_UINT8 fieldArrayIndex) const
+ {
+     return GetValue<FIT_UINT32Z>(fieldArrayIndex);
+ }
+@@ -839,12 +839,12 @@
+ 
+ void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT16Value(value, fieldArrayIndex);
++    SetUINT16Value(static_cast<FIT_UINT16>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetSINT32Value(const FIT_SINT32 value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    SetUINT32Value(value, fieldArrayIndex);
++    SetUINT32Value(static_cast<FIT_UINT32>(value), fieldArrayIndex);
+ }
+ 
+ void FieldBase::SetUINT32Value(const FIT_UINT32 value, const FIT_UINT8 fieldArrayIndex)

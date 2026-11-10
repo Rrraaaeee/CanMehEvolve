@@ -1,0 +1,13 @@
+The function is already minimal: one field lookup, a short-circuited sub-field check, then a single delegated call. I can't see `CanSupportSubField` or `Field::GetUINT64ZValue`. A fast path that skips the sub-field check for `FIT_SUBFIELD_INDEX_MAIN_FIELD` would only be safe if that check is guaranteed to return true for the main field, and I can't confirm that from here. Since the wrapper's cost is small next to the decode work it calls, I've left it unchanged.
+
+```cpp
+FIT_UINT64Z Mesg::GetFieldUINT64ZValue(const FIT_UINT8 fieldNum, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const
+{
+    const Field *field = GetField(fieldNum);
+
+    if ((field == FIT_NULL) || (!CanSupportSubField(fieldNum, subFieldIndex)))
+        return FIT_UINT64Z_INVALID;
+
+    return field->GetUINT64ZValue(fieldArrayIndex);
+}
+```

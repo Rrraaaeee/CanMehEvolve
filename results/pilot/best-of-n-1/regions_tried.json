@@ -1,0 +1,92 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::FieldBase",
+    "region": 134,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetType",
+    "region": 137,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetSubField",
+    "region": 168,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetBYTEValue",
+    "region": 176,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::SetUINT8ZValue",
+    "region": 179,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetValue",
+    "region": 196,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::ConvertBaseType",
+    "region": 197,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetField",
+    "region": 238,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::SetFieldBYTEValue",
+    "region": 263,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::SetFieldUINT32ZValue",
+    "region": 272,
+    "samples": 0
+  }
+]

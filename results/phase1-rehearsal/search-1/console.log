@@ -1,0 +1,8 @@
+null run: ratio 1.00305, p 0.478516, baseline 273.787 ms
+5514 of 5514 regions are drawable
+profile: perf failed: perf exited with status 127: 
+no usable profile, so regions are drawn uniformly
+gen 1: ratio 1.00021 p 0.710938
+gen 2: ratio 1.00093 p 0.615234
+best confirmed speedup 1 after 2 calls and 2756 tokens (nothing confirmed; best.patch is empty)
+exit status: 0

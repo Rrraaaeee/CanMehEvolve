@@ -1,0 +1,53 @@
+The heap allocation for every non-string value is the main cost here. Each call now uses a stack buffer, and falls back to the heap only if the size exceeds it. Behavior is unchanged: `GetMemoryValue` still fills the same number of bytes, and the `memcmp` comparison is the same.
+
+```cpp
+FIT_BOOL FieldBase::IsValueValid( const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subfieldIndex ) const
+{
+    FIT_BOOL isValid = FIT_FALSE;
+
+    FIT_UINT8 type = GetType( subfieldIndex );
+
+    if ( FIT_UINT8_INVALID == type )
+    {
+        // Invalid Subfield Index use the default type
+        type = GetType();
+    }
+
+    if ( FIT_BASE_TYPE_STRING == type )
+    {
+        FIT_WSTRING strVal = GetSTRINGValue( fieldArrayIndex );
+
+        isValid = ( strVal != FIT_WSTRING_INVALID );
+    }
+    else
+    {
+        const FIT_UINT8 baseTypeSize = baseTypeSizes[type & FIT_BASE_TYPE_NUM_MASK];
+        const FIT_UINT8* invalid = baseTypeInvalids[type & FIT_BASE_TYPE_NUM_MASK];
+
+        FIT_UINT8 stackData[16];
+        FIT_UINT8* data = stackData;
+        if ( baseTypeSize > sizeof( stackData ) )
+        {
+            data = new FIT_UINT8[baseTypeSize];
+        }
+
+        FIT_BOOL readSuccess = GetMemoryValue( fieldArrayIndex, data, baseTypeSize );
+
+        if ( readSuccess )
+        {
+            isValid = ( memcmp( invalid, data, baseTypeSize ) != 0 );
+        }
+
+        if ( data != stackData )
+        {
+            delete[] data;
+        }
+    }
+
+    return isValid;
+}
+```
+
+```includes
+#include <cstring>
+```

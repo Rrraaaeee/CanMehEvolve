@@ -1,0 +1,15 @@
+The function is already a single size read, so there's little to gain. This version keeps the same result and spells out the conversion, which is the most I can change without altering behavior.
+
+```cpp
+int Mesg::GetNumDevFields() const
+{
+    const std::size_t n = devFields.size();
+    return static_cast<int>(n);
+}
+```
+
+```includes
+#include <cstddef>
+```
+
+The 269.94 ms figure is for the whole decode, so this function's share of that time is negligible. Any real speedup would have to come from the callers or from the decode loop, not from this accessor.

@@ -1,0 +1,45 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -144,8 +144,13 @@
+ 
+ FIT_UINT16 Mesg::GetNum() const
+ {
++#if defined(__GNUC__) || defined(__clang__)
++    if (__builtin_expect(profile == FIT_NULL, 0))
++        return FIT_MESG_NUM_INVALID;
++#else
+     if (profile == FIT_NULL)
+         return FIT_MESG_NUM_INVALID;
++#endif
+ 
+     return profile->num;
+ }
+@@ -163,9 +168,11 @@
+ 
+ FIT_BOOL Mesg::HasField(const int fieldNum) const
+ {
+-    for (int i = 0; i < (int)fields.size(); i++)
++    const Field* data = fields.data();
++    const size_t n = fields.size();
++    for (size_t i = 0; i < n; ++i)
+     {
+-        if (fields[i].GetNum() == fieldNum)
++        if (data[i].GetNum() == fieldNum)
+             return FIT_TRUE;
+     }
+ 
+@@ -826,10 +833,11 @@
+     if (field == FIT_NULL)
+         return;
+ 
++    FIT_UINT16 resolvedSubFieldIndex = subFieldIndex;
+     if (subFieldIndex == FIT_SUBFIELD_INDEX_ACTIVE_SUBFIELD)
+-        return field->SetFLOAT64Value(value, fieldArrayIndex, GetActiveSubFieldIndex(fieldNum));
+-    else
+-        return field->SetFLOAT64Value(value, fieldArrayIndex, subFieldIndex);
++        resolvedSubFieldIndex = GetActiveSubFieldIndex(fieldNum);
++
++    field->SetFLOAT64Value(value, fieldArrayIndex, resolvedSubFieldIndex);
+ }
+ 
+ void Mesg::SetFieldSTRINGValue(const FIT_UINT8 fieldNum, const FIT_WSTRING& value, const FIT_UINT8 fieldArrayIndex)

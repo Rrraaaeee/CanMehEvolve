@@ -1,0 +1,9 @@
+The original body default-constructs both vectors and then copy-assigns them. Initializing the members directly in the constructor's member-initializer list copies each vector once, with no default-construct-then-assign step. Other members, if any, are still default-initialized as before, so behavior is unchanged.
+
+```cpp
+FieldBase::FieldBase(const FieldBase &field)
+    : values(field.values),
+      stringIndexes(field.stringIndexes)
+{
+}
+```

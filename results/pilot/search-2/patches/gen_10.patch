@@ -1,0 +1,74 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -962,19 +962,17 @@
+         return;
+ 
+     Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+-    FIT_UINT8 stringLength = (FIT_UINT8)stringValue.length();
++    const size_t stringLength = stringValue.length();
++    const size_t blockSize = (size_t)(FIT_UINT8)stringLength + 1;
+     FIT_UINT8 idx = 0;
+-    FIT_UINT8 nextIdx = 0;
+     FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+-    FIT_UINT8 dif = 0;
+ 
+     if ( fieldArrayIndex < numStrings )
+     {
+         idx = stringIndexes[fieldArrayIndex];
+         if (fieldArrayIndex + 1 < numStrings)
+         {
+-            nextIdx = stringIndexes[fieldArrayIndex + 1];
+-            dif = (FIT_UINT8)( (value.length() + 1) - (nextIdx - idx) );
++            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+             values.erase(values.begin() + idx, values.begin() + nextIdx);
+         }
+         else
+@@ -982,27 +980,22 @@
+             values.erase(values.begin() + idx, values.end());
+         }
+ 
+-        for (auto i = 0; i < stringLength + 1; i++)
+-            values.insert(values.begin() + idx + i, 0);
++        values.insert(values.begin() + idx, blockSize, 0);
+     }
+     else
+     {
+         idx = (FIT_UINT8)values.size();
+-        numStrings++;
+         stringIndexes.push_back(idx);
+-        for (auto j = 0; j < stringLength + 1; j++)
+-        {
+-            values.push_back(0);
+-        }
++        values.resize(values.size() + blockSize, 0);
+     }
+ 
+-    int i;
+-    for (i = 0; i < (int)stringValue.length(); i++)
++    const size_t n = stringValue.length();
++    for (size_t i = 0; i < n; i++)
+     {
+         values[idx + i] = static_cast<FIT_BYTE>(stringValue[i]);
+     }
+ 
+-    values[idx + i] = 0; // null terminate
++    values[idx + n] = 0; // null terminate
+ }
+ 
+ FIT_BOOL FieldBase::Read(const void *data, const FIT_UINT8 size)
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -144,8 +144,13 @@
+ 
+ FIT_UINT16 Mesg::GetNum() const
+ {
++#if defined(__GNUC__) || defined(__clang__)
++    if (__builtin_expect(profile == FIT_NULL, 0))
++        return FIT_MESG_NUM_INVALID;
++#else
+     if (profile == FIT_NULL)
+         return FIT_MESG_NUM_INVALID;
++#endif
+ 
+     return profile->num;
+ }

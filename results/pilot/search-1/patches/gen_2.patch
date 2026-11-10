@@ -1,0 +1,12 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -166,7 +166,8 @@
+ 
+ FIT_ENUM FieldBase::GetENUMValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    return GetValue<FIT_ENUM>(fieldArrayIndex);
++    const FIT_ENUM value = GetValue<FIT_ENUM>(fieldArrayIndex);
++    return value;
+ }
+ 
+ FIT_BYTE FieldBase::GetBYTEValue(const FIT_UINT8 fieldArrayIndex) const

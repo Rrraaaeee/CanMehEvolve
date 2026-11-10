@@ -1,0 +1,41 @@
+void FieldBase::SetSTRINGValue(const FIT_WSTRING& value, const FIT_UINT8 fieldArrayIndex)
+{
+    if (!IsValid())
+        return;
+
+    Unicode::UTF8_STRING stringValue = Unicode::Encode_BaseToUTF8(value);
+    const size_t stringLength = stringValue.length();
+    const size_t blockSize = (size_t)(FIT_UINT8)stringLength + 1;
+    FIT_UINT8 idx = 0;
+    FIT_UINT8 numStrings = (FIT_UINT8)stringIndexes.size();
+
+    if ( fieldArrayIndex < numStrings )
+    {
+        idx = stringIndexes[fieldArrayIndex];
+        if (fieldArrayIndex + 1 < numStrings)
+        {
+            FIT_UINT8 nextIdx = stringIndexes[fieldArrayIndex + 1];
+            values.erase(values.begin() + idx, values.begin() + nextIdx);
+        }
+        else
+        {
+            values.erase(values.begin() + idx, values.end());
+        }
+
+        values.insert(values.begin() + idx, blockSize, 0);
+    }
+    else
+    {
+        idx = (FIT_UINT8)values.size();
+        stringIndexes.push_back(idx);
+        values.resize(values.size() + blockSize, 0);
+    }
+
+    const size_t n = stringValue.length();
+    for (size_t i = 0; i < n; i++)
+    {
+        values[idx + i] = static_cast<FIT_BYTE>(stringValue[i]);
+    }
+
+    values[idx + n] = 0; // null terminate
+}

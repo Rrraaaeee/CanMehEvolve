@@ -1,0 +1,12 @@
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -152,7 +152,8 @@
+ 
+ FIT_UINT8 Mesg::GetLocalNum() const
+ {
+-    return localNum;
++    const FIT_UINT8 n = localNum;
++    return n;
+ }
+ 
+ void Mesg::SetLocalNum(const FIT_UINT8 newLocalNum)

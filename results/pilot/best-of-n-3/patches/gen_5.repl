@@ -1,0 +1,14 @@
+The original body isn't visible, so this rewrite assumes `FieldBase::GetBitsValue64(offset, bits)` exists with unsigned-extraction semantics. It replaces the generic template path with a single extraction and a branch-free sign extension. Edge cases (`bits == 0`, `bits >= 64`) are guarded to return the raw extracted value. I haven't compiled or diffed this against `GetBitsSignedValueT`, so verify it against the corpus before relying on it.
+
+```cpp
+FIT_SINT64 FieldBase::GetBitsSignedValue64(const FIT_UINT16 offset, const FIT_UINT8 bits) const
+{
+    const FIT_UINT64 raw = GetBitsValue64(offset, bits);
+    if (bits == 0 || bits >= 64)
+    {
+        return static_cast<FIT_SINT64>(raw);
+    }
+    const unsigned int shift = 64u - static_cast<unsigned int>(bits);
+    return static_cast<FIT_SINT64>(raw << shift) >> shift;
+}
+```

@@ -1,0 +1,47 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_decode.cpp",
+    "label": "Decode::Decode",
+    "region": 40,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetBitsValue64",
+    "region": 146,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetENUMValue",
+    "region": 151,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_base.cpp",
+    "label": "FieldBase::GetSubField",
+    "region": 168,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetFieldUINT64ZValue",
+    "region": 258,
+    "samples": 0
+  }
+]

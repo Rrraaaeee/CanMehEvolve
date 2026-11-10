@@ -1,0 +1,17 @@
+The original does the same work as this version, so the gain here is small. The helper functions aren't visible, so I kept the same calls and semantics and only flattened the control flow. The actual speedup depends on whether `GetNumSubFields` and `GetSubField` inline, which I can't see from this file.
+
+```cpp
+FIT_UINT8 FieldBase::GetType(const FIT_UINT16 subFieldIndex) const
+{
+    if (subFieldIndex < GetNumSubFields())
+    {
+        const auto subfield = GetSubField(subFieldIndex);
+        if (NULL != subfield)
+            return subfield->type;
+        return FIT_UINT8_INVALID;
+    }
+    return GetType();
+}
+```
+
+No includes needed.

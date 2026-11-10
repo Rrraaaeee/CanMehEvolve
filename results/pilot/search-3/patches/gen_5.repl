@@ -1,0 +1,19 @@
+The change replaces `push_back(Field(...))` with `emplace_back(...)`. This constructs the new `Field` directly in the vector's storage, avoiding a temporary and a copy or move. The lookup and return behaviour are unchanged. `fields.back()` is the same element that `fields[fields.size() - 1]` referred to.
+
+```cpp
+Field* Mesg::AddField(const FIT_UINT8 fieldNum)
+{
+    Field *field = GetField(fieldNum);
+
+    if (field == FIT_NULL)
+    {
+        fields.emplace_back(profile->num, fieldNum);
+        field = &fields.back();
+    }
+
+    return field;
+}
+```
+
+```includes
+```

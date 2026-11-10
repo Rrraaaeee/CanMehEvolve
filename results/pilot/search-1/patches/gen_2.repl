@@ -1,0 +1,9 @@
+I can't see the definition of `GetValue<T>`, so I can't safely inline its logic or bypass its checks without risking a behavior change. The change below is a small, behavior-preserving restructuring. It probably won't measurably speed up decoding, because the compiler already inlines this forwarding call. The real gains would come from optimizing `GetValue<T>` itself, so please share that definition if you want a meaningful improvement.
+
+```cpp
+FIT_ENUM FieldBase::GetENUMValue(const FIT_UINT8 fieldArrayIndex) const
+{
+    const FIT_ENUM value = GetValue<FIT_ENUM>(fieldArrayIndex);
+    return value;
+}
+```

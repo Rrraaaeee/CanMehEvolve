@@ -1,0 +1,82 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -16,6 +16,7 @@
+ #include "fit_field_base.hpp"
+ #include "fit_mesg.hpp"
+ #include "fit_unicode.hpp"
++#include <cstring>
+ 
+ namespace fit
+ {
+@@ -898,9 +899,7 @@
+     if (!IsValid())
+         return;
+ 
+-    FIT_FLOAT64 recalculatedValue = (value + GetOffset(subFieldIndex)) * GetScale(subFieldIndex);
+-    // Make sure floating point representations trunc to the expected integer
+-    FIT_FLOAT64 roundedValue = (recalculatedValue >= 0.0) ? (recalculatedValue + 0.5) : (recalculatedValue - 0.5);
++    const FIT_FLOAT64 recalculatedValue = (value + GetOffset(subFieldIndex)) * GetScale(subFieldIndex);
+ 
+     switch (GetType()) { // Note: This checks the type of the MAIN field since data is aligned according to that type
+         case FIT_BASE_TYPE_BYTE:
+@@ -908,26 +907,39 @@
+         case FIT_BASE_TYPE_SINT8:
+         case FIT_BASE_TYPE_UINT8:
+         case FIT_BASE_TYPE_UINT8Z:
++        {
++            // Make sure floating point representations trunc to the expected integer
++            const FIT_FLOAT64 roundedValue = (recalculatedValue >= 0.0) ? (recalculatedValue + 0.5) : (recalculatedValue - 0.5);
+             SetUINT8Value((FIT_UINT8) roundedValue, fieldArrayIndex);
+             break;
++        }
+ 
+         case FIT_BASE_TYPE_SINT16:
+         case FIT_BASE_TYPE_UINT16:
+         case FIT_BASE_TYPE_UINT16Z:
++        {
++            const FIT_FLOAT64 roundedValue = (recalculatedValue >= 0.0) ? (recalculatedValue + 0.5) : (recalculatedValue - 0.5);
+             SetUINT16Value((FIT_UINT16) roundedValue, fieldArrayIndex);
+             break;
++        }
+ 
+         case FIT_BASE_TYPE_SINT32:
+         case FIT_BASE_TYPE_UINT32:
+         case FIT_BASE_TYPE_UINT32Z:
++        {
++            const FIT_FLOAT64 roundedValue = (recalculatedValue >= 0.0) ? (recalculatedValue + 0.5) : (recalculatedValue - 0.5);
+             SetUINT32Value((FIT_UINT32) roundedValue, fieldArrayIndex);
+             break;
++        }
+ 
+         case FIT_BASE_TYPE_SINT64:
+         case FIT_BASE_TYPE_UINT64:
+         case FIT_BASE_TYPE_UINT64Z:
++        {
++            const FIT_FLOAT64 roundedValue = (recalculatedValue >= 0.0) ? (recalculatedValue + 0.5) : (recalculatedValue - 0.5);
+             SetUINT64Value((FIT_UINT64) roundedValue, fieldArrayIndex);
+             break;
++        }
+ 
+         case FIT_BASE_TYPE_FLOAT32:
+         {
+@@ -939,17 +951,15 @@
+         }
+ 
+         case FIT_BASE_TYPE_FLOAT64:
++        {
+             if ((FIT_UINT8)values.size() < ((fieldArrayIndex + 1) * sizeof(FIT_FLOAT64)))
+             {
+                 values.resize((fieldArrayIndex + 1) * sizeof(FIT_FLOAT64));
+             }
+ 
+-            for (size_t i = 0; i < sizeof(FIT_FLOAT64); i++)
+-            {
+-                values[(fieldArrayIndex * sizeof(FIT_FLOAT64)) + i] = *(((FIT_BYTE *)&recalculatedValue) + i);
+-            }
+-
++            memcpy(&values[fieldArrayIndex * sizeof(FIT_FLOAT64)], &recalculatedValue, sizeof(FIT_FLOAT64));
+             break;
++        }
+ 
+         default:
+             break;

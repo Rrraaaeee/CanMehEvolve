@@ -1,0 +1,17 @@
+The body is already minimal, and I can't see `CanSupportSubField`, `AddField`, or `Field::SetBYTEValue`. Skipping the subfield check or the field lookup could change behavior, so this version keeps the same call sequence and only restructures the early exits.
+
+```cpp
+void Mesg::SetFieldBYTEValue(const FIT_UINT8 fieldNum, const FIT_BYTE value, const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex)
+{
+    if (!CanSupportSubField(fieldNum, subFieldIndex))
+        return;
+
+    Field *field = AddField(fieldNum);
+    if (field == FIT_NULL)
+        return;
+
+    field->SetBYTEValue(value, fieldArrayIndex);
+}
+```
+
+The gain from this change is small, since the compiler at -O2 already generates essentially the same code. A substantial speedup would require changing `AddField` (for example, a direct index lookup instead of a linear search) or `CanSupportSubField`, and those functions aren't in the provided source.

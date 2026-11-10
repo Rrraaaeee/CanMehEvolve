@@ -1,0 +1,20 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_ant_rx_mesg.hpp",
+    "label": "AntRxMesg",
+    "region": 706,
+    "samples": 0
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_session_mesg.hpp",
+    "label": "SetTimestamp",
+    "region": 3971,
+    "samples": 0
+  }
+]

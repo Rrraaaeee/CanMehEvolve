@@ -1,0 +1,12 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -231,7 +231,8 @@
+ 
+ FIT_UINT64Z FieldBase::GetUINT64ZValue(const FIT_UINT8 fieldArrayIndex) const
+ {
+-    return GetValue<FIT_SINT64>(fieldArrayIndex);
++    const FIT_SINT64 v = GetValue<FIT_SINT64>(fieldArrayIndex);
++    return static_cast<FIT_UINT64Z>(v);
+ }
+ 
+ FIT_FLOAT32 FieldBase::GetFLOAT32Value(const FIT_UINT8 fieldArrayIndex, const FIT_UINT16 subFieldIndex) const

@@ -1,0 +1,24 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -826,15 +826,15 @@
+ 
+ void FieldBase::SetUINT16Value(const FIT_UINT16 value, const FIT_UINT8 fieldArrayIndex)
+ {
+-    if ((FIT_UINT8)values.size() < ((fieldArrayIndex + 1) * sizeof(FIT_UINT16)))
++    const size_t required = (fieldArrayIndex + 1) * sizeof(FIT_UINT16);
++    if ((FIT_UINT8)values.size() < required)
+     {
+-        values.resize((fieldArrayIndex + 1) * sizeof(FIT_UINT16));
++        values.resize(required);
+     }
+ 
+-    for (size_t i = 0; i < sizeof(FIT_UINT16); i++)
+-    {
+-        values[(fieldArrayIndex * sizeof(FIT_UINT16)) + i] = ((FIT_BYTE)(value >> (8 * i)));
+-    }
++    FIT_BYTE* p = values.data() + (fieldArrayIndex * sizeof(FIT_UINT16));
++    p[0] = (FIT_BYTE)(value);
++    p[1] = (FIT_BYTE)(value >> 8);
+ }
+ 
+ void FieldBase::SetUINT16ZValue(const FIT_UINT16Z value, const FIT_UINT8 fieldArrayIndex)

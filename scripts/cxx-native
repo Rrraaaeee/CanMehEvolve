@@ -1,0 +1,4 @@
+#!/bin/sh
+# CanMehHarness passes --opt as one argument, so "-O3 -march=native" cannot go
+# through it. This wrapper adds the second flag for control C1.
+exec c++ -march=native "$@"

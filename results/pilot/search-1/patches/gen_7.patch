@@ -1,0 +1,32 @@
+--- a/src/fit_field_base.cpp
++++ b/src/fit_field_base.cpp
+@@ -514,8 +514,10 @@
+ 
+ FIT_UINT16 FieldBase::GetSubField(const std::string& subFieldName) const
+ {
++    const std::size_t wantedSize = subFieldName.size();
+     for (FIT_UINT16 i = 0; i < this->GetNumSubFields(); i++) {
+-        if ( this->GetSubField(i)->name.compare(subFieldName) == 0)
++        const std::string& name = this->GetSubField(i)->name;
++        if (name.size() == wantedSize && name == subFieldName)
+             return i;
+     }
+ 
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -29,9 +29,13 @@
+ Mesg::Mesg(const Mesg &mesg)
+     : profile(mesg.profile)
+     , localNum(mesg.localNum)
+-    , fields(mesg.fields)
+-    , devFields(mesg.devFields)
++    , fields()
++    , devFields()
+ {
++    if (!mesg.fields.empty())
++        fields.assign(mesg.fields.begin(), mesg.fields.end());
++    if (!mesg.devFields.empty())
++        devFields.assign(mesg.devFields.begin(), mesg.devFields.end());
+ }
+ 
+ Mesg::Mesg(const Profile::MESG_INDEX index)
