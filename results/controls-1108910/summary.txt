@@ -1,0 +1,12 @@
+baselines (milliseconds describe this node only)
+  O2            358.503 ms   null clean   null ratio 1.0000
+  O3-native     323.487 ms   null clean   null ratio 1.0001
+  O3            329.510 ms   null clean   null ratio 0.9964
+
+kind   name         trials faster unstable    ratio  speedup   lowest  highest
+c1     O3                3      3        0   0.9170    9.05%    8.90%    9.43%
+c1     O3-native         3      3        0   0.9030   10.74%   10.59%   10.92%
+patch  getmesg           3      3        0   0.9219    8.47%    8.29%    8.49%
+patch  copyctor          3      3        0   0.9443    5.90%    5.83%    5.91%
+patch  both              3      3        0   0.8902   12.33%   12.00%   12.33%
+patch  search-3          3      3        0   0.8606   16.20%   15.99%   16.57%
