@@ -1,0 +1,176 @@
+[
+  {
+    "pair": "null",
+    "true_ratio": 1.0,
+    "trials": 30,
+    "measured": 30,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.11570330822202779
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": -0.0009767516243522234,
+    "median_ratio": 0.9994227624807966,
+    "mean_bias": -0.0008156520232995401,
+    "median_bias": -0.0005772375192033552,
+    "largest_absolute_error": 0.008149428405766601,
+    "median_spread": 0.03287799462494523,
+    "unstable_trials": 0,
+    "load_range": [
+      0.86,
+      1.06
+    ],
+    "lag1_median_of_trial_medians": -0.07426256716350714,
+    "lag1_process_range": [
+      -0.8252369113222677,
+      0.6568750893752765
+    ]
+  },
+  {
+    "pair": "faster-1-percent",
+    "true_ratio": 0.99005,
+    "trials": 10,
+    "measured": 10,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.3084971078187606
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": 0.00032247366744176943,
+    "median_ratio": 0.991696420888675,
+    "mean_bias": 0.0014952224644551482,
+    "median_bias": 0.0016464208886750598,
+    "largest_absolute_error": 0.008861468753841861,
+    "median_spread": 0.032145459491299044,
+    "unstable_trials": 0,
+    "load_range": [
+      0.85,
+      1.03
+    ],
+    "lag1_median_of_trial_medians": -0.16771131406229975,
+    "lag1_process_range": [
+      -0.8837106585922098,
+      0.6486276995728305
+    ]
+  },
+  {
+    "pair": "faster-2-percent",
+    "true_ratio": 0.98035,
+    "trials": 10,
+    "measured": 10,
+    "called_faster": 2,
+    "rate": 0.2,
+    "rate_ci95": [
+      0.025210726326833383,
+      0.5560954623076413
+    ],
+    "called_faster_single_measurement": 4,
+    "mean_bias_first_measurement": -0.00021166469633936423,
+    "median_ratio": 0.9810172905355925,
+    "mean_bias": 0.0009627851257017373,
+    "median_bias": 0.0006672905355924463,
+    "largest_absolute_error": 0.0039261641851368045,
+    "median_spread": 0.03303548816995794,
+    "unstable_trials": 0,
+    "load_range": [
+      0.91,
+      1.05
+    ],
+    "lag1_median_of_trial_medians": -0.11208350481923154,
+    "lag1_process_range": [
+      -0.8568399943483594,
+      0.6690565180552234
+    ]
+  },
+  {
+    "pair": "faster-5-percent",
+    "true_ratio": 0.95235,
+    "trials": 10,
+    "measured": 10,
+    "called_faster": 10,
+    "rate": 1.0,
+    "rate_ci95": [
+      0.6915028921812392,
+      1.0
+    ],
+    "called_faster_single_measurement": 10,
+    "mean_bias_first_measurement": -0.0004929462587161093,
+    "median_ratio": 0.9561723782399021,
+    "mean_bias": 0.0027048136565893666,
+    "median_bias": 0.003822378239902058,
+    "largest_absolute_error": 0.006295550398026872,
+    "median_spread": 0.030955146368212616,
+    "unstable_trials": 0,
+    "load_range": [
+      0.9,
+      1.1
+    ],
+    "lag1_median_of_trial_medians": -0.11263332445675986,
+    "lag1_process_range": [
+      -0.8729126520802638,
+      0.726805265220901
+    ]
+  },
+  {
+    "pair": "faster-10-percent",
+    "true_ratio": 0.90905,
+    "trials": 10,
+    "measured": 10,
+    "called_faster": 10,
+    "rate": 1.0,
+    "rate_ci95": [
+      0.6915028921812392,
+      1.0
+    ],
+    "called_faster_single_measurement": 10,
+    "mean_bias_first_measurement": -0.0008434189486141164,
+    "median_ratio": 0.9102313709255926,
+    "mean_bias": 0.001307957197847609,
+    "median_bias": 0.001181370925592562,
+    "largest_absolute_error": 0.007484544339983135,
+    "median_spread": 0.0260875305853695,
+    "unstable_trials": 0,
+    "load_range": [
+      0.88,
+      1.0
+    ],
+    "lag1_median_of_trial_medians": -0.12931238586757432,
+    "lag1_process_range": [
+      -0.9301985070705717,
+      0.6430728346123317
+    ]
+  },
+  {
+    "pair": "slower-10-percent",
+    "true_ratio": 1.1,
+    "trials": 10,
+    "measured": 10,
+    "called_faster": 0,
+    "rate": 0.0,
+    "rate_ci95": [
+      0.0,
+      0.3084971078187606
+    ],
+    "called_faster_single_measurement": 0,
+    "mean_bias_first_measurement": -0.0010681127758297216,
+    "median_ratio": 1.1004795757169583,
+    "mean_bias": -0.0010681127758297216,
+    "median_bias": 0.0004795757169582249,
+    "largest_absolute_error": 0.010437700737191413,
+    "median_spread": 0.03209119176625497,
+    "unstable_trials": 0,
+    "load_range": [
+      0.92,
+      1.0
+    ],
+    "lag1_median_of_trial_medians": -0.11287741284920419,
+    "lag1_process_range": [
+      -0.83194821853077,
+      0.48360496396057345
+    ]
+  }
+]

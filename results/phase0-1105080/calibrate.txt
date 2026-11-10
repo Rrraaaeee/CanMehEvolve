@@ -1,0 +1,24 @@
+measuring 12 calibration pairs under /home/q/qingxuan/CanMehSolve/build/calibration
+at --repetitions 9 --repeat 10
+
+  pair                 reference  candidate      true   measured    error  spread  what CanMehBench did
+  broken-digest             20000      18181    0.9091                           refused at stage correctness
+  faster-1-percent          20000      19801    0.9900     0.9874   -0.27%   0.021  reported
+  faster-10-percent         20000      18181    0.9091     0.9049   -0.46%   0.068  reported
+  faster-2-percent          20000      19607    0.9804     0.9836    0.33%   0.024  reported
+  faster-5-percent          20000      19047    0.9524     0.9570    0.49%   0.030  reported
+  null                      20000      20000    1.0000     0.9951   -0.49%   0.024  holds
+  shared-install-name       20000      18181    0.9091                           refused at stage load
+  slower-10-percent         20000      22000    1.1000     1.1063    0.58%   0.041  reported
+  sweep-105                 20000      21000    1.0500     1.0434   -0.63%   0.029  reported
+  sweep-110                 20000      22000    1.1000     1.1058    0.53%   0.028  reported
+  sweep-200                 20000      40000    2.0000     2.0014    0.07%   0.043  holds
+  sweep-400                 20000      80000    4.0000     4.0477    1.19%   0.059  holds
+
+wrote /home/q/qingxuan/CanMehSolve/build/calibration/calibration.json
+measuring every pair again at these settings takes about 110.5 s
+CanMehBench refused every pair CMake built it to refuse, and the
+measured ratio of every pair with a required ratio came within its
+margin of the quotient of that pair's compiled work counts, so at
+these settings that quotient predicts the measured ratio
+CanMehCalibrate exit status: 0

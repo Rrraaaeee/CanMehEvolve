@@ -1,0 +1,12 @@
+host: xcnc4
+slurm job: 1105080
+Model name:                              Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+logical cpus: 24
+c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+commit: c2c4bfaad8763f7ab3b39e26a2abec899712453c
+src/Search.cpp sha256: 53d426f8f0ed7fe692c17434280c49b90a993ef59dbb517a93e921a90ac9035c
+repeat: 10, repetitions: 9, rounds: 30
+started: 2026-11-10T02:32:02Z
+the reference library read 907007 bytes and decoded 34251 messages, 428714 fields, checksum 92bebfd7f8978fc8
+null run: clean
+finished: 2026-11-10T03:18:10Z
