@@ -1,0 +1,20 @@
+[
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_mesg.cpp",
+    "label": "Mesg::GetFieldByIndex",
+    "region": 233,
+    "samples": 43
+  },
+  {
+    "accepted": 0,
+    "attempts": 1,
+    "best_gain": 0.0,
+    "file": "src/fit_field_description_mesg.hpp",
+    "label": "GetFitBaseTypeId",
+    "region": 1864,
+    "samples": 7
+  }
+]

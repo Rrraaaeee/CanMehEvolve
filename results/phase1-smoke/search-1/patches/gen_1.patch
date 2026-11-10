@@ -1,0 +1,13 @@
+--- a/src/fit_field_description_mesg.hpp
++++ b/src/fit_field_description_mesg.hpp
+@@ -131,7 +131,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+     {
+-        return GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        constexpr FIT_UINT8 kFieldNum = 2;
++        constexpr FIT_UINT8 kIndex = 0;
++        return GetFieldUINT8Value(kFieldNum, kIndex, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////

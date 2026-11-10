@@ -1,0 +1,27 @@
+--- a/src/fit_field_description_mesg.hpp
++++ b/src/fit_field_description_mesg.hpp
+@@ -131,7 +131,9 @@
+     ///////////////////////////////////////////////////////////////////////
+     FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+     {
+-        return GetFieldUINT8Value(2, 0, FIT_SUBFIELD_INDEX_MAIN_FIELD);
++        constexpr FIT_UINT8 kFieldNum = 2;
++        constexpr FIT_UINT8 kIndex = 0;
++        return GetFieldUINT8Value(kFieldNum, kIndex, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+     }
+ 
+     ///////////////////////////////////////////////////////////////////////
+--- a/src/fit_mesg.cpp
++++ b/src/fit_mesg.cpp
+@@ -242,8 +242,9 @@
+ 
+ Field* Mesg::GetFieldByIndex(const FIT_UINT16 index)
+ {
+-    if (index < fields.size())
+-        return &fields[index];
++    const size_t i = static_cast<size_t>(index);
++    if (i < fields.size())
++        return fields.data() + i;
+ 
+     return FIT_NULL;
+ }

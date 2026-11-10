@@ -1,0 +1,7 @@
+null run: ratio 1.0007, p 0.871094, baseline 358.357 ms
+5514 of 5514 regions are drawable
+profile: perf took 19955 samples, 6922 inside a region, 1953 in the tree outside every region
+gen 1: ratio 0.999573 p 0.222656
+gen 2: ratio 1.00016 p 0.453125
+best confirmed speedup 1 after 2 calls and 2355 tokens (nothing confirmed; best.patch is empty)
+exit status: 0

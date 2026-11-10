@@ -1,0 +1,13 @@
+The function is already a single forwarding call with constant arguments. The real cost is inside `GetFieldUINT8Value`, which isn't in the provided code, so I can't safely optimize further without seeing it. This version keeps the same call and behavior and only hoists the constants into named `constexpr` values.
+
+```cpp
+    FIT_FIT_BASE_TYPE GetFitBaseTypeId(void) const
+    {
+        constexpr FIT_UINT8 kFieldNum = 2;
+        constexpr FIT_UINT8 kIndex = 0;
+        return GetFieldUINT8Value(kFieldNum, kIndex, FIT_SUBFIELD_INDEX_MAIN_FIELD);
+    }
+```
+
+```includes
+```
